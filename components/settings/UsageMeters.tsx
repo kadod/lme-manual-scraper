@@ -2,7 +2,7 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Progress } from '@/components/ui/progress'
-import { AlertTriangleIcon } from '@heroicons/react/24/outline'
+import { ExclamationTriangleIcon } from '@heroicons/react/24/outline'
 
 interface UsageMeter {
   label: string
@@ -114,7 +114,7 @@ export function UsageMeters({ usage, limits }: UsageMetersProps) {
                 <div className="flex items-center gap-2">
                   <span className="text-sm font-medium">{meter.label}</span>
                   {meter.warning && (
-                    <AlertTriangleIcon className="h-4 w-4 text-orange-500" />
+                    <ExclamationTriangleIcon className="h-4 w-4 text-orange-500" />
                   )}
                 </div>
                 <span className="text-sm text-gray-600">
