@@ -465,6 +465,217 @@ export interface Database {
           }
         ]
       }
+      reservation_types: {
+        Row: {
+          id: string
+          user_id: string
+          name: string
+          description: string | null
+          duration_minutes: number
+          buffer_minutes: number
+          status: 'active' | 'inactive'
+          settings: Json
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          name: string
+          description?: string | null
+          duration_minutes?: number
+          buffer_minutes?: number
+          status?: 'active' | 'inactive'
+          settings?: Json
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          name?: string
+          description?: string | null
+          duration_minutes?: number
+          buffer_minutes?: number
+          status?: 'active' | 'inactive'
+          settings?: Json
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reservation_types_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      available_slots: {
+        Row: {
+          id: string
+          reservation_type_id: string
+          start_time: string
+          end_time: string
+          capacity: number
+          booked_count: number
+          status: 'available' | 'unavailable'
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          reservation_type_id: string
+          start_time: string
+          end_time: string
+          capacity?: number
+          booked_count?: number
+          status?: 'available' | 'unavailable'
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          reservation_type_id?: string
+          start_time?: string
+          end_time?: string
+          capacity?: number
+          booked_count?: number
+          status?: 'available' | 'unavailable'
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "available_slots_reservation_type_id_fkey"
+            columns: ["reservation_type_id"]
+            isOneToOne: false
+            referencedRelation: "reservation_types"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      reservations: {
+        Row: {
+          id: string
+          reservation_type_id: string
+          slot_id: string
+          friend_id: string | null
+          customer_name: string
+          customer_email: string
+          customer_phone: string | null
+          customer_memo: string | null
+          status: 'confirmed' | 'cancelled' | 'completed' | 'no_show'
+          line_user_id: string | null
+          created_at: string
+          updated_at: string
+          cancelled_at: string | null
+          completed_at: string | null
+        }
+        Insert: {
+          id?: string
+          reservation_type_id: string
+          slot_id: string
+          friend_id?: string | null
+          customer_name: string
+          customer_email: string
+          customer_phone?: string | null
+          customer_memo?: string | null
+          status?: 'confirmed' | 'cancelled' | 'completed' | 'no_show'
+          line_user_id?: string | null
+          created_at?: string
+          updated_at?: string
+          cancelled_at?: string | null
+          completed_at?: string | null
+        }
+        Update: {
+          id?: string
+          reservation_type_id?: string
+          slot_id?: string
+          friend_id?: string | null
+          customer_name?: string
+          customer_email?: string
+          customer_phone?: string | null
+          customer_memo?: string | null
+          status?: 'confirmed' | 'cancelled' | 'completed' | 'no_show'
+          line_user_id?: string | null
+          created_at?: string
+          updated_at?: string
+          cancelled_at?: string | null
+          completed_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reservations_reservation_type_id_fkey"
+            columns: ["reservation_type_id"]
+            isOneToOne: false
+            referencedRelation: "reservation_types"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reservations_slot_id_fkey"
+            columns: ["slot_id"]
+            isOneToOne: false
+            referencedRelation: "available_slots"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reservations_friend_id_fkey"
+            columns: ["friend_id"]
+            isOneToOne: false
+            referencedRelation: "friends"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      reservation_settings: {
+        Row: {
+          id: string
+          user_id: string
+          business_hours: Json
+          blocked_dates: string[]
+          advance_booking_days: number
+          cancellation_hours: number
+          auto_confirm: boolean
+          notification_settings: Json
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          business_hours?: Json
+          blocked_dates?: string[]
+          advance_booking_days?: number
+          cancellation_hours?: number
+          auto_confirm?: boolean
+          notification_settings?: Json
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          business_hours?: Json
+          blocked_dates?: string[]
+          advance_booking_days?: number
+          cancellation_hours?: number
+          auto_confirm?: boolean
+          notification_settings?: Json
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reservation_settings_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
     }
     Views: {
       [_ in never]: never

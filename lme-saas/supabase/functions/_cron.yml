@@ -5,3 +5,7 @@ functions:
   - name: process-step-campaigns
     schedule: "*/1 * * * *" # Every 1 minute
     description: Process step campaign logs and send scheduled messages
+
+  - name: send-reservation-reminders
+    schedule: "0 * * * *" # Every hour at minute 0
+    description: Send LINE reminder messages for upcoming reservations
