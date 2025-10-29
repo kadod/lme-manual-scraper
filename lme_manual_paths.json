@@ -1,0 +1,1760 @@
+{
+  "total_pages": 193,
+  "all_paths": [
+    {
+      "url": "https://lme.jp/manual/",
+      "path": "/manual/",
+      "depth": 0
+    },
+    {
+      "url": "https://lme.jp/manual/category/promotion/",
+      "path": "/manual/category/promotion/",
+      "depth": 1
+    },
+    {
+      "url": "https://lme.jp/manual/category/system_contract/",
+      "path": "/manual/category/system_contract/",
+      "depth": 1
+    },
+    {
+      "url": "https://lme.jp/manual/category/customer_service/auto_answer/",
+      "path": "/manual/category/customer_service/auto_answer/",
+      "depth": 1
+    },
+    {
+      "url": "https://lme.jp/manual/category/information/",
+      "path": "/manual/category/information/",
+      "depth": 1
+    },
+    {
+      "url": "https://lme.jp/manual/category/analysis/cross/",
+      "path": "/manual/category/analysis/cross/",
+      "depth": 1
+    },
+    {
+      "url": "https://lme.jp/manual/category/analysis/",
+      "path": "/manual/category/analysis/",
+      "depth": 1
+    },
+    {
+      "url": "https://lme.jp/manual/category/message/message_delivery/",
+      "path": "/manual/category/message/message_delivery/",
+      "depth": 1
+    },
+    {
+      "url": "https://lme.jp/manual/category/message/greeting/",
+      "path": "/manual/category/message/greeting/",
+      "depth": 1
+    },
+    {
+      "url": "https://lme.jp/manual/category/message/",
+      "path": "/manual/category/message/",
+      "depth": 1
+    },
+    {
+      "url": "https://lme.jp/manual/help/",
+      "path": "/manual/help/",
+      "depth": 1
+    },
+    {
+      "url": "https://lme.jp/manual/category/reserve/event/",
+      "path": "/manual/category/reserve/event/",
+      "depth": 1
+    },
+    {
+      "url": "https://lme.jp/manual/interview-bestway/",
+      "path": "/manual/interview-bestway/",
+      "depth": 1
+    },
+    {
+      "url": "https://lme.jp/manual/interview-namakemono/",
+      "path": "/manual/interview-namakemono/",
+      "depth": 1
+    },
+    {
+      "url": "https://lme.jp/manual/interview-morinoyoko/",
+      "path": "/manual/interview-morinoyoko/",
+      "depth": 1
+    },
+    {
+      "url": "https://lme.jp/manual/certified_course-interview3/",
+      "path": "/manual/certified_course-interview3/",
+      "depth": 1
+    },
+    {
+      "url": "https://lme.jp/manual/category/management/",
+      "path": "/manual/category/management/",
+      "depth": 1
+    },
+    {
+      "url": "https://lme.jp/manual/2025_9update/",
+      "path": "/manual/2025_9update/",
+      "depth": 1
+    },
+    {
+      "url": "https://lme.jp/manual/category/paid/",
+      "path": "/manual/category/paid/",
+      "depth": 1
+    },
+    {
+      "url": "https://lme.jp/manual/category/other_system/staff/",
+      "path": "/manual/category/other_system/staff/",
+      "depth": 1
+    },
+    {
+      "url": "https://lme.jp/manual/interview-kotarojyuku/",
+      "path": "/manual/interview-kotarojyuku/",
+      "depth": 1
+    },
+    {
+      "url": "https://lme.jp/manual/category/customer_service/1on1/",
+      "path": "/manual/category/customer_service/1on1/",
+      "depth": 1
+    },
+    {
+      "url": "https://lme.jp/manual/category/loa/",
+      "path": "/manual/category/loa/",
+      "depth": 1
+    },
+    {
+      "url": "https://lme.jp/manual/category/introduction_example/",
+      "path": "/manual/category/introduction_example/",
+      "depth": 1
+    },
+    {
+      "url": "https://lme.jp/manual/category/management/friends_information_management/",
+      "path": "/manual/category/management/friends_information_management/",
+      "depth": 1
+    },
+    {
+      "url": "https://lme.jp/manual/category/customer_service/form/",
+      "path": "/manual/category/customer_service/form/",
+      "depth": 1
+    },
+    {
+      "url": "https://lme.jp/manual/category/message/template/",
+      "path": "/manual/category/message/template/",
+      "depth": 1
+    },
+    {
+      "url": "https://lme.jp/manual/category/management/inflow/",
+      "path": "/manual/category/management/inflow/",
+      "depth": 1
+    },
+    {
+      "url": "https://lme.jp/manual/category/promotion/settlement/",
+      "path": "/manual/category/promotion/settlement/",
+      "depth": 1
+    },
+    {
+      "url": "https://lme.jp/manual/category/customer_service/customer_support/",
+      "path": "/manual/category/customer_service/customer_support/",
+      "depth": 1
+    },
+    {
+      "url": "https://lme.jp/manual/category/management/tag/",
+      "path": "/manual/category/management/tag/",
+      "depth": 1
+    },
+    {
+      "url": "https://lme.jp/manual/certified_course-interview1/",
+      "path": "/manual/certified_course-interview1/",
+      "depth": 1
+    },
+    {
+      "url": "https://lme.jp/manual/category/other_system/system/",
+      "path": "/manual/category/other_system/system/",
+      "depth": 1
+    },
+    {
+      "url": "https://lme.jp/manual/category/reserve/",
+      "path": "/manual/category/reserve/",
+      "depth": 1
+    },
+    {
+      "url": "https://lme.jp/manual/category/analysis/conversion/",
+      "path": "/manual/category/analysis/conversion/",
+      "depth": 1
+    },
+    {
+      "url": "https://lme.jp/manual/interview-melhoria/",
+      "path": "/manual/interview-melhoria/",
+      "depth": 1
+    },
+    {
+      "url": "https://lme.jp/manual/category/system_contract/lmessage/",
+      "path": "/manual/category/system_contract/lmessage/",
+      "depth": 1
+    },
+    {
+      "url": "https://lme.jp/manual/category/system_contract/paid_plan/",
+      "path": "/manual/category/system_contract/paid_plan/",
+      "depth": 1
+    },
+    {
+      "url": "https://lme.jp/manual/category/other_system/",
+      "path": "/manual/category/other_system/",
+      "depth": 1
+    },
+    {
+      "url": "https://lme.jp/manual/category/promotion/pop_up/",
+      "path": "/manual/category/promotion/pop_up/",
+      "depth": 1
+    },
+    {
+      "url": "https://lme.jp/manual/interview-hamayaku/",
+      "path": "/manual/interview-hamayaku/",
+      "depth": 1
+    },
+    {
+      "url": "https://lme.jp/manual/category/paid/action_schedule/",
+      "path": "/manual/category/paid/action_schedule/",
+      "depth": 1
+    },
+    {
+      "url": "https://lme.jp/manual/category/reserve/lesson/",
+      "path": "/manual/category/reserve/lesson/",
+      "depth": 1
+    },
+    {
+      "url": "https://lme.jp/manual/category/message/message_relation/",
+      "path": "/manual/category/message/message_relation/",
+      "depth": 1
+    },
+    {
+      "url": "https://lme.jp/manual/category/system_contract/%e6%96%b0%e8%a6%8f%e6%8e%a5%e7%b6%9a/",
+      "path": "/manual/category/system_contract/%e6%96%b0%e8%a6%8f%e6%8e%a5%e7%b6%9a/",
+      "depth": 1
+    },
+    {
+      "url": "https://lme.jp/manual/2025_7update/",
+      "path": "/manual/2025_7update/",
+      "depth": 1
+    },
+    {
+      "url": "https://lme.jp/manual/category/customer_service/rich_menu/",
+      "path": "/manual/category/customer_service/rich_menu/",
+      "depth": 1
+    },
+    {
+      "url": "https://lme.jp/manual/category/customer_service/smartphone_apps/",
+      "path": "/manual/category/customer_service/smartphone_apps/",
+      "depth": 1
+    },
+    {
+      "url": "https://lme.jp/manual/category/reserve/remind/",
+      "path": "/manual/category/reserve/remind/",
+      "depth": 1
+    },
+    {
+      "url": "https://lme.jp/manual/up3ds/",
+      "path": "/manual/up3ds/",
+      "depth": 1
+    },
+    {
+      "url": "https://lme.jp/manual/contact/",
+      "path": "/manual/contact/",
+      "depth": 1
+    },
+    {
+      "url": "https://lme.jp/manual/category/paid/asp/",
+      "path": "/manual/category/paid/asp/",
+      "depth": 1
+    },
+    {
+      "url": "https://lme.jp/manual/category/paid/loa_change/",
+      "path": "/manual/category/paid/loa_change/",
+      "depth": 1
+    },
+    {
+      "url": "https://lme.jp/manual/category/reserve/salon/",
+      "path": "/manual/category/reserve/salon/",
+      "depth": 1
+    },
+    {
+      "url": "https://lme.jp/manual/category/reserve/reserve_relation/",
+      "path": "/manual/category/reserve/reserve_relation/",
+      "depth": 1
+    },
+    {
+      "url": "https://lme.jp/manual/tutorial/",
+      "path": "/manual/tutorial/",
+      "depth": 1
+    },
+    {
+      "url": "https://lme.jp/manual/category/analysis/csv/",
+      "path": "/manual/category/analysis/csv/",
+      "depth": 1
+    },
+    {
+      "url": "https://lme.jp/manual/category/paid/data_copy/",
+      "path": "/manual/category/paid/data_copy/",
+      "depth": 1
+    },
+    {
+      "url": "https://lme.jp/manual/category/management/friends_list/",
+      "path": "/manual/category/management/friends_list/",
+      "depth": 1
+    },
+    {
+      "url": "https://lme.jp/manual/https-lme-jp-manual-interview-littlestarsacademy/",
+      "path": "/manual/https-lme-jp-manual-interview-littlestarsacademy/",
+      "depth": 1
+    },
+    {
+      "url": "https://lme.jp/manual/learn-video/",
+      "path": "/manual/learn-video/",
+      "depth": 1
+    },
+    {
+      "url": "https://lme.jp/manual/category/message/step/",
+      "path": "/manual/category/message/step/",
+      "depth": 1
+    },
+    {
+      "url": "https://lme.jp/manual/category/analysis/url/",
+      "path": "/manual/category/analysis/url/",
+      "depth": 1
+    },
+    {
+      "url": "https://lme.jp/manual/interview-arakiaiko/",
+      "path": "/manual/interview-arakiaiko/",
+      "depth": 1
+    },
+    {
+      "url": "https://lme.jp/manual/category/customer_service/",
+      "path": "/manual/category/customer_service/",
+      "depth": 1
+    },
+    {
+      "url": "https://lme.jp/manual/product_payment_faq/",
+      "path": "/manual/product_payment_faq/",
+      "depth": 2
+    },
+    {
+      "url": "https://lme.jp/manual/stripe/",
+      "path": "/manual/stripe/",
+      "depth": 2
+    },
+    {
+      "url": "https://lme.jp/manual/pop_up/",
+      "path": "/manual/pop_up/",
+      "depth": 2
+    },
+    {
+      "url": "https://lme.jp/manual/univapay_connection/",
+      "path": "/manual/univapay_connection/",
+      "depth": 2
+    },
+    {
+      "url": "https://lme.jp/manual/productsales_settlement/",
+      "path": "/manual/productsales_settlement/",
+      "depth": 2
+    },
+    {
+      "url": "https://lme.jp/manual/can_not_login/",
+      "path": "/manual/can_not_login/",
+      "depth": 2
+    },
+    {
+      "url": "https://lme.jp/manual/delivery-count/",
+      "path": "/manual/delivery-count/",
+      "depth": 2
+    },
+    {
+      "url": "https://lme.jp/manual/two-factor-authentication-setup/",
+      "path": "/manual/two-factor-authentication-setup/",
+      "depth": 2
+    },
+    {
+      "url": "https://lme.jp/manual/user_settting/",
+      "path": "/manual/user_settting/",
+      "depth": 2
+    },
+    {
+      "url": "https://lme.jp/manual/how_to_cancel/",
+      "path": "/manual/how_to_cancel/",
+      "depth": 2
+    },
+    {
+      "url": "https://lme.jp/manual/cancellation/",
+      "path": "/manual/cancellation/",
+      "depth": 2
+    },
+    {
+      "url": "https://lme.jp/manual/payment/",
+      "path": "/manual/payment/",
+      "depth": 2
+    },
+    {
+      "url": "https://lme.jp/manual/login/",
+      "path": "/manual/login/",
+      "depth": 2
+    },
+    {
+      "url": "https://lme.jp/manual/auto_message/",
+      "path": "/manual/auto_message/",
+      "depth": 2
+    },
+    {
+      "url": "https://lme.jp/manual/messages/",
+      "path": "/manual/messages/",
+      "depth": 2
+    },
+    {
+      "url": "https://lme.jp/manual/automatic_reply/",
+      "path": "/manual/automatic_reply/",
+      "depth": 2
+    },
+    {
+      "url": "https://lme.jp/manual/2025_3update/",
+      "path": "/manual/2025_3update/",
+      "depth": 2
+    },
+    {
+      "url": "https://lme.jp/manual/2025_5update/",
+      "path": "/manual/2025_5update/",
+      "depth": 2
+    },
+    {
+      "url": "https://lme.jp/manual/250228-2/",
+      "path": "/manual/250228-2/",
+      "depth": 2
+    },
+    {
+      "url": "https://lme.jp/manual/250407-2/",
+      "path": "/manual/250407-2/",
+      "depth": 2
+    },
+    {
+      "url": "https://lme.jp/manual/form0326ud/",
+      "path": "/manual/form0326ud/",
+      "depth": 2
+    },
+    {
+      "url": "https://lme.jp/manual/250305e/",
+      "path": "/manual/250305e/",
+      "depth": 2
+    },
+    {
+      "url": "https://lme.jp/manual/250305c/",
+      "path": "/manual/250305c/",
+      "depth": 2
+    },
+    {
+      "url": "https://lme.jp/manual/cross_analysis/",
+      "path": "/manual/cross_analysis/",
+      "depth": 2
+    },
+    {
+      "url": "https://lme.jp/manual/csv_management/",
+      "path": "/manual/csv_management/",
+      "depth": 2
+    },
+    {
+      "url": "https://lme.jp/manual/system_data_migration/",
+      "path": "/manual/system_data_migration/",
+      "depth": 2
+    },
+    {
+      "url": "https://lme.jp/manual/url_analysis/",
+      "path": "/manual/url_analysis/",
+      "depth": 2
+    },
+    {
+      "url": "https://lme.jp/manual/conversion/",
+      "path": "/manual/conversion/",
+      "depth": 2
+    },
+    {
+      "url": "https://lme.jp/manual/present_first_come_plan/",
+      "path": "/manual/present_first_come_plan/",
+      "depth": 2
+    },
+    {
+      "url": "https://lme.jp/manual/birthday_message_delivery/",
+      "path": "/manual/birthday_message_delivery/",
+      "depth": 2
+    },
+    {
+      "url": "https://lme.jp/manual/url_without_conversion/",
+      "path": "/manual/url_without_conversion/",
+      "depth": 2
+    },
+    {
+      "url": "https://lme.jp/manual/message_delivery/",
+      "path": "/manual/message_delivery/",
+      "depth": 2
+    },
+    {
+      "url": "https://lme.jp/manual/message_faq/",
+      "path": "/manual/message_faq/",
+      "depth": 2
+    },
+    {
+      "url": "https://lme.jp/manual/howto_send_tagged_users/",
+      "path": "/manual/howto_send_tagged_users/",
+      "depth": 2
+    },
+    {
+      "url": "https://lme.jp/manual/greetings/",
+      "path": "/manual/greetings/",
+      "depth": 2
+    },
+    {
+      "url": "https://lme.jp/manual/add_existing_friends/",
+      "path": "/manual/add_existing_friends/",
+      "depth": 2
+    },
+    {
+      "url": "https://lme.jp/manual/step_faq/",
+      "path": "/manual/step_faq/",
+      "depth": 2
+    },
+    {
+      "url": "https://lme.jp/manual/step_delivery/",
+      "path": "/manual/step_delivery/",
+      "depth": 2
+    },
+    {
+      "url": "https://lme.jp/manual/how-to-test-step-delivery/",
+      "path": "/manual/how-to-test-step-delivery/",
+      "depth": 2
+    },
+    {
+      "url": "https://lme.jp/manual/case_cannot_delivery/",
+      "path": "/manual/case_cannot_delivery/",
+      "depth": 2
+    },
+    {
+      "url": "https://lme.jp/manual/cancel_sent_message/",
+      "path": "/manual/cancel_sent_message/",
+      "depth": 2
+    },
+    {
+      "url": "https://lme.jp/manual/rich_message/",
+      "path": "/manual/rich_message/",
+      "depth": 2
+    },
+    {
+      "url": "https://lme.jp/manual/template_faq/",
+      "path": "/manual/template_faq/",
+      "depth": 2
+    },
+    {
+      "url": "https://lme.jp/manual/question_button/",
+      "path": "/manual/question_button/",
+      "depth": 2
+    },
+    {
+      "url": "https://lme.jp/manual/step_start/",
+      "path": "/manual/step_start/",
+      "depth": 2
+    },
+    {
+      "url": "https://lme.jp/manual/test_delivery/",
+      "path": "/manual/test_delivery/",
+      "depth": 2
+    },
+    {
+      "url": "https://lme.jp/manual/templete/",
+      "path": "/manual/templete/",
+      "depth": 2
+    },
+    {
+      "url": "https://lme.jp/manual/url_setting/",
+      "path": "/manual/url_setting/",
+      "depth": 2
+    },
+    {
+      "url": "https://lme.jp/manual/questionnaire/",
+      "path": "/manual/questionnaire/",
+      "depth": 2
+    },
+    {
+      "url": "https://lme.jp/manual/application/",
+      "path": "/manual/application/",
+      "depth": 2
+    },
+    {
+      "url": "https://lme.jp/manual/purpose_faq",
+      "path": "/manual/purpose_faq",
+      "depth": 2
+    },
+    {
+      "url": "https://lme.jp/manual/gmo-commerce/",
+      "path": "/manual/gmo-commerce/",
+      "depth": 2
+    },
+    {
+      "url": "https://lme.jp/manual/purpose_faq/",
+      "path": "/manual/purpose_faq/",
+      "depth": 2
+    },
+    {
+      "url": "https://lme.jp/manual/register/",
+      "path": "/manual/register/",
+      "depth": 2
+    },
+    {
+      "url": "https://lme.jp/manual/event/",
+      "path": "/manual/event/",
+      "depth": 2
+    },
+    {
+      "url": "https://lme.jp/manual/reservation_type/",
+      "path": "/manual/reservation_type/",
+      "depth": 2
+    },
+    {
+      "url": "https://lme.jp/manual/remind-delivery/",
+      "path": "/manual/remind-delivery/",
+      "depth": 2
+    },
+    {
+      "url": "https://lme.jp/manual/form/",
+      "path": "/manual/form/",
+      "depth": 2
+    },
+    {
+      "url": "https://lme.jp/manual/tag/",
+      "path": "/manual/tag/",
+      "depth": 2
+    },
+    {
+      "url": "https://lme.jp/manual/interview_recruitment/",
+      "path": "/manual/interview_recruitment/",
+      "depth": 2
+    },
+    {
+      "url": "https://lme.jp/manual/asp/",
+      "path": "/manual/asp/",
+      "depth": 2
+    },
+    {
+      "url": "https://lme.jp/manual/richmenu_image_creation/",
+      "path": "/manual/richmenu_image_creation/",
+      "depth": 2
+    },
+    {
+      "url": "https://lme.jp/manual/l-message_form_responsive_discern/",
+      "path": "/manual/l-message_form_responsive_discern/",
+      "depth": 2
+    },
+    {
+      "url": "https://lme.jp/manual/parameter_import/",
+      "path": "/manual/parameter_import/",
+      "depth": 2
+    },
+    {
+      "url": "https://lme.jp/manual/custom_logo_add_friend/",
+      "path": "/manual/custom_logo_add_friend/",
+      "depth": 2
+    },
+    {
+      "url": "https://lme.jp/manual/friend_list/",
+      "path": "/manual/friend_list/",
+      "depth": 2
+    },
+    {
+      "url": "https://lme.jp/manual/sns_first_message/",
+      "path": "/manual/sns_first_message/",
+      "depth": 2
+    },
+    {
+      "url": "https://lme.jp/manual/qr_cod_eaction_change_to_newfriends/",
+      "path": "/manual/qr_cod_eaction_change_to_newfriends/",
+      "depth": 2
+    },
+    {
+      "url": "https://lme.jp/manual/friends_referral_campaign/",
+      "path": "/manual/friends_referral_campaign/",
+      "depth": 2
+    },
+    {
+      "url": "https://lme.jp/manual/lucky-draw/",
+      "path": "/manual/lucky-draw/",
+      "depth": 2
+    },
+    {
+      "url": "https://lme.jp/manual/inflow_route/",
+      "path": "/manual/inflow_route/",
+      "depth": 2
+    },
+    {
+      "url": "https://lme.jp/manual/pointcard/",
+      "path": "/manual/pointcard/",
+      "depth": 2
+    },
+    {
+      "url": "https://lme.jp/manual/friend_info_management/",
+      "path": "/manual/friend_info_management/",
+      "depth": 2
+    },
+    {
+      "url": "https://lme.jp/manual/category/information/upadate/",
+      "path": "/manual/category/information/upadate/",
+      "depth": 2
+    },
+    {
+      "url": "https://lme.jp/manual/loa_replacement/",
+      "path": "/manual/loa_replacement/",
+      "depth": 2
+    },
+    {
+      "url": "https://lme.jp/manual/data_copy/",
+      "path": "/manual/data_copy/",
+      "depth": 2
+    },
+    {
+      "url": "https://lme.jp/manual/asp_faq/",
+      "path": "/manual/asp_faq/",
+      "depth": 2
+    },
+    {
+      "url": "https://lme.jp/manual/affiliate_center/",
+      "path": "/manual/affiliate_center/",
+      "depth": 2
+    },
+    {
+      "url": "https://lme.jp/manual/action_schedule/",
+      "path": "/manual/action_schedule/",
+      "depth": 2
+    },
+    {
+      "url": "https://lme.jp/manual/staff/",
+      "path": "/manual/staff/",
+      "depth": 2
+    },
+    {
+      "url": "https://lme.jp/manual/rich_menu/",
+      "path": "/manual/rich_menu/",
+      "depth": 2
+    },
+    {
+      "url": "https://lme.jp/manual/11chat_faq/",
+      "path": "/manual/11chat_faq/",
+      "depth": 2
+    },
+    {
+      "url": "https://lme.jp/manual/chat-reply-schedule/",
+      "path": "/manual/chat-reply-schedule/",
+      "depth": 2
+    },
+    {
+      "url": "https://lme.jp/manual/chat/",
+      "path": "/manual/chat/",
+      "depth": 2
+    },
+    {
+      "url": "https://lme.jp/manual/line_call/",
+      "path": "/manual/line_call/",
+      "depth": 2
+    },
+    {
+      "url": "https://lme.jp/manual/liff_change_the_authentication_screen/",
+      "path": "/manual/liff_change_the_authentication_screen/",
+      "depth": 2
+    },
+    {
+      "url": "https://lme.jp/manual/liff_how_to_redisplay/",
+      "path": "/manual/liff_how_to_redisplay/",
+      "depth": 2
+    },
+    {
+      "url": "https://lme.jp/manual/coupon-installation/",
+      "path": "/manual/coupon-installation/",
+      "depth": 2
+    },
+    {
+      "url": "https://lme.jp/manual/shopcard-installation/",
+      "path": "/manual/shopcard-installation/",
+      "depth": 2
+    },
+    {
+      "url": "https://lme.jp/manual/category/introduction_example/page/2/",
+      "path": "/manual/category/introduction_example/page/2/",
+      "depth": 2
+    },
+    {
+      "url": "https://lme.jp/manual/interview-ppconnect/",
+      "path": "/manual/interview-ppconnect/",
+      "depth": 2
+    },
+    {
+      "url": "https://lme.jp/manual/form-test-content/",
+      "path": "/manual/form-test-content/",
+      "depth": 2
+    },
+    {
+      "url": "https://lme.jp/manual/form-richmenu/",
+      "path": "/manual/form-richmenu/",
+      "depth": 2
+    },
+    {
+      "url": "https://lme.jp/manual/form_message_answer/",
+      "path": "/manual/form_message_answer/",
+      "depth": 2
+    },
+    {
+      "url": "https://lme.jp/manual/remind_questionnaire/",
+      "path": "/manual/remind_questionnaire/",
+      "depth": 2
+    },
+    {
+      "url": "https://lme.jp/manual/spreadsheet_recovery/",
+      "path": "/manual/spreadsheet_recovery/",
+      "depth": 2
+    },
+    {
+      "url": "https://lme.jp/manual/form_faq/",
+      "path": "/manual/form_faq/",
+      "depth": 2
+    },
+    {
+      "url": "https://lme.jp/manual/notification/",
+      "path": "/manual/notification/",
+      "depth": 2
+    },
+    {
+      "url": "https://lme.jp/manual/no_notification/",
+      "path": "/manual/no_notification/",
+      "depth": 2
+    },
+    {
+      "url": "https://lme.jp/manual/customer_service_faq/",
+      "path": "/manual/customer_service_faq/",
+      "depth": 2
+    },
+    {
+      "url": "https://lme.jp/manual/transfer/",
+      "path": "/manual/transfer/",
+      "depth": 2
+    },
+    {
+      "url": "https://lme.jp/manual/address_change/",
+      "path": "/manual/address_change/",
+      "depth": 2
+    },
+    {
+      "url": "https://lme.jp/manual/url_update/",
+      "path": "/manual/url_update/",
+      "depth": 2
+    },
+    {
+      "url": "https://lme.jp/manual/lmeaction_friendaction/",
+      "path": "/manual/lmeaction_friendaction/",
+      "depth": 2
+    },
+    {
+      "url": "https://lme.jp/manual/account_choice/",
+      "path": "/manual/account_choice/",
+      "depth": 2
+    },
+    {
+      "url": "https://lme.jp/manual/question/",
+      "path": "/manual/question/",
+      "depth": 2
+    },
+    {
+      "url": "https://lme.jp/manual/get_email/",
+      "path": "/manual/get_email/",
+      "depth": 2
+    },
+    {
+      "url": "https://lme.jp/manual/error/",
+      "path": "/manual/error/",
+      "depth": 2
+    },
+    {
+      "url": "https://lme.jp/manual/lesson-reservations-reservation-limit-settings/",
+      "path": "/manual/lesson-reservations-reservation-limit-settings/",
+      "depth": 2
+    },
+    {
+      "url": "https://lme.jp/manual/edit-lesson-reservation-slots/",
+      "path": "/manual/edit-lesson-reservation-slots/",
+      "depth": 2
+    },
+    {
+      "url": "https://lme.jp/manual/reservation_input/",
+      "path": "/manual/reservation_input/",
+      "depth": 2
+    },
+    {
+      "url": "https://lme.jp/manual/salon-shift-editing/",
+      "path": "/manual/salon-shift-editing/",
+      "depth": 2
+    },
+    {
+      "url": "https://lme.jp/manual/salon/",
+      "path": "/manual/salon/",
+      "depth": 2
+    },
+    {
+      "url": "https://lme.jp/manual/can_not_resarvation/",
+      "path": "/manual/can_not_resarvation/",
+      "depth": 2
+    },
+    {
+      "url": "https://lme.jp/manual/remind_faq/",
+      "path": "/manual/remind_faq/",
+      "depth": 2
+    },
+    {
+      "url": "https://lme.jp/manual/start_of_lesson_booking/",
+      "path": "/manual/start_of_lesson_booking/",
+      "depth": 2
+    },
+    {
+      "url": "https://lme.jp/manual/automatic_sending_of_lesson_reservations/",
+      "path": "/manual/automatic_sending_of_lesson_reservations/",
+      "depth": 2
+    },
+    {
+      "url": "https://lme.jp/manual/salon-reservation-shift-deletion/",
+      "path": "/manual/salon-reservation-shift-deletion/",
+      "depth": 2
+    },
+    {
+      "url": "https://lme.jp/manual/salon_deadline/",
+      "path": "/manual/salon_deadline/",
+      "depth": 2
+    },
+    {
+      "url": "https://lme.jp/manual/salon_reservation_limit/",
+      "path": "/manual/salon_reservation_limit/",
+      "depth": 2
+    },
+    {
+      "url": "https://lme.jp/manual/can_not_lesson_reservation/",
+      "path": "/manual/can_not_lesson_reservation/",
+      "depth": 2
+    },
+    {
+      "url": "https://lme.jp/manual/salon_reservation_details/",
+      "path": "/manual/salon_reservation_details/",
+      "depth": 2
+    },
+    {
+      "url": "https://lme.jp/manual/lesson-reservation-slot-deletion/",
+      "path": "/manual/lesson-reservation-slot-deletion/",
+      "depth": 2
+    },
+    {
+      "url": "https://lme.jp/manual/lesson/",
+      "path": "/manual/lesson/",
+      "depth": 2
+    },
+    {
+      "url": "https://lme.jp/manual/info_management_faq/",
+      "path": "/manual/info_management_faq/",
+      "depth": 2
+    },
+    {
+      "url": "https://lme.jp/manual/rich_menu_display/",
+      "path": "/manual/rich_menu_display/",
+      "depth": 2
+    },
+    {
+      "url": "https://lme.jp/manual/univapay2025/",
+      "path": "/manual/univapay2025/",
+      "depth": 2
+    },
+    {
+      "url": "https://lme.jp/manual/category/information/operation/",
+      "path": "/manual/category/information/operation/",
+      "depth": 2
+    }
+  ],
+  "categorized": {
+    "トップページ": [
+      {
+        "url": "https://lme.jp/manual/",
+        "path": "/manual/"
+      }
+    ],
+    "カテゴリページ": [
+      {
+        "url": "https://lme.jp/manual/category/promotion/",
+        "path": "/manual/category/promotion/"
+      },
+      {
+        "url": "https://lme.jp/manual/category/system_contract/",
+        "path": "/manual/category/system_contract/"
+      },
+      {
+        "url": "https://lme.jp/manual/category/customer_service/auto_answer/",
+        "path": "/manual/category/customer_service/auto_answer/"
+      },
+      {
+        "url": "https://lme.jp/manual/category/information/",
+        "path": "/manual/category/information/"
+      },
+      {
+        "url": "https://lme.jp/manual/category/analysis/cross/",
+        "path": "/manual/category/analysis/cross/"
+      },
+      {
+        "url": "https://lme.jp/manual/category/analysis/",
+        "path": "/manual/category/analysis/"
+      },
+      {
+        "url": "https://lme.jp/manual/category/message/message_delivery/",
+        "path": "/manual/category/message/message_delivery/"
+      },
+      {
+        "url": "https://lme.jp/manual/category/message/greeting/",
+        "path": "/manual/category/message/greeting/"
+      },
+      {
+        "url": "https://lme.jp/manual/category/message/",
+        "path": "/manual/category/message/"
+      },
+      {
+        "url": "https://lme.jp/manual/category/reserve/event/",
+        "path": "/manual/category/reserve/event/"
+      },
+      {
+        "url": "https://lme.jp/manual/category/management/",
+        "path": "/manual/category/management/"
+      },
+      {
+        "url": "https://lme.jp/manual/category/paid/",
+        "path": "/manual/category/paid/"
+      },
+      {
+        "url": "https://lme.jp/manual/category/other_system/staff/",
+        "path": "/manual/category/other_system/staff/"
+      },
+      {
+        "url": "https://lme.jp/manual/category/customer_service/1on1/",
+        "path": "/manual/category/customer_service/1on1/"
+      },
+      {
+        "url": "https://lme.jp/manual/category/loa/",
+        "path": "/manual/category/loa/"
+      },
+      {
+        "url": "https://lme.jp/manual/category/introduction_example/",
+        "path": "/manual/category/introduction_example/"
+      },
+      {
+        "url": "https://lme.jp/manual/category/management/friends_information_management/",
+        "path": "/manual/category/management/friends_information_management/"
+      },
+      {
+        "url": "https://lme.jp/manual/category/customer_service/form/",
+        "path": "/manual/category/customer_service/form/"
+      },
+      {
+        "url": "https://lme.jp/manual/category/message/template/",
+        "path": "/manual/category/message/template/"
+      },
+      {
+        "url": "https://lme.jp/manual/category/management/inflow/",
+        "path": "/manual/category/management/inflow/"
+      },
+      {
+        "url": "https://lme.jp/manual/category/promotion/settlement/",
+        "path": "/manual/category/promotion/settlement/"
+      },
+      {
+        "url": "https://lme.jp/manual/category/customer_service/customer_support/",
+        "path": "/manual/category/customer_service/customer_support/"
+      },
+      {
+        "url": "https://lme.jp/manual/category/management/tag/",
+        "path": "/manual/category/management/tag/"
+      },
+      {
+        "url": "https://lme.jp/manual/category/other_system/system/",
+        "path": "/manual/category/other_system/system/"
+      },
+      {
+        "url": "https://lme.jp/manual/category/reserve/",
+        "path": "/manual/category/reserve/"
+      },
+      {
+        "url": "https://lme.jp/manual/category/analysis/conversion/",
+        "path": "/manual/category/analysis/conversion/"
+      },
+      {
+        "url": "https://lme.jp/manual/category/system_contract/lmessage/",
+        "path": "/manual/category/system_contract/lmessage/"
+      },
+      {
+        "url": "https://lme.jp/manual/category/system_contract/paid_plan/",
+        "path": "/manual/category/system_contract/paid_plan/"
+      },
+      {
+        "url": "https://lme.jp/manual/category/other_system/",
+        "path": "/manual/category/other_system/"
+      },
+      {
+        "url": "https://lme.jp/manual/category/promotion/pop_up/",
+        "path": "/manual/category/promotion/pop_up/"
+      },
+      {
+        "url": "https://lme.jp/manual/category/paid/action_schedule/",
+        "path": "/manual/category/paid/action_schedule/"
+      },
+      {
+        "url": "https://lme.jp/manual/category/reserve/lesson/",
+        "path": "/manual/category/reserve/lesson/"
+      },
+      {
+        "url": "https://lme.jp/manual/category/message/message_relation/",
+        "path": "/manual/category/message/message_relation/"
+      },
+      {
+        "url": "https://lme.jp/manual/category/system_contract/%e6%96%b0%e8%a6%8f%e6%8e%a5%e7%b6%9a/",
+        "path": "/manual/category/system_contract/%e6%96%b0%e8%a6%8f%e6%8e%a5%e7%b6%9a/"
+      },
+      {
+        "url": "https://lme.jp/manual/category/customer_service/rich_menu/",
+        "path": "/manual/category/customer_service/rich_menu/"
+      },
+      {
+        "url": "https://lme.jp/manual/category/customer_service/smartphone_apps/",
+        "path": "/manual/category/customer_service/smartphone_apps/"
+      },
+      {
+        "url": "https://lme.jp/manual/category/reserve/remind/",
+        "path": "/manual/category/reserve/remind/"
+      },
+      {
+        "url": "https://lme.jp/manual/category/paid/asp/",
+        "path": "/manual/category/paid/asp/"
+      },
+      {
+        "url": "https://lme.jp/manual/category/paid/loa_change/",
+        "path": "/manual/category/paid/loa_change/"
+      },
+      {
+        "url": "https://lme.jp/manual/category/reserve/salon/",
+        "path": "/manual/category/reserve/salon/"
+      },
+      {
+        "url": "https://lme.jp/manual/category/reserve/reserve_relation/",
+        "path": "/manual/category/reserve/reserve_relation/"
+      },
+      {
+        "url": "https://lme.jp/manual/category/analysis/csv/",
+        "path": "/manual/category/analysis/csv/"
+      },
+      {
+        "url": "https://lme.jp/manual/category/paid/data_copy/",
+        "path": "/manual/category/paid/data_copy/"
+      },
+      {
+        "url": "https://lme.jp/manual/category/management/friends_list/",
+        "path": "/manual/category/management/friends_list/"
+      },
+      {
+        "url": "https://lme.jp/manual/category/message/step/",
+        "path": "/manual/category/message/step/"
+      },
+      {
+        "url": "https://lme.jp/manual/category/analysis/url/",
+        "path": "/manual/category/analysis/url/"
+      },
+      {
+        "url": "https://lme.jp/manual/category/customer_service/",
+        "path": "/manual/category/customer_service/"
+      },
+      {
+        "url": "https://lme.jp/manual/category/information/upadate/",
+        "path": "/manual/category/information/upadate/"
+      },
+      {
+        "url": "https://lme.jp/manual/category/introduction_example/page/2/",
+        "path": "/manual/category/introduction_example/page/2/"
+      },
+      {
+        "url": "https://lme.jp/manual/category/information/operation/",
+        "path": "/manual/category/information/operation/"
+      }
+    ],
+    "記事・マニュアル": [
+      {
+        "url": "https://lme.jp/manual/help/",
+        "path": "/manual/help/"
+      },
+      {
+        "url": "https://lme.jp/manual/up3ds/",
+        "path": "/manual/up3ds/"
+      },
+      {
+        "url": "https://lme.jp/manual/product_payment_faq/",
+        "path": "/manual/product_payment_faq/"
+      },
+      {
+        "url": "https://lme.jp/manual/stripe/",
+        "path": "/manual/stripe/"
+      },
+      {
+        "url": "https://lme.jp/manual/pop_up/",
+        "path": "/manual/pop_up/"
+      },
+      {
+        "url": "https://lme.jp/manual/univapay_connection/",
+        "path": "/manual/univapay_connection/"
+      },
+      {
+        "url": "https://lme.jp/manual/productsales_settlement/",
+        "path": "/manual/productsales_settlement/"
+      },
+      {
+        "url": "https://lme.jp/manual/can_not_login/",
+        "path": "/manual/can_not_login/"
+      },
+      {
+        "url": "https://lme.jp/manual/delivery-count/",
+        "path": "/manual/delivery-count/"
+      },
+      {
+        "url": "https://lme.jp/manual/two-factor-authentication-setup/",
+        "path": "/manual/two-factor-authentication-setup/"
+      },
+      {
+        "url": "https://lme.jp/manual/user_settting/",
+        "path": "/manual/user_settting/"
+      },
+      {
+        "url": "https://lme.jp/manual/how_to_cancel/",
+        "path": "/manual/how_to_cancel/"
+      },
+      {
+        "url": "https://lme.jp/manual/cancellation/",
+        "path": "/manual/cancellation/"
+      },
+      {
+        "url": "https://lme.jp/manual/payment/",
+        "path": "/manual/payment/"
+      },
+      {
+        "url": "https://lme.jp/manual/login/",
+        "path": "/manual/login/"
+      },
+      {
+        "url": "https://lme.jp/manual/auto_message/",
+        "path": "/manual/auto_message/"
+      },
+      {
+        "url": "https://lme.jp/manual/messages/",
+        "path": "/manual/messages/"
+      },
+      {
+        "url": "https://lme.jp/manual/automatic_reply/",
+        "path": "/manual/automatic_reply/"
+      },
+      {
+        "url": "https://lme.jp/manual/250228-2/",
+        "path": "/manual/250228-2/"
+      },
+      {
+        "url": "https://lme.jp/manual/250407-2/",
+        "path": "/manual/250407-2/"
+      },
+      {
+        "url": "https://lme.jp/manual/form0326ud/",
+        "path": "/manual/form0326ud/"
+      },
+      {
+        "url": "https://lme.jp/manual/250305e/",
+        "path": "/manual/250305e/"
+      },
+      {
+        "url": "https://lme.jp/manual/250305c/",
+        "path": "/manual/250305c/"
+      },
+      {
+        "url": "https://lme.jp/manual/cross_analysis/",
+        "path": "/manual/cross_analysis/"
+      },
+      {
+        "url": "https://lme.jp/manual/csv_management/",
+        "path": "/manual/csv_management/"
+      },
+      {
+        "url": "https://lme.jp/manual/system_data_migration/",
+        "path": "/manual/system_data_migration/"
+      },
+      {
+        "url": "https://lme.jp/manual/url_analysis/",
+        "path": "/manual/url_analysis/"
+      },
+      {
+        "url": "https://lme.jp/manual/conversion/",
+        "path": "/manual/conversion/"
+      },
+      {
+        "url": "https://lme.jp/manual/present_first_come_plan/",
+        "path": "/manual/present_first_come_plan/"
+      },
+      {
+        "url": "https://lme.jp/manual/birthday_message_delivery/",
+        "path": "/manual/birthday_message_delivery/"
+      },
+      {
+        "url": "https://lme.jp/manual/url_without_conversion/",
+        "path": "/manual/url_without_conversion/"
+      },
+      {
+        "url": "https://lme.jp/manual/message_delivery/",
+        "path": "/manual/message_delivery/"
+      },
+      {
+        "url": "https://lme.jp/manual/message_faq/",
+        "path": "/manual/message_faq/"
+      },
+      {
+        "url": "https://lme.jp/manual/howto_send_tagged_users/",
+        "path": "/manual/howto_send_tagged_users/"
+      },
+      {
+        "url": "https://lme.jp/manual/greetings/",
+        "path": "/manual/greetings/"
+      },
+      {
+        "url": "https://lme.jp/manual/add_existing_friends/",
+        "path": "/manual/add_existing_friends/"
+      },
+      {
+        "url": "https://lme.jp/manual/step_faq/",
+        "path": "/manual/step_faq/"
+      },
+      {
+        "url": "https://lme.jp/manual/step_delivery/",
+        "path": "/manual/step_delivery/"
+      },
+      {
+        "url": "https://lme.jp/manual/how-to-test-step-delivery/",
+        "path": "/manual/how-to-test-step-delivery/"
+      },
+      {
+        "url": "https://lme.jp/manual/case_cannot_delivery/",
+        "path": "/manual/case_cannot_delivery/"
+      },
+      {
+        "url": "https://lme.jp/manual/cancel_sent_message/",
+        "path": "/manual/cancel_sent_message/"
+      },
+      {
+        "url": "https://lme.jp/manual/rich_message/",
+        "path": "/manual/rich_message/"
+      },
+      {
+        "url": "https://lme.jp/manual/template_faq/",
+        "path": "/manual/template_faq/"
+      },
+      {
+        "url": "https://lme.jp/manual/question_button/",
+        "path": "/manual/question_button/"
+      },
+      {
+        "url": "https://lme.jp/manual/step_start/",
+        "path": "/manual/step_start/"
+      },
+      {
+        "url": "https://lme.jp/manual/test_delivery/",
+        "path": "/manual/test_delivery/"
+      },
+      {
+        "url": "https://lme.jp/manual/templete/",
+        "path": "/manual/templete/"
+      },
+      {
+        "url": "https://lme.jp/manual/url_setting/",
+        "path": "/manual/url_setting/"
+      },
+      {
+        "url": "https://lme.jp/manual/questionnaire/",
+        "path": "/manual/questionnaire/"
+      },
+      {
+        "url": "https://lme.jp/manual/application/",
+        "path": "/manual/application/"
+      },
+      {
+        "url": "https://lme.jp/manual/purpose_faq",
+        "path": "/manual/purpose_faq"
+      },
+      {
+        "url": "https://lme.jp/manual/gmo-commerce/",
+        "path": "/manual/gmo-commerce/"
+      },
+      {
+        "url": "https://lme.jp/manual/purpose_faq/",
+        "path": "/manual/purpose_faq/"
+      },
+      {
+        "url": "https://lme.jp/manual/register/",
+        "path": "/manual/register/"
+      },
+      {
+        "url": "https://lme.jp/manual/event/",
+        "path": "/manual/event/"
+      },
+      {
+        "url": "https://lme.jp/manual/reservation_type/",
+        "path": "/manual/reservation_type/"
+      },
+      {
+        "url": "https://lme.jp/manual/remind-delivery/",
+        "path": "/manual/remind-delivery/"
+      },
+      {
+        "url": "https://lme.jp/manual/form/",
+        "path": "/manual/form/"
+      },
+      {
+        "url": "https://lme.jp/manual/tag/",
+        "path": "/manual/tag/"
+      },
+      {
+        "url": "https://lme.jp/manual/asp/",
+        "path": "/manual/asp/"
+      },
+      {
+        "url": "https://lme.jp/manual/richmenu_image_creation/",
+        "path": "/manual/richmenu_image_creation/"
+      },
+      {
+        "url": "https://lme.jp/manual/l-message_form_responsive_discern/",
+        "path": "/manual/l-message_form_responsive_discern/"
+      },
+      {
+        "url": "https://lme.jp/manual/parameter_import/",
+        "path": "/manual/parameter_import/"
+      },
+      {
+        "url": "https://lme.jp/manual/custom_logo_add_friend/",
+        "path": "/manual/custom_logo_add_friend/"
+      },
+      {
+        "url": "https://lme.jp/manual/friend_list/",
+        "path": "/manual/friend_list/"
+      },
+      {
+        "url": "https://lme.jp/manual/sns_first_message/",
+        "path": "/manual/sns_first_message/"
+      },
+      {
+        "url": "https://lme.jp/manual/qr_cod_eaction_change_to_newfriends/",
+        "path": "/manual/qr_cod_eaction_change_to_newfriends/"
+      },
+      {
+        "url": "https://lme.jp/manual/friends_referral_campaign/",
+        "path": "/manual/friends_referral_campaign/"
+      },
+      {
+        "url": "https://lme.jp/manual/lucky-draw/",
+        "path": "/manual/lucky-draw/"
+      },
+      {
+        "url": "https://lme.jp/manual/inflow_route/",
+        "path": "/manual/inflow_route/"
+      },
+      {
+        "url": "https://lme.jp/manual/pointcard/",
+        "path": "/manual/pointcard/"
+      },
+      {
+        "url": "https://lme.jp/manual/friend_info_management/",
+        "path": "/manual/friend_info_management/"
+      },
+      {
+        "url": "https://lme.jp/manual/loa_replacement/",
+        "path": "/manual/loa_replacement/"
+      },
+      {
+        "url": "https://lme.jp/manual/data_copy/",
+        "path": "/manual/data_copy/"
+      },
+      {
+        "url": "https://lme.jp/manual/asp_faq/",
+        "path": "/manual/asp_faq/"
+      },
+      {
+        "url": "https://lme.jp/manual/affiliate_center/",
+        "path": "/manual/affiliate_center/"
+      },
+      {
+        "url": "https://lme.jp/manual/action_schedule/",
+        "path": "/manual/action_schedule/"
+      },
+      {
+        "url": "https://lme.jp/manual/staff/",
+        "path": "/manual/staff/"
+      },
+      {
+        "url": "https://lme.jp/manual/rich_menu/",
+        "path": "/manual/rich_menu/"
+      },
+      {
+        "url": "https://lme.jp/manual/11chat_faq/",
+        "path": "/manual/11chat_faq/"
+      },
+      {
+        "url": "https://lme.jp/manual/chat-reply-schedule/",
+        "path": "/manual/chat-reply-schedule/"
+      },
+      {
+        "url": "https://lme.jp/manual/chat/",
+        "path": "/manual/chat/"
+      },
+      {
+        "url": "https://lme.jp/manual/line_call/",
+        "path": "/manual/line_call/"
+      },
+      {
+        "url": "https://lme.jp/manual/liff_change_the_authentication_screen/",
+        "path": "/manual/liff_change_the_authentication_screen/"
+      },
+      {
+        "url": "https://lme.jp/manual/liff_how_to_redisplay/",
+        "path": "/manual/liff_how_to_redisplay/"
+      },
+      {
+        "url": "https://lme.jp/manual/coupon-installation/",
+        "path": "/manual/coupon-installation/"
+      },
+      {
+        "url": "https://lme.jp/manual/shopcard-installation/",
+        "path": "/manual/shopcard-installation/"
+      },
+      {
+        "url": "https://lme.jp/manual/form-test-content/",
+        "path": "/manual/form-test-content/"
+      },
+      {
+        "url": "https://lme.jp/manual/form-richmenu/",
+        "path": "/manual/form-richmenu/"
+      },
+      {
+        "url": "https://lme.jp/manual/form_message_answer/",
+        "path": "/manual/form_message_answer/"
+      },
+      {
+        "url": "https://lme.jp/manual/remind_questionnaire/",
+        "path": "/manual/remind_questionnaire/"
+      },
+      {
+        "url": "https://lme.jp/manual/spreadsheet_recovery/",
+        "path": "/manual/spreadsheet_recovery/"
+      },
+      {
+        "url": "https://lme.jp/manual/form_faq/",
+        "path": "/manual/form_faq/"
+      },
+      {
+        "url": "https://lme.jp/manual/notification/",
+        "path": "/manual/notification/"
+      },
+      {
+        "url": "https://lme.jp/manual/no_notification/",
+        "path": "/manual/no_notification/"
+      },
+      {
+        "url": "https://lme.jp/manual/customer_service_faq/",
+        "path": "/manual/customer_service_faq/"
+      },
+      {
+        "url": "https://lme.jp/manual/transfer/",
+        "path": "/manual/transfer/"
+      },
+      {
+        "url": "https://lme.jp/manual/address_change/",
+        "path": "/manual/address_change/"
+      },
+      {
+        "url": "https://lme.jp/manual/lmeaction_friendaction/",
+        "path": "/manual/lmeaction_friendaction/"
+      },
+      {
+        "url": "https://lme.jp/manual/account_choice/",
+        "path": "/manual/account_choice/"
+      },
+      {
+        "url": "https://lme.jp/manual/question/",
+        "path": "/manual/question/"
+      },
+      {
+        "url": "https://lme.jp/manual/get_email/",
+        "path": "/manual/get_email/"
+      },
+      {
+        "url": "https://lme.jp/manual/error/",
+        "path": "/manual/error/"
+      },
+      {
+        "url": "https://lme.jp/manual/lesson-reservations-reservation-limit-settings/",
+        "path": "/manual/lesson-reservations-reservation-limit-settings/"
+      },
+      {
+        "url": "https://lme.jp/manual/edit-lesson-reservation-slots/",
+        "path": "/manual/edit-lesson-reservation-slots/"
+      },
+      {
+        "url": "https://lme.jp/manual/reservation_input/",
+        "path": "/manual/reservation_input/"
+      },
+      {
+        "url": "https://lme.jp/manual/salon-shift-editing/",
+        "path": "/manual/salon-shift-editing/"
+      },
+      {
+        "url": "https://lme.jp/manual/salon/",
+        "path": "/manual/salon/"
+      },
+      {
+        "url": "https://lme.jp/manual/can_not_resarvation/",
+        "path": "/manual/can_not_resarvation/"
+      },
+      {
+        "url": "https://lme.jp/manual/remind_faq/",
+        "path": "/manual/remind_faq/"
+      },
+      {
+        "url": "https://lme.jp/manual/start_of_lesson_booking/",
+        "path": "/manual/start_of_lesson_booking/"
+      },
+      {
+        "url": "https://lme.jp/manual/automatic_sending_of_lesson_reservations/",
+        "path": "/manual/automatic_sending_of_lesson_reservations/"
+      },
+      {
+        "url": "https://lme.jp/manual/salon-reservation-shift-deletion/",
+        "path": "/manual/salon-reservation-shift-deletion/"
+      },
+      {
+        "url": "https://lme.jp/manual/salon_deadline/",
+        "path": "/manual/salon_deadline/"
+      },
+      {
+        "url": "https://lme.jp/manual/salon_reservation_limit/",
+        "path": "/manual/salon_reservation_limit/"
+      },
+      {
+        "url": "https://lme.jp/manual/can_not_lesson_reservation/",
+        "path": "/manual/can_not_lesson_reservation/"
+      },
+      {
+        "url": "https://lme.jp/manual/salon_reservation_details/",
+        "path": "/manual/salon_reservation_details/"
+      },
+      {
+        "url": "https://lme.jp/manual/lesson-reservation-slot-deletion/",
+        "path": "/manual/lesson-reservation-slot-deletion/"
+      },
+      {
+        "url": "https://lme.jp/manual/lesson/",
+        "path": "/manual/lesson/"
+      },
+      {
+        "url": "https://lme.jp/manual/info_management_faq/",
+        "path": "/manual/info_management_faq/"
+      },
+      {
+        "url": "https://lme.jp/manual/rich_menu_display/",
+        "path": "/manual/rich_menu_display/"
+      },
+      {
+        "url": "https://lme.jp/manual/univapay2025/",
+        "path": "/manual/univapay2025/"
+      }
+    ],
+    "導入事例": [
+      {
+        "url": "https://lme.jp/manual/interview-bestway/",
+        "path": "/manual/interview-bestway/"
+      },
+      {
+        "url": "https://lme.jp/manual/interview-namakemono/",
+        "path": "/manual/interview-namakemono/"
+      },
+      {
+        "url": "https://lme.jp/manual/interview-morinoyoko/",
+        "path": "/manual/interview-morinoyoko/"
+      },
+      {
+        "url": "https://lme.jp/manual/certified_course-interview3/",
+        "path": "/manual/certified_course-interview3/"
+      },
+      {
+        "url": "https://lme.jp/manual/interview-kotarojyuku/",
+        "path": "/manual/interview-kotarojyuku/"
+      },
+      {
+        "url": "https://lme.jp/manual/certified_course-interview1/",
+        "path": "/manual/certified_course-interview1/"
+      },
+      {
+        "url": "https://lme.jp/manual/interview-melhoria/",
+        "path": "/manual/interview-melhoria/"
+      },
+      {
+        "url": "https://lme.jp/manual/interview-hamayaku/",
+        "path": "/manual/interview-hamayaku/"
+      },
+      {
+        "url": "https://lme.jp/manual/https-lme-jp-manual-interview-littlestarsacademy/",
+        "path": "/manual/https-lme-jp-manual-interview-littlestarsacademy/"
+      },
+      {
+        "url": "https://lme.jp/manual/interview-arakiaiko/",
+        "path": "/manual/interview-arakiaiko/"
+      },
+      {
+        "url": "https://lme.jp/manual/interview_recruitment/",
+        "path": "/manual/interview_recruitment/"
+      },
+      {
+        "url": "https://lme.jp/manual/interview-ppconnect/",
+        "path": "/manual/interview-ppconnect/"
+      }
+    ],
+    "お知らせ・アップデート": [
+      {
+        "url": "https://lme.jp/manual/2025_9update/",
+        "path": "/manual/2025_9update/"
+      },
+      {
+        "url": "https://lme.jp/manual/2025_7update/",
+        "path": "/manual/2025_7update/"
+      },
+      {
+        "url": "https://lme.jp/manual/2025_3update/",
+        "path": "/manual/2025_3update/"
+      },
+      {
+        "url": "https://lme.jp/manual/2025_5update/",
+        "path": "/manual/2025_5update/"
+      },
+      {
+        "url": "https://lme.jp/manual/url_update/",
+        "path": "/manual/url_update/"
+      }
+    ],
+    "お問い合わせ": [
+      {
+        "url": "https://lme.jp/manual/contact/",
+        "path": "/manual/contact/"
+      }
+    ],
+    "チュートリアル": [
+      {
+        "url": "https://lme.jp/manual/tutorial/",
+        "path": "/manual/tutorial/"
+      }
+    ],
+    "動画学習": [
+      {
+        "url": "https://lme.jp/manual/learn-video/",
+        "path": "/manual/learn-video/"
+      }
+    ]
+  }
+}
