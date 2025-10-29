@@ -4,13 +4,13 @@
  * Handles both keyword-based responses and multi-step scenario conversations
  */
 
-import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
-import { matchKeyword } from './keyword-matcher.ts';
-import { processScenario } from './scenario-processor.ts';
-import { executeActions } from './action-executor.ts';
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { matchKeyword } from "./keyword-matcher.js";
+import { processScenario } from "./scenario-processor.js";
+import { executeActions } from "./action-executor.js";
 
-const LINE_API_BASE = 'https://api.line.me/v2/bot';
+const LINE_API_BASE = "https://api.line.me/v2/bot";
 
 interface ProcessAutoResponseRequest {
   friend_id: string;
@@ -35,9 +35,9 @@ async function sendLineMessage(
 ): Promise<boolean> {
   try {
     const response = await fetch(`${LINE_API_BASE}/message/push`, {
-      method: 'POST',
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
         Authorization: `Bearer ${accessToken}`,
       },
       body: JSON.stringify({
@@ -48,13 +48,13 @@ async function sendLineMessage(
 
     if (!response.ok) {
       const errorData = await response.json();
-      console.error('LINE API error:', errorData);
+      console.error("LINE API error:", errorData);
       return false;
     }
 
     return true;
   } catch (error) {
-    console.error('Error sending LINE message:', error);
+    console.error("Error sending LINE message:", error);
     return false;
   }
 }
@@ -77,7 +77,7 @@ async function logAutoResponse(
     error_message?: string;
   }
 ) {
-  await supabase.from('auto_response_logs').insert({
+  await supabase.from("auto_response_logs").insert({
     user_id: params.user_id,
     friend_id: params.friend_id,
     rule_id: params.rule_id,
@@ -103,18 +103,18 @@ async function processAutoResponse(
 
   // Get friend details with user_id
   const { data: friend, error: friendError } = await supabase
-    .from('friends')
-    .select('id, user_id, line_user_id')
-    .eq('id', friend_id)
+    .from("friends")
+    .select("id, user_id, line_user_id")
+    .eq("id", friend_id)
     .single();
 
   if (friendError || !friend) {
-    throw new Error('Friend not found');
+    throw new Error("Friend not found");
   }
 
   // Check for active conversation first
   const { data: activeConversation } = await supabase
-    .from('active_conversations')
+    .from("active_conversations")
     .select(
       `
       *,
@@ -127,8 +127,8 @@ async function processAutoResponse(
       )
     `
     )
-    .eq('friend_id', friend_id)
-    .eq('status', 'active')
+    .eq("friend_id", friend_id)
+    .eq("status", "active")
     .single();
 
   let responseMessage: LineMessage | null = null;
@@ -176,12 +176,12 @@ async function processAutoResponse(
 
         // Update rule statistics
         await supabase
-          .from('auto_response_rules')
+          .from("auto_response_rules")
           .update({
-            total_triggers: supabase.raw('total_triggers + 1'),
+            total_triggers: supabase.raw("total_triggers + 1"),
             last_triggered_at: new Date().toISOString(),
           })
-          .eq('id', matchResult.rule_id);
+          .eq("id", matchResult.rule_id);
       }
     }
 
@@ -194,7 +194,7 @@ async function processAutoResponse(
       );
 
       if (!sent) {
-        throw new Error('Failed to send LINE message');
+        throw new Error("Failed to send LINE message");
       }
 
       logParams.response_message = responseMessage;
@@ -202,7 +202,12 @@ async function processAutoResponse(
 
       // Execute post-response actions
       if (executedActions.length > 0) {
-        await executeActions(supabase, friend_id, friend.user_id, executedActions);
+        await executeActions(
+          supabase,
+          friend_id,
+          friend.user_id,
+          executedActions
+        );
       }
     }
 
@@ -218,7 +223,7 @@ async function processAutoResponse(
   } catch (error) {
     // Log error
     logParams.error_message =
-      error instanceof Error ? error.message : 'Unknown error';
+      error instanceof Error ? error.message : "Unknown error";
     await logAutoResponse(supabase, logParams);
 
     throw error;
@@ -228,8 +233,8 @@ async function processAutoResponse(
 serve(async (req) => {
   try {
     // Validate request method
-    if (req.method !== 'POST') {
-      return new Response('Method not allowed', { status: 405 });
+    if (req.method !== "POST") {
+      return new Response("Method not allowed", { status: 405 });
     }
 
     // Parse request body
@@ -238,24 +243,25 @@ serve(async (req) => {
     if (!body.friend_id || !body.message_text || !body.line_user_id) {
       return new Response(
         JSON.stringify({
-          error: 'Missing required fields: friend_id, message_text, line_user_id',
+          error:
+            "Missing required fields: friend_id, message_text, line_user_id",
         }),
-        { status: 400, headers: { 'Content-Type': 'application/json' } }
+        { status: 400, headers: { "Content-Type": "application/json" } }
       );
     }
 
     // Initialize Supabase client
     const supabase = createClient(
-      Deno.env.get('SUPABASE_URL')!,
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
 
     // Get LINE access token
-    const accessToken = Deno.env.get('LINE_CHANNEL_ACCESS_TOKEN');
+    const accessToken = Deno.env.get("LINE_CHANNEL_ACCESS_TOKEN");
     if (!accessToken) {
       return new Response(
-        JSON.stringify({ error: 'LINE credentials not configured' }),
-        { status: 500, headers: { 'Content-Type': 'application/json' } }
+        JSON.stringify({ error: "LINE credentials not configured" }),
+        { status: 500, headers: { "Content-Type": "application/json" } }
       );
     }
 
@@ -264,15 +270,15 @@ serve(async (req) => {
 
     return new Response(JSON.stringify(result), {
       status: 200,
-      headers: { 'Content-Type': 'application/json' },
+      headers: { "Content-Type": "application/json" },
     });
   } catch (error) {
-    console.error('Error processing auto-response:', error);
+    console.error("Error processing auto-response:", error);
     return new Response(
       JSON.stringify({
-        error: error instanceof Error ? error.message : 'Unknown error',
+        error: error instanceof Error ? error.message : "Unknown error",
       }),
-      { status: 500, headers: { 'Content-Type': 'application/json' } }
+      { status: 500, headers: { "Content-Type": "application/json" } }
     );
   }
 });

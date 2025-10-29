@@ -3,7 +3,7 @@
  * Constructs system prompts with friend context and conversation history
  */
 
-import { ChatMessage } from './openai-client.ts';
+import { ChatMessage } from "./openai-client.js";
 
 export interface FriendContext {
   id: string;
@@ -19,7 +19,7 @@ export interface AISettings {
 }
 
 export interface ConversationMessage {
-  role: 'user' | 'assistant';
+  role: "user" | "assistant";
   content: string;
   created_at: string;
 }
@@ -39,30 +39,32 @@ export function buildSystemPrompt(
     parts.push(settings.system_prompt);
   } else {
     parts.push(
-      `あなたは${userName || '当社'}のカスタマーサポートAIアシスタントです。`
+      `あなたは${userName || "当社"}のカスタマーサポートAIアシスタントです。`
     );
-    parts.push('丁寧で親しみやすい対応を心がけ、顧客の問題解決をサポートします。');
+    parts.push(
+      "丁寧で親しみやすい対応を心がけ、顧客の問題解決をサポートします。"
+    );
   }
 
   // Custom instructions
   if (settings.custom_instructions) {
-    parts.push('\n【追加指示】');
+    parts.push("\n【追加指示】");
     parts.push(settings.custom_instructions);
   }
 
   // Friend context
-  parts.push('\n【顧客情報】');
+  parts.push("\n【顧客情報】");
 
   if (friend.display_name) {
     parts.push(`名前: ${friend.display_name}`);
   }
 
   if (friend.tags && friend.tags.length > 0) {
-    parts.push(`タグ: ${friend.tags.join(', ')}`);
+    parts.push(`タグ: ${friend.tags.join(", ")}`);
   }
 
   if (friend.custom_fields && Object.keys(friend.custom_fields).length > 0) {
-    parts.push('\nカスタムフィールド:');
+    parts.push("\nカスタムフィールド:");
     for (const [key, value] of Object.entries(friend.custom_fields)) {
       if (value !== null && value !== undefined) {
         parts.push(`- ${key}: ${value}`);
@@ -78,15 +80,15 @@ export function buildSystemPrompt(
     );
 
     if (daysSince === 0) {
-      parts.push('最終やり取り: 本日');
+      parts.push("最終やり取り: 本日");
     } else if (daysSince === 1) {
-      parts.push('最終やり取り: 昨日');
+      parts.push("最終やり取り: 昨日");
     } else {
       parts.push(`最終やり取り: ${daysSince}日前`);
     }
   }
 
-  return parts.join('\n');
+  return parts.join("\n");
 }
 
 /**
@@ -99,7 +101,7 @@ export function buildMessages(
 ): ChatMessage[] {
   const messages: ChatMessage[] = [
     {
-      role: 'system',
+      role: "system",
       content: systemPrompt,
     },
   ];
@@ -118,7 +120,7 @@ export function buildMessages(
 
   // Add current user message
   messages.push({
-    role: 'user',
+    role: "user",
     content: currentMessage,
   });
 
@@ -130,9 +132,9 @@ export function buildMessages(
  */
 export function formatTags(tags: string[]): string {
   if (!tags || tags.length === 0) {
-    return 'なし';
+    return "なし";
   }
-  return tags.join(', ');
+  return tags.join(", ");
 }
 
 /**
@@ -140,7 +142,7 @@ export function formatTags(tags: string[]): string {
  */
 export function formatCustomFields(fields: Record<string, any>): string {
   if (!fields || Object.keys(fields).length === 0) {
-    return 'なし';
+    return "なし";
   }
 
   const formatted: string[] = [];
@@ -150,7 +152,7 @@ export function formatCustomFields(fields: Record<string, any>): string {
     }
   }
 
-  return formatted.join(', ');
+  return formatted.join(", ");
 }
 
 /**
@@ -194,19 +196,16 @@ export function sanitizeMessage(message: string): string {
   // Remove email addresses (basic pattern)
   sanitized = sanitized.replace(
     /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g,
-    '[メールアドレス]'
+    "[メールアドレス]"
   );
 
   // Remove phone numbers (Japanese format)
-  sanitized = sanitized.replace(
-    /0\d{1,4}-?\d{1,4}-?\d{4}/g,
-    '[電話番号]'
-  );
+  sanitized = sanitized.replace(/0\d{1,4}-?\d{1,4}-?\d{4}/g, "[電話番号]");
 
   // Remove credit card numbers (basic pattern)
   sanitized = sanitized.replace(
     /\d{4}[-\s]?\d{4}[-\s]?\d{4}[-\s]?\d{4}/g,
-    '[カード番号]'
+    "[カード番号]"
   );
 
   return sanitized;

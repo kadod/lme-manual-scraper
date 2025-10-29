@@ -1,0 +1,4 @@
+[01:27:03.271] Server  ERROR   Error: ENOENT: no such file or directory, scandir '/Users/kadotani/Documents/開発プロジェクト/GitHub/lme-manual-scraper/lme-saas/app'
+[01:27:03.286] Server  ERROR    ⨯ "unhandledRejection:" Error: ENOENT: no such file or directory, scandir '/Users/kadotani/Documents/開発プロジェクト/GitHub/lme-manual-scraper/lme-saas/app'
+[01:27:03.294] Server  ERROR    ⨯ "unhandledRejection: " Error: ENOENT: no such file or directory, scandir '/Users/kadotani/Documents/開発プロジェクト/GitHub/lme-manual-scraper/lme-saas/app'
+[01:27:04.621] Server  LOG      ✓ Compiled in 1040ms

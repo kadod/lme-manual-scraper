@@ -14,13 +14,9 @@
  * - Fallback responses for errors/timeouts
  */
 
-import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
-import {
-  OpenAIClient,
-  OpenAIConfig,
-  estimateTokens,
-} from './openai-client.ts';
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { OpenAIClient, OpenAIConfig, estimateTokens } from "./openai-client.js";
 import {
   buildSystemPrompt,
   buildMessages,
@@ -28,12 +24,12 @@ import {
   FriendContext,
   AISettings,
   ConversationMessage,
-} from './prompt-builder.ts';
+} from "./prompt-builder.js";
 import {
   validateResponse,
   formatForLineMessage,
   isAppropriateResponse,
-} from './response-validator.ts';
+} from "./response-validator.js";
 
 interface RequestBody {
   friend_id: string;
@@ -58,38 +54,35 @@ interface AIResponseResult {
 serve(async (req) => {
   // CORS headers
   const corsHeaders = {
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Methods': 'POST, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+    "Access-Control-Allow-Origin": "*",
+    "Access-Control-Allow-Methods": "POST, OPTIONS",
+    "Access-Control-Allow-Headers": "Content-Type, Authorization",
   };
 
   // Handle CORS preflight
-  if (req.method === 'OPTIONS') {
+  if (req.method === "OPTIONS") {
     return new Response(null, {
       status: 204,
       headers: corsHeaders,
     });
   }
 
-  if (req.method !== 'POST') {
-    return new Response(
-      JSON.stringify({ error: 'Method not allowed' }),
-      {
-        status: 405,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      }
-    );
+  if (req.method !== "POST") {
+    return new Response(JSON.stringify({ error: "Method not allowed" }), {
+      status: 405,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
   }
 
   const startTime = Date.now();
 
   try {
-    console.log('Processing AI response request...');
+    console.log("Processing AI response request...");
 
     // Initialize Supabase client with service role
     const supabase = createClient(
-      Deno.env.get('SUPABASE_URL')!,
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
 
     // Parse request body
@@ -98,11 +91,11 @@ serve(async (req) => {
     if (!requestBody.friend_id || !requestBody.message_text) {
       return new Response(
         JSON.stringify({
-          error: 'Missing required fields: friend_id, message_text',
+          error: "Missing required fields: friend_id, message_text",
         }),
         {
           status: 400,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
         }
       );
     }
@@ -111,86 +104,84 @@ serve(async (req) => {
 
     // Get friend information
     const { data: friend, error: friendError } = await supabase
-      .from('friends')
-      .select('id, user_id, display_name, custom_fields, last_interaction_at')
-      .eq('id', requestBody.friend_id)
+      .from("friends")
+      .select("id, user_id, display_name, custom_fields, last_interaction_at")
+      .eq("id", requestBody.friend_id)
       .single();
 
     if (friendError || !friend) {
-      console.error('Friend not found:', friendError);
-      return new Response(
-        JSON.stringify({ error: 'Friend not found' }),
-        {
-          status: 404,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        }
-      );
+      console.error("Friend not found:", friendError);
+      return new Response(JSON.stringify({ error: "Friend not found" }), {
+        status: 404,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
     const userId = requestBody.user_id || friend.user_id;
 
     // Get AI settings
     const { data: aiSettings, error: settingsError } = await supabase
-      .from('ai_settings')
-      .select('*')
-      .eq('user_id', userId)
+      .from("ai_settings")
+      .select("*")
+      .eq("user_id", userId)
       .single();
 
     if (settingsError || !aiSettings) {
-      console.error('AI settings not found:', settingsError);
+      console.error("AI settings not found:", settingsError);
       return new Response(
         JSON.stringify({
-          error: 'AI settings not configured',
-          code: 'AI_NOT_CONFIGURED',
+          error: "AI settings not configured",
+          code: "AI_NOT_CONFIGURED",
         }),
         {
           status: 400,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
         }
       );
     }
 
     // Check if AI is enabled
     if (!aiSettings.is_enabled) {
-      console.log('AI is disabled for this user');
+      console.log("AI is disabled for this user");
       return new Response(
         JSON.stringify({
           success: true,
           response: aiSettings.default_response,
-          code: 'AI_DISABLED',
+          code: "AI_DISABLED",
         }),
         {
           status: 200,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
         }
       );
     }
 
     // Check usage limits
-    const { data: canUse } = await supabase.rpc('can_use_ai', {
+    const { data: canUse } = await supabase.rpc("can_use_ai", {
       p_user_id: userId,
     });
 
     if (!canUse) {
-      console.log('AI usage limit exceeded');
+      console.log("AI usage limit exceeded");
       return new Response(
         JSON.stringify({
           success: true,
-          response: '申し訳ございません。現在AIサービスの利用上限に達しています。',
-          code: 'LIMIT_EXCEEDED',
+          response:
+            "申し訳ございません。現在AIサービスの利用上限に達しています。",
+          code: "LIMIT_EXCEEDED",
         }),
         {
           status: 200,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
         }
       );
     }
 
     // Get friend tags
     const { data: friendTags } = await supabase
-      .from('friend_tags')
-      .select('tag_id, tags(name)')
-      .eq('friend_id', requestBody.friend_id);
+      .from("friend_tags")
+      .select("tag_id, tags(name)")
+      .eq("friend_id", requestBody.friend_id);
 
     const tags =
       friendTags?.map((ft: any) => ft.tags?.name).filter(Boolean) || [];
@@ -208,7 +199,7 @@ serve(async (req) => {
     let conversationHistory = requestBody.conversation_history;
     if (!conversationHistory) {
       const { data: historyData } = await supabase.rpc(
-        'get_conversation_history',
+        "get_conversation_history",
         {
           p_friend_id: requestBody.friend_id,
           p_limit: 10,
@@ -240,7 +231,7 @@ serve(async (req) => {
       truncatedHistory
     );
 
-    console.log('Calling OpenAI API...');
+    console.log("Calling OpenAI API...");
 
     // Initialize OpenAI client
     const openaiConfig: OpenAIConfig = {
@@ -256,36 +247,36 @@ serve(async (req) => {
 
     // Call OpenAI API
     let response;
-    let status = 'success';
+    let status = "success";
     let errorMessage: string | null = null;
 
     try {
       response = await openaiClient.createChatCompletion(messages);
     } catch (error) {
-      console.error('OpenAI API error:', error);
-      status = 'error';
-      errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      console.error("OpenAI API error:", error);
+      status = "error";
+      errorMessage = error instanceof Error ? error.message : "Unknown error";
 
       // Determine fallback response
-      if (errorMessage.includes('timeout')) {
-        status = 'timeout';
+      if (errorMessage.includes("timeout")) {
+        status = "timeout";
         return createSuccessResponse(
           aiSettings.timeout_response,
           corsHeaders,
-          'TIMEOUT'
+          "TIMEOUT"
         );
-      } else if (errorMessage.includes('rate limit')) {
-        status = 'rate_limit';
+      } else if (errorMessage.includes("rate limit")) {
+        status = "rate_limit";
         return createSuccessResponse(
-          '申し訳ございません。しばらく時間をおいてからお試しください。',
+          "申し訳ございません。しばらく時間をおいてからお試しください。",
           corsHeaders,
-          'RATE_LIMIT'
+          "RATE_LIMIT"
         );
       } else {
         return createSuccessResponse(
           aiSettings.error_response,
           corsHeaders,
-          'ERROR'
+          "ERROR"
         );
       }
     }
@@ -293,10 +284,10 @@ serve(async (req) => {
     const assistantMessage = response.choices[0]?.message?.content;
 
     if (!assistantMessage) {
-      throw new Error('No response content from OpenAI');
+      throw new Error("No response content from OpenAI");
     }
 
-    console.log('OpenAI response received, validating...');
+    console.log("OpenAI response received, validating...");
 
     // Validate response
     const validation = validateResponse(assistantMessage, {
@@ -305,21 +296,21 @@ serve(async (req) => {
     });
 
     if (!validation.isValid) {
-      console.error('Response validation failed:', validation.errors);
+      console.error("Response validation failed:", validation.errors);
       return createSuccessResponse(
         aiSettings.error_response,
         corsHeaders,
-        'VALIDATION_FAILED'
+        "VALIDATION_FAILED"
       );
     }
 
     // Check for inappropriate content
     if (!isAppropriateResponse(validation.sanitizedContent!)) {
-      console.error('Response contains inappropriate content');
+      console.error("Response contains inappropriate content");
       return createSuccessResponse(
         aiSettings.error_response,
         corsHeaders,
-        'INAPPROPRIATE_CONTENT'
+        "INAPPROPRIATE_CONTENT"
       );
     }
 
@@ -338,7 +329,7 @@ serve(async (req) => {
     const responseTime = Date.now() - startTime;
 
     // Log usage
-    await supabase.from('ai_usage_logs').insert({
+    await supabase.from("ai_usage_logs").insert({
       user_id: userId,
       friend_id: requestBody.friend_id,
       model: response.model,
@@ -354,11 +345,11 @@ serve(async (req) => {
     });
 
     // Save conversation
-    await supabase.from('ai_conversations').insert([
+    await supabase.from("ai_conversations").insert([
       {
         user_id: userId,
         friend_id: requestBody.friend_id,
-        role: 'user',
+        role: "user",
         content: requestBody.message_text,
         tokens: estimateTokens(requestBody.message_text),
         model: response.model,
@@ -366,7 +357,7 @@ serve(async (req) => {
       {
         user_id: userId,
         friend_id: requestBody.friend_id,
-        role: 'assistant',
+        role: "assistant",
         content: formattedResponse,
         tokens: response.usage.completion_tokens,
         model: response.model,
@@ -391,20 +382,20 @@ serve(async (req) => {
 
     return new Response(JSON.stringify(result), {
       status: 200,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (error) {
-    console.error('Error processing AI response:', error);
+    console.error("Error processing AI response:", error);
     return new Response(
       JSON.stringify({
         success: false,
-        error: error instanceof Error ? error.message : 'Unknown error',
+        error: error instanceof Error ? error.message : "Unknown error",
       }),
       {
         status: 500,
         headers: {
-          'Access-Control-Allow-Origin': '*',
-          'Content-Type': 'application/json',
+          "Access-Control-Allow-Origin": "*",
+          "Content-Type": "application/json",
         },
       }
     );
@@ -427,7 +418,7 @@ function createSuccessResponse(
     }),
     {
       status: 200,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
     }
   );
 }
