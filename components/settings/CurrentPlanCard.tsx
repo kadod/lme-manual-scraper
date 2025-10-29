@@ -50,8 +50,8 @@ export function CurrentPlanCard({
   onUpgrade,
   onCancel,
 }: CurrentPlanCardProps) {
-  const planDetails = PLAN_DETAILS[plan]
-  const statusLabel = STATUS_LABELS[status]
+  const planDetails = plan ? PLAN_DETAILS[plan] : PLAN_DETAILS.free
+  const statusLabel = status ? STATUS_LABELS[status] : STATUS_LABELS.active
 
   const formatDate = (dateString?: string) => {
     if (!dateString) return ''
@@ -60,6 +60,16 @@ export function CurrentPlanCard({
       month: 'long',
       day: 'numeric',
     })
+  }
+
+  if (!plan || !status) {
+    return (
+      <Card>
+        <CardContent className="flex items-center justify-center py-16">
+          <p className="text-muted-foreground">プラン情報を読み込み中...</p>
+        </CardContent>
+      </Card>
+    )
   }
 
   return (
@@ -82,14 +92,14 @@ export function CurrentPlanCard({
         <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
           <div className="space-y-2">
             <div className="flex items-center gap-3">
-              <Badge className={planDetails.color}>
-                {planDetails.name}
+              <Badge className={planDetails?.color ?? 'bg-gray-100 text-gray-800'}>
+                {planDetails?.name ?? 'Unknown Plan'}
               </Badge>
-              <Badge className={statusLabel.color}>
-                {statusLabel.label}
+              <Badge className={statusLabel?.color ?? 'bg-gray-100 text-gray-800'}>
+                {statusLabel?.label ?? 'Unknown Status'}
               </Badge>
             </div>
-            <div className="text-2xl font-bold">{planDetails.price}</div>
+            <div className="text-2xl font-bold">{planDetails?.price ?? '¥0'}</div>
           </div>
         </div>
 

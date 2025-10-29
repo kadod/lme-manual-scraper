@@ -1,23 +1,21 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
+import { getCurrentUserOrganizationId, getCurrentUserId } from '@/lib/utils/organization'
 import { TablesInsert, TablesUpdate } from '@/types/supabase'
 import { revalidatePath } from 'next/cache'
 
 export type Form = {
   id: string
-  user_id: string
+  organization_id: string
+  created_by: string | null
   title: string
   description: string | null
-  status: 'draft' | 'published' | 'closed'
-  questions: any
+  status: 'draft' | 'active' | 'closed'
   settings: any
   total_responses: number
-  response_rate: number
   created_at: string
   updated_at: string
-  published_at: string | null
-  closed_at: string | null
 }
 
 export type FormFilters = {
@@ -46,17 +44,9 @@ export interface FormStats {
   averageCompletionTime?: number
 }
 
-async function getCurrentUserId(): Promise<string | null> {
-  const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-  return user?.id || null
-}
-
 export async function getForms(filters?: FormFilters) {
-  const userId = await getCurrentUserId()
-  if (!userId) {
+  const organizationId = await getCurrentUserOrganizationId()
+  if (!organizationId) {
     throw new Error('User not authenticated')
   }
 
@@ -64,7 +54,7 @@ export async function getForms(filters?: FormFilters) {
   let query = supabase
     .from('forms')
     .select('*')
-    .eq('user_id', userId)
+    .eq('organization_id', organizationId)
     .order('created_at', { ascending: false })
 
   // Apply filters
@@ -87,8 +77,8 @@ export async function getForms(filters?: FormFilters) {
 }
 
 export async function getForm(formId: string) {
-  const userId = await getCurrentUserId()
-  if (!userId) {
+  const organizationId = await getCurrentUserOrganizationId()
+  if (!organizationId) {
     throw new Error('User not authenticated')
   }
 
@@ -98,7 +88,7 @@ export async function getForm(formId: string) {
     .from('forms')
     .select('*')
     .eq('id', formId)
-    .eq('user_id', userId)
+    .eq('organization_id', organizationId)
     .single()
 
   if (error) {
@@ -110,19 +100,19 @@ export async function getForm(formId: string) {
 }
 
 export async function deleteForm(formId: string) {
-  const userId = await getCurrentUserId()
-  if (!userId) {
+  const organizationId = await getCurrentUserOrganizationId()
+  if (!organizationId) {
     throw new Error('User not authenticated')
   }
 
   const supabase = await createClient()
 
-  // Check if form belongs to user
+  // Check if form belongs to organization
   const { data: form } = await supabase
     .from('forms')
-    .select('id, user_id, status')
+    .select('id, organization_id, status')
     .eq('id', formId)
-    .eq('user_id', userId)
+    .eq('organization_id', organizationId)
     .single()
 
   if (!form) {
@@ -147,7 +137,8 @@ export async function deleteForm(formId: string) {
 
 export async function duplicateForm(formId: string) {
   const userId = await getCurrentUserId()
-  if (!userId) {
+  const organizationId = await getCurrentUserOrganizationId()
+  if (!userId || !organizationId) {
     throw new Error('User not authenticated')
   }
 
@@ -158,7 +149,7 @@ export async function duplicateForm(formId: string) {
     .from('forms')
     .select('*')
     .eq('id', formId)
-    .eq('user_id', userId)
+    .eq('organization_id', organizationId)
     .single()
 
   if (fetchError || !original) {
@@ -169,7 +160,8 @@ export async function duplicateForm(formId: string) {
   const { data: duplicate, error: insertError } = await supabase
     .from('forms')
     .insert({
-      user_id: original.user_id,
+      organization_id: organizationId,
+      created_by: userId,
       title: `${original.title} (コピー)`,
       description: original.description,
       questions: original.questions,
@@ -196,8 +188,8 @@ export async function updateFormStatus(
   formId: string,
   status: 'draft' | 'published' | 'closed'
 ) {
-  const userId = await getCurrentUserId()
-  if (!userId) {
+  const organizationId = await getCurrentUserOrganizationId()
+  if (!organizationId) {
     throw new Error('User not authenticated')
   }
 
@@ -205,9 +197,9 @@ export async function updateFormStatus(
 
   const { data: form } = await supabase
     .from('forms')
-    .select('id, user_id')
+    .select('id, organization_id')
     .eq('id', formId)
-    .eq('user_id', userId)
+    .eq('organization_id', organizationId)
     .single()
 
   if (!form) {
@@ -247,8 +239,8 @@ export async function getFormResponses(formId: string, filters?: {
   searchTerm?: string
 }) {
   try {
-    const userId = await getCurrentUserId()
-    if (!userId) {
+    const organizationId = await getCurrentUserOrganizationId()
+    if (!organizationId) {
       return { success: false, error: 'User not authenticated' }
     }
 
@@ -259,7 +251,7 @@ export async function getFormResponses(formId: string, filters?: {
       .from('forms')
       .select('id')
       .eq('id', formId)
-      .eq('user_id', userId)
+      .eq('organization_id', organizationId)
       .single()
 
     if (formError || !form) {
@@ -316,8 +308,8 @@ export async function getFormResponses(formId: string, filters?: {
 
 export async function getFormResponseById(responseId: string) {
   try {
-    const userId = await getCurrentUserId()
-    if (!userId) {
+    const organizationId = await getCurrentUserOrganizationId()
+    if (!organizationId) {
       return { success: false, error: 'User not authenticated' }
     }
 
@@ -337,7 +329,8 @@ export async function getFormResponseById(responseId: string) {
         form:forms (
           id,
           title,
-          questions
+          questions,
+          organization_id
         )
       `)
       .eq('id', responseId)
@@ -349,7 +342,7 @@ export async function getFormResponseById(responseId: string) {
     }
 
     // Verify ownership through form
-    if (data?.form?.user_id !== userId) {
+    if (data?.form?.organization_id !== organizationId) {
       return { success: false, error: 'Unauthorized' }
     }
 
@@ -362,8 +355,8 @@ export async function getFormResponseById(responseId: string) {
 
 export async function getFormStats(formId: string) {
   try {
-    const userId = await getCurrentUserId()
-    if (!userId) {
+    const organizationId = await getCurrentUserOrganizationId()
+    if (!organizationId) {
       return { success: false, error: 'User not authenticated' }
     }
 
@@ -374,7 +367,7 @@ export async function getFormStats(formId: string) {
       .from('forms')
       .select('total_responses, response_rate')
       .eq('id', formId)
-      .eq('user_id', userId)
+      .eq('organization_id', organizationId)
       .single()
 
     if (formError || !form) {
@@ -405,8 +398,8 @@ export async function getFormStats(formId: string) {
 
 export async function exportResponsesToCSV(formId: string) {
   try {
-    const userId = await getCurrentUserId()
-    if (!userId) {
+    const organizationId = await getCurrentUserOrganizationId()
+    if (!organizationId) {
       return { success: false, error: 'User not authenticated' }
     }
 
@@ -417,7 +410,7 @@ export async function exportResponsesToCSV(formId: string) {
       .from('forms')
       .select('title, questions')
       .eq('id', formId)
-      .eq('user_id', userId)
+      .eq('organization_id', organizationId)
       .single()
 
     if (formError || !form) {
@@ -482,8 +475,8 @@ export async function exportResponsesToCSV(formId: string) {
 
 export async function deleteFormResponse(responseId: string) {
   try {
-    const userId = await getCurrentUserId()
-    if (!userId) {
+    const organizationId = await getCurrentUserOrganizationId()
+    if (!organizationId) {
       return { success: false, error: 'User not authenticated' }
     }
 
@@ -495,7 +488,7 @@ export async function deleteFormResponse(responseId: string) {
       .select(`
         id,
         form:forms (
-          user_id
+          organization_id
         )
       `)
       .eq('id', responseId)
@@ -505,7 +498,7 @@ export async function deleteFormResponse(responseId: string) {
       return { success: false, error: 'Response not found' }
     }
 
-    if (response.form?.user_id !== userId) {
+    if (response.form?.organization_id !== organizationId) {
       return { success: false, error: 'Unauthorized' }
     }
 
@@ -724,8 +717,8 @@ export async function uploadFormFile(formData: FormData) {
 
 // Analytics Actions
 export async function getFormAnalyticsAction(formId: string, days: number = 30) {
-  const userId = await getCurrentUserId()
-  if (!userId) {
+  const organizationId = await getCurrentUserOrganizationId()
+  if (!organizationId) {
     throw new Error('User not authenticated')
   }
 
@@ -736,7 +729,7 @@ export async function getFormAnalyticsAction(formId: string, days: number = 30) 
     .from('forms')
     .select('*')
     .eq('id', formId)
-    .eq('user_id', userId)
+    .eq('organization_id', organizationId)
     .single()
 
   if (formError || !form) {
@@ -819,8 +812,8 @@ export async function getTextFieldWordsAction(
   fieldId: string,
   limit: number = 50
 ): Promise<Array<{ text: string; value: number }>> {
-  const userId = await getCurrentUserId()
-  if (!userId) {
+  const organizationId = await getCurrentUserOrganizationId()
+  if (!organizationId) {
     throw new Error('User not authenticated')
   }
 
@@ -831,7 +824,7 @@ export async function getTextFieldWordsAction(
     .from('forms')
     .select('id')
     .eq('id', formId)
-    .eq('user_id', userId)
+    .eq('organization_id', organizationId)
     .single()
 
   if (!form) {

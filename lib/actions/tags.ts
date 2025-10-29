@@ -1,6 +1,7 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
+import { getCurrentUserOrganizationId } from '@/lib/utils/organization'
 import { revalidatePath } from 'next/cache'
 import { z } from 'zod'
 
@@ -15,18 +16,18 @@ export type TagFormData = z.infer<typeof tagSchema>
 export async function getTags() {
   const supabase = await createClient()
 
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) {
+  const organizationId = await getCurrentUserOrganizationId()
+  if (!organizationId) {
     throw new Error('認証が必要です')
   }
 
-  const { data, error } = await supabase
+  const { data, error} = await supabase
     .from('tags')
     .select(`
       *,
       friend_tags(id)
     `)
-    .eq('user_id', user.id)
+    .eq('organization_id', organizationId)
     .order('created_at', { ascending: false })
 
   if (error) {
@@ -44,8 +45,8 @@ export async function getTags() {
 export async function createTag(formData: TagFormData) {
   const supabase = await createClient()
 
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) {
+  const organizationId = await getCurrentUserOrganizationId()
+  if (!organizationId) {
     throw new Error('認証が必要です')
   }
 
@@ -55,7 +56,7 @@ export async function createTag(formData: TagFormData) {
     .from('tags')
     .insert({
       ...validatedData,
-      user_id: user.id,
+      organization_id: organizationId,
     })
     .select()
     .single()
@@ -72,8 +73,8 @@ export async function createTag(formData: TagFormData) {
 export async function updateTag(id: string, formData: TagFormData) {
   const supabase = await createClient()
 
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) {
+  const organizationId = await getCurrentUserOrganizationId()
+  if (!organizationId) {
     throw new Error('認証が必要です')
   }
 
@@ -83,7 +84,7 @@ export async function updateTag(id: string, formData: TagFormData) {
     .from('tags')
     .update(validatedData)
     .eq('id', id)
-    .eq('user_id', user.id)
+    .eq('organization_id', organizationId)
     .select()
     .single()
 
@@ -99,8 +100,8 @@ export async function updateTag(id: string, formData: TagFormData) {
 export async function deleteTag(id: string) {
   const supabase = await createClient()
 
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) {
+  const organizationId = await getCurrentUserOrganizationId()
+  if (!organizationId) {
     throw new Error('認証が必要です')
   }
 
@@ -108,7 +109,7 @@ export async function deleteTag(id: string) {
     .from('tags')
     .delete()
     .eq('id', id)
-    .eq('user_id', user.id)
+    .eq('organization_id', organizationId)
 
   if (error) {
     console.error('タグ削除エラー:', error)

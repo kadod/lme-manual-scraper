@@ -4,6 +4,7 @@ import { redirect } from 'next/navigation'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
 import { Badge } from '@/components/ui/badge'
+import { CopyButton } from '@/components/settings/CopyButton'
 import {
   CheckCircleIcon,
   XCircleIcon,
@@ -188,12 +189,7 @@ export default async function LineSettingsPage() {
                 value={webhookUrl}
                 readOnly
               />
-              <button
-                className="px-4 py-2 text-sm font-medium text-blue-600 hover:text-blue-700 border border-blue-600 rounded-md hover:bg-blue-50 transition-colors"
-                onClick={() => navigator.clipboard.writeText(webhookUrl)}
-              >
-                コピー
-              </button>
+              <CopyButton text={webhookUrl} />
             </div>
             <p className="text-xs text-gray-500">
               このURLをLINE Developers コンソールの「Messaging API設定」に設定してください
