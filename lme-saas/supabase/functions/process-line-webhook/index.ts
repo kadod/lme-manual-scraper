@@ -104,7 +104,7 @@ async function handleMessage(
     })
     .eq('line_user_id', event.source.userId);
 
-  // You can also track this as an analytics event
+  // Get friend details
   const { data: friend } = await supabase
     .from('friends')
     .select('id, user_id')
@@ -112,7 +112,29 @@ async function handleMessage(
     .single();
 
   if (friend) {
-    // Could insert into analytics_events table if it exists
+    // Trigger auto-response processing (fire and forget)
+    const supabaseUrl = Deno.env.get('SUPABASE_URL');
+    const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY');
+
+    if (supabaseUrl && supabaseAnonKey && event.message) {
+      fetch(`${supabaseUrl}/functions/v1/process-auto-response`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${supabaseAnonKey}`,
+        },
+        body: JSON.stringify({
+          friend_id: friend.id,
+          message_text: event.message.text || '',
+          message_type: event.message.type || 'text',
+          line_user_id: event.source.userId,
+        }),
+      }).catch(error => {
+        console.error('Error triggering auto-response:', error);
+      });
+    }
+
+    // Track analytics event if enabled
     // await supabase.from('analytics_events').insert({
     //   user_id: friend.user_id,
     //   event_type: 'message_received',
