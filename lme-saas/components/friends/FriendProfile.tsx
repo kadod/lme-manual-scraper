@@ -15,12 +15,11 @@ interface FriendProfileProps {
   friend: {
     id: string
     line_user_id: string
-    display_name: string | null
+    display_name: string
     picture_url: string | null
-    status: string
-    language: string | null
-    first_added_at: string | null
+    is_blocked: boolean
     last_interaction_at: string | null
+    created_at: string
   }
 }
 
@@ -28,10 +27,10 @@ export function FriendProfile({ friend }: FriendProfileProps) {
   const [isLoading, setIsLoading] = useState(false)
   const router = useRouter()
 
-  const handleStatusChange = async (newStatus: string) => {
+  const handleStatusChange = async (isBlocked: boolean) => {
     setIsLoading(true)
     try {
-      await updateFriendStatus(friend.id, newStatus)
+      await updateFriendStatus(friend.id, isBlocked)
       router.refresh()
     } catch (error) {
       console.error('Failed to update status:', error)
@@ -40,27 +39,21 @@ export function FriendProfile({ friend }: FriendProfileProps) {
     }
   }
 
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'active':
-        return (
-          <Badge className="bg-green-500">
-            <CheckBadgeIcon className="h-3 w-3 mr-1" />
-            フォロー中
-          </Badge>
-        )
-      case 'blocked':
-        return (
-          <Badge variant="destructive">
-            <XCircleIcon className="h-3 w-3 mr-1" />
-            ブロック済み
-          </Badge>
-        )
-      case 'unsubscribed':
-        return <Badge variant="secondary">ブロック解除</Badge>
-      default:
-        return <Badge variant="outline">{status}</Badge>
+  const getStatusBadge = (isBlocked: boolean) => {
+    if (isBlocked) {
+      return (
+        <Badge variant="destructive">
+          <XCircleIcon className="h-3 w-3 mr-1" />
+          ブロック済み
+        </Badge>
+      )
     }
+    return (
+      <Badge className="bg-green-500">
+        <CheckBadgeIcon className="h-3 w-3 mr-1" />
+        フォロー中
+      </Badge>
+    )
   }
 
   return (
@@ -84,7 +77,7 @@ export function FriendProfile({ friend }: FriendProfileProps) {
             <h3 className="text-2xl font-bold">
               {friend.display_name || '名前未設定'}
             </h3>
-            {getStatusBadge(friend.status)}
+            {getStatusBadge(friend.is_blocked)}
           </div>
         </div>
 
@@ -94,22 +87,14 @@ export function FriendProfile({ friend }: FriendProfileProps) {
             <span className="text-muted-foreground">LINE ID</span>
             <span className="font-mono">{friend.line_user_id}</span>
           </div>
-          {friend.language && (
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">言語</span>
-              <span>{friend.language}</span>
-            </div>
-          )}
-          {friend.first_added_at && (
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">友だち追加日</span>
-              <span>
-                {format(new Date(friend.first_added_at), 'yyyy年MM月dd日', {
-                  locale: ja,
-                })}
-              </span>
-            </div>
-          )}
+          <div className="flex justify-between">
+            <span className="text-muted-foreground">友だち追加日</span>
+            <span>
+              {format(new Date(friend.created_at), 'yyyy年MM月dd日', {
+                locale: ja,
+              })}
+            </span>
+          </div>
           {friend.last_interaction_at && (
             <div className="flex justify-between">
               <span className="text-muted-foreground">最終アクティビティ</span>
@@ -124,11 +109,11 @@ export function FriendProfile({ friend }: FriendProfileProps) {
 
         {/* Actions */}
         <div className="flex gap-2">
-          {friend.status === 'active' ? (
+          {!friend.is_blocked ? (
             <Button
               variant="destructive"
               size="sm"
-              onClick={() => handleStatusChange('blocked')}
+              onClick={() => handleStatusChange(true)}
               disabled={isLoading}
             >
               <XCircleIcon className="h-4 w-4 mr-2" />
@@ -138,11 +123,11 @@ export function FriendProfile({ friend }: FriendProfileProps) {
             <Button
               variant="default"
               size="sm"
-              onClick={() => handleStatusChange('active')}
+              onClick={() => handleStatusChange(false)}
               disabled={isLoading}
             >
               <CheckBadgeIcon className="h-4 w-4 mr-2" />
-              フォロー再開
+              ブロック解除
             </Button>
           )}
         </div>

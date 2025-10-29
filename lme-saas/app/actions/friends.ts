@@ -159,13 +159,13 @@ export async function getFriendCount(): Promise<DatabaseResult<number>> {
 // Additional actions for friend detail page
 export async function updateFriendStatus(
   friendId: string,
-  status: string
+  isBlocked: boolean
 ): Promise<void> {
   const supabase = await createClient()
 
   const { error } = await supabase
-    .from('line_friends')
-    .update({ status })
+    .from('friends')
+    .update({ is_blocked: isBlocked })
     .eq('id', friendId)
 
   if (error) throw error
@@ -178,8 +178,8 @@ export async function updateCustomFields(
   const supabase = await createClient()
 
   const { error } = await supabase
-    .from('line_friends')
-    .update({ custom_fields: customFields })
+    .from('friends')
+    .update({ metadata: customFields as any })
     .eq('id', friendId)
 
   if (error) throw error

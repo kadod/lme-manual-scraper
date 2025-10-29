@@ -1,5 +1,6 @@
 import { Suspense } from 'react'
-import { UserGroupIcon, UserPlusIcon } from '@heroicons/react/24/outline'
+import { UserGroupIcon, UserPlusIcon, ArrowUpTrayIcon } from '@heroicons/react/24/outline'
+import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { SearchBar } from '@/components/friends/SearchBar'
@@ -106,10 +107,18 @@ export default async function FriendsPage({ searchParams }: FriendsPageProps) {
             LINE公式アカウントの友だちを管理します
           </p>
         </div>
-        <Button>
-          <UserPlusIcon className="h-5 w-5 mr-2" />
-          友だちを追加
-        </Button>
+        <div className="flex items-center gap-3">
+          <Link href="/dashboard/friends/import">
+            <Button variant="outline">
+              <ArrowUpTrayIcon className="h-5 w-5 mr-2" />
+              CSVインポート
+            </Button>
+          </Link>
+          <Button>
+            <UserPlusIcon className="h-5 w-5 mr-2" />
+            友だちを追加
+          </Button>
+        </div>
       </div>
 
       {/* Stats Cards */}

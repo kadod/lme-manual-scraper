@@ -13,14 +13,14 @@ import { useRouter } from 'next/navigation'
 interface CustomFieldsEditorProps {
   friend: {
     id: string
-    custom_fields: Record<string, any>
+    metadata: Record<string, any> | null
   }
 }
 
 export function CustomFieldsEditor({ friend }: CustomFieldsEditorProps) {
   const [isOpen, setIsOpen] = useState(false)
   const [fields, setFields] = useState<Record<string, string>>(
-    friend.custom_fields || {}
+    (friend.metadata as Record<string, string>) || {}
   )
   const [newFieldKey, setNewFieldKey] = useState('')
   const [newFieldValue, setNewFieldValue] = useState('')

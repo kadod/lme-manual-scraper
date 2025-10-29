@@ -1,0 +1,11 @@
+line_user_id,display_name,picture_url,language,status,company,department
+U1234567890abcdef,田中太郎,https://example.com/avatar1.jpg,ja,active,ABC株式会社,営業部
+U2345678901abcdef,佐藤花子,https://example.com/avatar2.jpg,ja,active,XYZ株式会社,マーケティング部
+U3456789012abcdef,鈴木一郎,https://example.com/avatar3.jpg,ja,active,DEF合同会社,開発部
+U4567890123abcdef,高橋美咲,https://example.com/avatar4.jpg,ja,active,GHI株式会社,人事部
+U5678901234abcdef,伊藤健太,https://example.com/avatar5.jpg,ja,blocked,JKL株式会社,財務部
+U6789012345abcdef,渡辺愛美,https://example.com/avatar6.jpg,en,active,MNO Corporation,Sales
+U7890123456abcdef,山本大輔,https://example.com/avatar7.jpg,ja,active,PQR合同会社,企画部
+U8901234567abcdef,中村彩香,https://example.com/avatar8.jpg,ja,active,STU株式会社,カスタマーサポート
+U9012345678abcdef,小林翔太,https://example.com/avatar9.jpg,ja,active,VWX株式会社,技術部
+U0123456789abcdef,加藤莉子,https://example.com/avatar10.jpg,en,active,YZ Company,Marketing

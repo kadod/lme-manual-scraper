@@ -22,7 +22,7 @@ async function FriendDetailContent({ friendId }: { friendId: string }) {
 
   // Fetch friend with tags
   const { data: friend, error: friendError } = await supabase
-    .from('line_friends')
+    .from('friends')
     .select(
       `
       *,
@@ -54,35 +54,23 @@ async function FriendDetailContent({ friendId }: { friendId: string }) {
     .select('id, name, color')
     .order('name')
 
-  // Fetch recent messages (last 20)
-  const { data: messages } = await supabase
-    .from('messages')
-    .select('*')
-    .eq('recipient_id', friendId)
-    .order('created_at', { ascending: false })
-    .limit(20)
-
-  // Fetch action history
-  const { data: actions } = await supabase
-    .from('friend_actions')
-    .select('*')
-    .eq('friend_id', friendId)
-    .order('created_at', { ascending: false })
-    .limit(50)
+  // Mock data for messages and actions (tables don't exist yet in the schema)
+  const messages: any[] = []
+  const actions: any[] = []
 
   return (
     <div className="grid gap-6 md:grid-cols-2">
       {/* Left Column */}
       <div className="space-y-6">
-        <FriendProfile friend={friendWithTags} />
-        <CustomFieldsEditor friend={friendWithTags} />
-        <TagSelector friend={friendWithTags} availableTags={allTags || []} />
+        <FriendProfile friend={friendWithTags as any} />
+        <CustomFieldsEditor friend={friendWithTags as any} />
+        <TagSelector friend={friendWithTags as any} availableTags={allTags || []} />
       </div>
 
       {/* Right Column */}
       <div className="space-y-6">
-        <MessageHistory messages={messages || []} />
-        <ActionHistory actions={actions || []} />
+        <MessageHistory messages={messages} />
+        <ActionHistory actions={actions} />
       </div>
     </div>
   )
