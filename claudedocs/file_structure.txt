@@ -1,0 +1,100 @@
+# ステップ配信キャンペーン機能 - ファイル構造
+
+lme-saas/
+├── app/
+│   ├── actions/
+│   │   └── campaigns.ts                    # Server Actions（6関数）
+│   │
+│   └── dashboard/
+│       └── messages/
+│           └── step-campaigns/
+│               ├── page.tsx                # キャンペーン一覧ページ
+│               ├── new/
+│               │   └── page.tsx            # 新規作成ページ
+│               └── [id]/
+│                   └── page.tsx            # 詳細ページ（3タブ構成）
+│
+├── components/
+│   └── messages/
+│       ├── CampaignList.tsx                # キャンペーン一覧カード
+│       ├── CampaignEditor.tsx              # キャンペーン編集フォーム
+│       ├── StepBuilder.tsx                 # ステップビルダー
+│       ├── StepCard.tsx                    # ステップカード
+│       ├── TriggerSelector.tsx             # トリガー選択UI
+│       ├── CampaignFlowChart.tsx           # フローチャート（React Flow）
+│       ├── CampaignStats.tsx               # 統計ダッシュボード
+│       └── SubscriberList.tsx              # 登録者リスト
+│
+├── supabase/
+│   ├── functions/
+│   │   ├── _cron.yml                       # Cron設定（1分ごと）
+│   │   └── process-step-campaigns/
+│   │       └── index.ts                    # Edge Function（自動配信処理）
+│   │
+│   └── migrations/
+│       └── 20251029_step_campaigns_rls.sql # RLS + Triggers + Indexes
+│
+└── claudedocs/
+    ├── step_campaigns_implementation.md    # 詳細実装ドキュメント
+    ├── IMPLEMENTATION_COMPLETE.md          # 実装完了報告
+    └── file_structure.txt                  # このファイル
+
+---
+
+## コンポーネント依存関係
+
+CampaignList
+└── Card, Badge, Button, Progress
+
+CampaignEditor
+├── Tabs
+├── TriggerSelector
+├── StepBuilder
+│   └── StepCard
+│       ├── Input, Textarea, Select
+│       └── Button
+└── CampaignFlowChart
+    └── React Flow
+
+CampaignStats
+├── Card
+└── Progress
+
+SubscriberList
+├── Card
+├── Badge
+└── Avatar
+
+---
+
+## データフロー
+
+1. ユーザー操作（UI）
+   ↓
+2. Server Actions（campaigns.ts）
+   ↓
+3. Supabase Database（PostgreSQL）
+   ↓
+4. Edge Function（Cron: 1分ごと）
+   ↓
+5. LINE Messaging API
+   ↓
+6. Supabase Realtime（将来実装）
+   ↓
+7. UI更新
+
+---
+
+## 実装統計
+
+- Server Actions: 6関数
+- React Components: 8コンポーネント
+- Pages: 3ページ
+- Edge Functions: 1関数
+- Database Migrations: 1ファイル
+- Documentation: 3ファイル
+- Total Lines of Code: ~3,500行
+
+---
+
+実装完了日: 2025-10-29

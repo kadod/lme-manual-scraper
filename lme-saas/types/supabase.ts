@@ -192,6 +192,181 @@ export interface Database {
         }
         Relationships: []
       }
+      message_templates: {
+        Row: {
+          id: string
+          user_id: string
+          name: string
+          category: string | null
+          description: string | null
+          type: 'text' | 'image' | 'video' | 'flex' | 'carousel'
+          content: Json
+          variables: string[]
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          name: string
+          category?: string | null
+          description?: string | null
+          type: 'text' | 'image' | 'video' | 'flex' | 'carousel'
+          content: Json
+          variables?: string[]
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          name?: string
+          category?: string | null
+          description?: string | null
+          type?: 'text' | 'image' | 'video' | 'flex' | 'carousel'
+          content?: Json
+          variables?: string[]
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "message_templates_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      messages: {
+        Row: {
+          id: string
+          user_id: string
+          type: 'text' | 'image' | 'video' | 'audio' | 'flex' | 'template'
+          content: Json
+          target_type: 'all' | 'segment' | 'tags' | 'manual'
+          target_ids: string[] | null
+          scheduled_at: string | null
+          status: 'draft' | 'scheduled' | 'sending' | 'completed' | 'failed' | 'cancelled'
+          total_recipients: number
+          sent_count: number
+          delivered_count: number
+          read_count: number
+          click_count: number
+          error_count: number
+          created_at: string
+          updated_at: string
+          sent_at: string | null
+          completed_at: string | null
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          type: 'text' | 'image' | 'video' | 'audio' | 'flex' | 'template'
+          content: Json
+          target_type: 'all' | 'segment' | 'tags' | 'manual'
+          target_ids?: string[] | null
+          scheduled_at?: string | null
+          status?: 'draft' | 'scheduled' | 'sending' | 'completed' | 'failed' | 'cancelled'
+          total_recipients?: number
+          sent_count?: number
+          delivered_count?: number
+          read_count?: number
+          click_count?: number
+          error_count?: number
+          created_at?: string
+          updated_at?: string
+          sent_at?: string | null
+          completed_at?: string | null
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          type?: 'text' | 'image' | 'video' | 'audio' | 'flex' | 'template'
+          content?: Json
+          target_type?: 'all' | 'segment' | 'tags' | 'manual'
+          target_ids?: string[] | null
+          scheduled_at?: string | null
+          status?: 'draft' | 'scheduled' | 'sending' | 'completed' | 'failed' | 'cancelled'
+          total_recipients?: number
+          sent_count?: number
+          delivered_count?: number
+          read_count?: number
+          click_count?: number
+          error_count?: number
+          created_at?: string
+          updated_at?: string
+          sent_at?: string | null
+          completed_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "messages_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      message_recipients: {
+        Row: {
+          id: string
+          message_id: string
+          friend_id: string
+          status: 'pending' | 'sent' | 'delivered' | 'failed'
+          error_message: string | null
+          sent_at: string | null
+          delivered_at: string | null
+          read_at: string | null
+          clicked_at: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          message_id: string
+          friend_id: string
+          status?: 'pending' | 'sent' | 'delivered' | 'failed'
+          error_message?: string | null
+          sent_at?: string | null
+          delivered_at?: string | null
+          read_at?: string | null
+          clicked_at?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          message_id?: string
+          friend_id?: string
+          status?: 'pending' | 'sent' | 'delivered' | 'failed'
+          error_message?: string | null
+          sent_at?: string | null
+          delivered_at?: string | null
+          read_at?: string | null
+          clicked_at?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "message_recipients_message_id_fkey"
+            columns: ["message_id"]
+            isOneToOne: false
+            referencedRelation: "messages"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "message_recipients_friend_id_fkey"
+            columns: ["friend_id"]
+            isOneToOne: false
+            referencedRelation: "friends"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
     }
     Views: {
       [_ in never]: never

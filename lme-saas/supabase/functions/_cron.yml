@@ -1,0 +1,7 @@
+# Cron configuration for Supabase Edge Functions
+# These functions will be invoked automatically on the specified schedule
+
+functions:
+  - name: process-step-campaigns
+    schedule: "*/1 * * * *" # Every 1 minute
+    description: Process step campaign logs and send scheduled messages
