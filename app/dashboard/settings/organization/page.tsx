@@ -16,10 +16,15 @@ async function getOrganizationData(userId: string) {
     .from('user_organizations')
     .select('organization_id, role')
     .eq('user_id', userId)
-    .single()
+    .maybeSingle()
 
-  if (userOrgError || !userOrg) {
-    throw new Error('Organization not found')
+  if (userOrgError) {
+    console.error('Error fetching user organization:', userOrgError)
+    throw new Error(`Failed to fetch organization data: ${userOrgError.message}`)
+  }
+
+  if (!userOrg) {
+    throw new Error('You are not a member of any organization. Please contact support or create a new organization.')
   }
 
   // Get organization details
@@ -27,10 +32,15 @@ async function getOrganizationData(userId: string) {
     .from('organizations')
     .select('*')
     .eq('id', userOrg.organization_id)
-    .single()
+    .maybeSingle()
 
-  if (orgError || !organization) {
-    throw new Error('Failed to fetch organization')
+  if (orgError) {
+    console.error('Error fetching organization:', orgError)
+    throw new Error(`Failed to fetch organization: ${orgError.message}`)
+  }
+
+  if (!organization) {
+    throw new Error('Organization data not found. The organization may have been deleted.')
   }
 
   // Get all staff members
@@ -50,7 +60,8 @@ async function getOrganizationData(userId: string) {
     .eq('organization_id', userOrg.organization_id)
 
   if (staffError) {
-    throw new Error('Failed to fetch staff members')
+    console.error('Error fetching staff members:', staffError)
+    throw new Error(`Failed to fetch staff members: ${staffError.message}`)
   }
 
   // Get pending invitations

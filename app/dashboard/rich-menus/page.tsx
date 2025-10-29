@@ -1,6 +1,7 @@
 import { Suspense } from 'react'
 import { getRichMenus } from '@/app/actions/rich-menus'
 import { RichMenuList } from '@/components/rich-menus/RichMenuList'
+import { RichMenuError } from '@/components/rich-menus/RichMenuError'
 import { Button } from '@/components/ui/button'
 import { PlusIcon } from '@heroicons/react/24/outline'
 import { RectangleStackIcon } from '@heroicons/react/24/outline'
@@ -27,12 +28,7 @@ async function RichMenusContent() {
     return <RichMenuList initialMenus={richMenus} />
   } catch (error) {
     console.error('Failed to load rich menus:', error)
-    return (
-      <div className="text-center py-12 bg-white rounded-lg border">
-        <p className="text-red-500 mb-4">Failed to load rich menus</p>
-        <Button onClick={() => window.location.reload()}>Reload</Button>
-      </div>
-    )
+    return <RichMenuError />
   }
 }
 

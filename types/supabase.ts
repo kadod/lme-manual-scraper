@@ -864,6 +864,138 @@ export interface Database {
           }
         ]
       }
+      rich_menus: {
+        Row: {
+          id: string
+          user_id: string
+          rich_menu_id: string
+          line_rich_menu_id: string | null
+          name: string
+          chat_bar_text: string
+          size: Json
+          selected: boolean
+          areas: Json
+          status: string
+          is_default: boolean
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          rich_menu_id: string
+          line_rich_menu_id?: string | null
+          name: string
+          chat_bar_text: string
+          size?: Json
+          selected?: boolean
+          areas?: Json
+          status?: string
+          is_default?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          rich_menu_id?: string
+          line_rich_menu_id?: string | null
+          name?: string
+          chat_bar_text?: string
+          size?: Json
+          selected?: boolean
+          areas?: Json
+          status?: string
+          is_default?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rich_menus_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      rich_menu_areas: {
+        Row: {
+          id: string
+          rich_menu_id: string
+          bounds: Json
+          action: Json
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          rich_menu_id: string
+          bounds: Json
+          action: Json
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          rich_menu_id?: string
+          bounds?: Json
+          action?: Json
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rich_menu_areas_rich_menu_id_fkey"
+            columns: ["rich_menu_id"]
+            isOneToOne: false
+            referencedRelation: "rich_menus"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      line_channels: {
+        Row: {
+          id: string
+          user_id: string
+          channel_id: string
+          channel_secret: string
+          access_token: string
+          channel_name: string | null
+          is_active: boolean
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          channel_id: string
+          channel_secret: string
+          access_token: string
+          channel_name?: string | null
+          is_active?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          channel_id?: string
+          channel_secret?: string
+          access_token?: string
+          channel_name?: string | null
+          is_active?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "line_channels_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
     }
     Views: {
       [_ in never]: never

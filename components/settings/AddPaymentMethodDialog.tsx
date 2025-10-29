@@ -14,7 +14,19 @@ import { Elements, PaymentElement, useStripe, useElements } from '@stripe/react-
 import { loadStripe, StripeElementsOptions } from '@stripe/stripe-js'
 import { ExclamationTriangleIcon } from '@heroicons/react/24/outline'
 
-const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!)
+// Safely initialize Stripe with environment variable validation
+const getStripePromise = () => {
+  const publishableKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
+
+  if (!publishableKey) {
+    console.error('NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY is not defined in environment variables')
+    return null
+  }
+
+  return loadStripe(publishableKey)
+}
+
+const stripePromise = getStripePromise()
 
 interface AddPaymentMethodDialogProps {
   open: boolean
@@ -114,18 +126,60 @@ export function AddPaymentMethodDialog({
   onSuccess,
 }: AddPaymentMethodDialogProps) {
   const [clientSecret, setClientSecret] = useState<string | null>(null)
+  const [error, setError] = useState<string | null>(null)
+
+  // Check if Stripe is configured
+  if (!stripePromise) {
+    return (
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>支払い方法を追加</DialogTitle>
+            <DialogDescription>
+              クレジットカードまたは銀行口座情報を入力してください
+            </DialogDescription>
+          </DialogHeader>
+
+          <Alert variant="destructive">
+            <ExclamationTriangleIcon className="h-4 w-4" />
+            <AlertDescription>
+              Stripe が設定されていません。環境変数 NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY を設定してください。
+            </AlertDescription>
+          </Alert>
+
+          <div className="flex justify-end pt-4">
+            <Button variant="outline" onClick={() => onOpenChange(false)}>
+              閉じる
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+    )
+  }
 
   // Fetch setup intent when dialog opens
   const handleOpenChange = async (isOpen: boolean) => {
     if (isOpen && !clientSecret) {
       try {
+        setError(null)
         const response = await fetch('/api/billing/setup-intent', {
           method: 'POST',
         })
+
+        if (!response.ok) {
+          throw new Error('セットアップに失敗しました')
+        }
+
         const data = await response.json()
+
+        if (!data.clientSecret) {
+          throw new Error('無効なレスポンスです')
+        }
+
         setClientSecret(data.clientSecret)
       } catch (error) {
         console.error('Failed to create setup intent:', error)
+        setError(error instanceof Error ? error.message : 'セットアップに失敗しました')
       }
     }
     onOpenChange(isOpen)
@@ -150,7 +204,12 @@ export function AddPaymentMethodDialog({
           </DialogDescription>
         </DialogHeader>
 
-        {clientSecret && options ? (
+        {error ? (
+          <Alert variant="destructive">
+            <ExclamationTriangleIcon className="h-4 w-4" />
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        ) : clientSecret && options ? (
           <Elements stripe={stripePromise} options={options}>
             <PaymentForm
               onSuccess={() => {

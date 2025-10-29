@@ -22,10 +22,37 @@ export default async function AutoResponsePage({ searchParams }: PageProps) {
     search: searchParams.search,
   }
 
-  const [rules, stats] = await Promise.all([
-    getAutoResponseRules(filters),
-    getAutoResponseStats(),
-  ])
+  let rules = []
+  let stats = {
+    totalResponses: 0,
+    totalResponsesChange: 0,
+    successRate: 0,
+    successRateChange: 0,
+    activeRules: 0,
+    avgResponseTime: 0,
+    avgResponseTimeChange: 0,
+  }
+
+  try {
+    const results = await Promise.allSettled([
+      getAutoResponseRules(filters),
+      getAutoResponseStats(),
+    ])
+
+    if (results[0].status === 'fulfilled') {
+      rules = results[0].value
+    } else {
+      console.error('Error fetching rules:', results[0].reason)
+    }
+
+    if (results[1].status === 'fulfilled') {
+      stats = results[1].value
+    } else {
+      console.error('Error fetching stats:', results[1].reason)
+    }
+  } catch (error) {
+    console.error('Error loading auto-response page:', error)
+  }
 
   return (
     <div className="space-y-6">

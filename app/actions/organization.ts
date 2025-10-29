@@ -31,10 +31,15 @@ async function getUserOrganization() {
     .from('user_organizations')
     .select('organization_id, role')
     .eq('user_id', user.id)
-    .single()
+    .maybeSingle()
 
-  if (error || !userOrg) {
-    throw new Error('Organization not found')
+  if (error) {
+    console.error('Error fetching user organization:', error)
+    throw new Error(`Failed to fetch organization data: ${error.message}`)
+  }
+
+  if (!userOrg) {
+    throw new Error('You are not a member of any organization. Please contact support or create a new organization.')
   }
 
   return { user, userOrg }
@@ -61,10 +66,15 @@ export async function getOrganization() {
     .from('organizations')
     .select('*')
     .eq('id', userOrg.organization_id)
-    .single()
+    .maybeSingle()
 
   if (error) {
-    throw new Error('Failed to fetch organization')
+    console.error('Error fetching organization:', error)
+    throw new Error(`Failed to fetch organization: ${error.message}`)
+  }
+
+  if (!organization) {
+    throw new Error('Organization data not found. The organization may have been deleted.')
   }
 
   return organization

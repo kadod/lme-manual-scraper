@@ -3,7 +3,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { authenticator } from 'otplib'
-import QRCode from 'qrcode'
+import * as QRCode from 'qrcode'
 import {
   ProfileUpdateData,
   NotificationSettings,

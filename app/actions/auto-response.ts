@@ -346,13 +346,14 @@ export async function getAutoResponseStats() {
   const today = new Date()
   today.setHours(0, 0, 0, 0)
 
+  // Query logs using created_at and filter by rule_id to avoid user_id column issue
   const { data: todayLogs, error: logsError } = await supabase
     .from('auto_response_logs')
-    .select('id, response_sent, rule_id')
-    .gte('triggered_at', today.toISOString())
+    .select('id, response_sent, success, rule_id')
+    .gte('created_at', today.toISOString())
     .in(
       'rule_id',
-      rules?.map(r => r.id) || []
+      rules && rules.length > 0 ? rules.map(r => r.id) : ['00000000-0000-0000-0000-000000000000']
     )
 
   if (logsError) {
@@ -360,7 +361,8 @@ export async function getAutoResponseStats() {
   }
 
   const todayTriggers = todayLogs?.length || 0
-  const todaySuccess = todayLogs?.filter(log => log.response_sent).length || 0
+  // Check both response_sent and success fields for compatibility
+  const todaySuccess = todayLogs?.filter(log => log.response_sent === true || log.success === true).length || 0
 
   const successRate = todayTriggers > 0 ? (todaySuccess / todayTriggers) * 100 : 0
 
@@ -830,6 +832,14 @@ export async function getResponseLogs(
   const from = (page - 1) * limit
   const to = from + limit - 1
 
+  // Get user's rule IDs first to filter logs
+  const { data: userRules } = await supabase
+    .from('auto_response_rules')
+    .select('id')
+    .eq('user_id', userId)
+
+  const ruleIds = userRules?.map(r => r.id) || []
+
   let query = supabase
     .from('auto_response_logs')
     .select(
@@ -839,39 +849,37 @@ export async function getResponseLogs(
         id,
         display_name
       ),
-      rule:auto_response_rules (
+      rule:auto_response_rules!inner (
         id,
         name,
-        rule_type
+        rule_type,
+        user_id
       )
     `,
       { count: 'exact' }
     )
-    .eq('user_id', userId)
+    .in('rule_id', ruleIds.length > 0 ? ruleIds : ['00000000-0000-0000-0000-000000000000'])
+    .eq('rule.user_id', userId)
 
   if (filters?.dateFrom) {
-    query = query.gte('triggered_at', filters.dateFrom)
+    query = query.gte('created_at', filters.dateFrom)
   }
 
   if (filters?.dateTo) {
-    query = query.lte('triggered_at', filters.dateTo)
+    query = query.lte('created_at', filters.dateTo)
   }
 
   if (filters?.ruleTypes && filters.ruleTypes.length > 0) {
-    query = query.in('rule_type', filters.ruleTypes)
-  }
-
-  if (filters?.status && filters.status.length > 0) {
-    query = query.in('status', filters.status)
+    query = query.in('rule.rule_type', filters.ruleTypes)
   }
 
   if (filters?.keyword) {
     query = query.or(
-      `user_message.ilike.%${filters.keyword}%,response_message.ilike.%${filters.keyword}%`
+      `incoming_message.ilike.%${filters.keyword}%,trigger_message.ilike.%${filters.keyword}%`
     )
   }
 
-  query = query.order('triggered_at', { ascending: false }).range(from, to)
+  query = query.order('created_at', { ascending: false }).range(from, to)
 
   const { data, error, count } = await query
 
@@ -908,16 +916,17 @@ export async function getConversationHistory(
     .select(
       `
       *,
-      rule:auto_response_rules (
+      rule:auto_response_rules!inner (
         id,
         name,
-        rule_type
+        rule_type,
+        user_id
       )
     `
     )
-    .eq('user_id', userId)
+    .eq('rule.user_id', userId)
     .eq('friend_id', friendId)
-    .order('triggered_at', { ascending: false })
+    .order('created_at', { ascending: false })
     .limit(limit)
 
   if (error) {
@@ -942,17 +951,29 @@ export async function getResponseTrendData(
 
   const supabase = await createClient()
 
-  let query = supabase
-    .from('auto_response_logs')
-    .select('*')
+  // Get user's rule IDs first
+  const { data: userRules } = await supabase
+    .from('auto_response_rules')
+    .select('id, rule_type')
     .eq('user_id', userId)
 
+  const ruleIds = userRules?.map(r => r.id) || []
+
+  if (ruleIds.length === 0) {
+    return []
+  }
+
+  let query = supabase
+    .from('auto_response_logs')
+    .select('*, rule:auto_response_rules!inner(rule_type)')
+    .in('rule_id', ruleIds)
+
   if (startDate) {
-    query = query.gte('triggered_at', startDate)
+    query = query.gte('created_at', startDate)
   }
 
   if (endDate) {
-    query = query.lte('triggered_at', endDate)
+    query = query.lte('created_at', endDate)
   }
 
   const { data, error } = await query
@@ -965,7 +986,7 @@ export async function getResponseTrendData(
   const groupedData: Record<string, ResponseTrendData> = {}
 
   data?.forEach((log: any) => {
-    const date = log.triggered_at.split('T')[0]
+    const date = (log.created_at || log.sent_at).split('T')[0]
 
     if (!groupedData[date]) {
       groupedData[date] = {
@@ -982,13 +1003,14 @@ export async function getResponseTrendData(
 
     groupedData[date].total_responses++
 
-    if (log.response_sent) {
+    // Check multiple success indicators
+    if (log.response_sent === true || log.success === true) {
       groupedData[date].successful++
     } else {
       groupedData[date].failed++
     }
 
-    const ruleType = log.rule_type || 'keyword'
+    const ruleType = log.rule?.rule_type || log.match_type || 'keyword'
     if (ruleType === 'keyword') {
       groupedData[date].keyword_responses++
     } else if (ruleType === 'regex') {
@@ -1016,19 +1038,33 @@ export async function getRulePerformanceData(
 
   const supabase = await createClient()
 
+  // Get user's rule IDs first
+  const { data: userRules } = await supabase
+    .from('auto_response_rules')
+    .select('id')
+    .eq('user_id', userId)
+
+  const ruleIds = userRules?.map(r => r.id) || []
+
+  if (ruleIds.length === 0) {
+    return []
+  }
+
   const { data: logs } = await supabase
     .from('auto_response_logs')
     .select(
       `
       rule_id,
-      rule_type,
+      match_type,
       response_sent,
-      rule:auto_response_rules (
-        name
+      success,
+      rule:auto_response_rules!inner (
+        name,
+        rule_type
       )
     `
     )
-    .eq('user_id', userId)
+    .in('rule_id', ruleIds)
     .not('rule_id', 'is', null)
 
   if (!logs) {
@@ -1050,13 +1086,13 @@ export async function getRulePerformanceData(
       groupedData[log.rule_id] = {
         rule_id: log.rule_id,
         rule_name: log.rule?.name || 'Unknown',
-        rule_type: log.rule_type,
+        rule_type: log.rule?.rule_type || log.match_type || 'keyword',
         responses: [],
       }
     }
 
     groupedData[log.rule_id].responses.push({
-      success: log.response_sent,
+      success: log.response_sent === true || log.success === true,
     })
   })
 

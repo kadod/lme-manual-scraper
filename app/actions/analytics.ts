@@ -174,10 +174,11 @@ export async function getAnalyticsOverview(
 }
 
 /**
- * Get friends trend over time
+ * Get friends trend over time (overloaded for both TimeRange and date strings)
  */
 export async function getFriendsTrend(
-  dateRange: TimeRange = '30d'
+  dateRangeOrStart: TimeRange | string = '30d',
+  endDate?: string
 ): Promise<FriendsTrendData[]> {
   const userId = await getCurrentUserId()
   if (!userId) {
@@ -190,7 +191,21 @@ export async function getFriendsTrend(
   }
 
   const supabase = await createClient()
-  const { start, end } = getDateRange(dateRange)
+
+  // Determine if we're using TimeRange or date strings
+  let start: Date
+  let end: Date
+
+  if (endDate !== undefined) {
+    // Using date strings
+    start = new Date(dateRangeOrStart as string)
+    end = new Date(endDate)
+  } else {
+    // Using TimeRange
+    const range = getDateRange(dateRangeOrStart as TimeRange)
+    start = range.start
+    end = range.end
+  }
 
   const { data: stats, error } = await supabase
     .from('analytics_daily_stats')
@@ -447,6 +462,162 @@ export async function getTopUrls(limit: number = 10) {
   }
 
   return urls || []
+}
+
+/**
+ * Get dashboard stats wrapper with date range parameters
+ */
+export async function getDashboardStats(startDate: string, endDate: string): Promise<DashboardStats> {
+  // Calculate time range based on date difference
+  const start = new Date(startDate)
+  const end = new Date(endDate)
+  const days = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24))
+
+  let range: TimeRange = '30d'
+  if (days <= 7) range = '7d'
+  else if (days <= 30) range = '30d'
+  else if (days <= 90) range = '90d'
+  else if (days <= 365) range = '1y'
+  else range = 'all'
+
+  return getAnalyticsOverview(range)
+}
+
+/**
+ * Get message stats wrapper (alias for getMessagePerformance)
+ */
+export async function getMessageStats(startDate: string, endDate: string): Promise<MessageStatsData> {
+  const start = new Date(startDate)
+  const end = new Date(endDate)
+  const days = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24))
+
+  let range: TimeRange = '30d'
+  if (days <= 7) range = '7d'
+  else if (days <= 30) range = '30d'
+  else if (days <= 90) range = '90d'
+  else if (days <= 365) range = '1y'
+  else range = 'all'
+
+  return getMessagePerformance(range)
+}
+
+/**
+ * Get engagement rate wrapper (alias for getEngagementTrend)
+ */
+export async function getEngagementRate(startDate: string, endDate: string): Promise<EngagementRateData> {
+  const start = new Date(startDate)
+  const end = new Date(endDate)
+  const days = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24))
+
+  let range: TimeRange = '30d'
+  if (days <= 7) range = '7d'
+  else if (days <= 30) range = '30d'
+  else if (days <= 90) range = '90d'
+  else if (days <= 365) range = '1y'
+  else range = 'all'
+
+  return getEngagementTrend(range)
+}
+
+/**
+ * Get tag distribution across friends
+ */
+export async function getTagDistribution() {
+  const userId = await getCurrentUserId()
+  if (!userId) {
+    throw new Error('User not authenticated')
+  }
+
+  const orgId = await getOrganizationId()
+  if (!orgId) {
+    throw new Error('Organization not found')
+  }
+
+  const supabase = await createClient()
+
+  // Get tag counts with friend associations
+  const { data: tagCounts, error } = await supabase
+    .from('friend_tags')
+    .select(`
+      tag_id,
+      tags (
+        id,
+        name,
+        color
+      )
+    `)
+    .eq('tags.organization_id', orgId)
+
+  if (error) {
+    console.error('Error fetching tag distribution:', error)
+    return []
+  }
+
+  // Aggregate by tag
+  const tagMap = new Map<string, { name: string; color: string | null; count: number }>()
+
+  for (const item of tagCounts || []) {
+    if (item.tags && Array.isArray(item.tags) && item.tags.length > 0) {
+      const tag = item.tags[0]
+      const existing = tagMap.get(item.tag_id) || { name: tag.name, color: tag.color, count: 0 }
+      existing.count += 1
+      tagMap.set(item.tag_id, existing)
+    }
+  }
+
+  const totalFriends = Array.from(tagMap.values()).reduce((sum, tag) => sum + tag.count, 0)
+
+  return Array.from(tagMap.entries()).map(([tag_id, data]) => ({
+    tag_id,
+    tag_name: data.name,
+    tag_color: data.color,
+    friend_count: data.count,
+    percentage: totalFriends > 0 ? Math.round((data.count / totalFriends) * 100 * 100) / 100 : 0,
+  }))
+}
+
+/**
+ * Get device breakdown from friend profiles
+ */
+export async function getDeviceBreakdown(startDate: string, endDate: string) {
+  const userId = await getCurrentUserId()
+  if (!userId) {
+    throw new Error('User not authenticated')
+  }
+
+  const orgId = await getOrganizationId()
+  if (!orgId) {
+    throw new Error('Organization not found')
+  }
+
+  const supabase = await createClient()
+
+  // Get device information from friends
+  const { data: friends, error } = await supabase
+    .from('friends')
+    .select('metadata')
+    .eq('organization_id', orgId)
+
+  if (error) {
+    console.error('Error fetching device breakdown:', error)
+    return []
+  }
+
+  // Extract device types from metadata
+  const deviceMap = new Map<string, number>()
+
+  for (const friend of friends || []) {
+    const deviceType = (friend.metadata as any)?.device_type || 'unknown'
+    deviceMap.set(deviceType, (deviceMap.get(deviceType) || 0) + 1)
+  }
+
+  const total = Array.from(deviceMap.values()).reduce((sum, count) => sum + count, 0)
+
+  return Array.from(deviceMap.entries()).map(([device_type, count]) => ({
+    device_type,
+    count,
+    percentage: total > 0 ? Math.round((count / total) * 100 * 100) / 100 : 0,
+  }))
 }
 
 /**
