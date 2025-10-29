@@ -676,6 +676,194 @@ export interface Database {
           }
         ]
       }
+      url_mappings: {
+        Row: {
+          id: string
+          organization_id: string
+          short_code: string
+          original_url: string
+          message_id: string | null
+          click_count: number
+          unique_click_count: number
+          expires_at: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          organization_id: string
+          short_code: string
+          original_url: string
+          message_id?: string | null
+          click_count?: number
+          unique_click_count?: number
+          expires_at?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          organization_id?: string
+          short_code?: string
+          original_url?: string
+          message_id?: string | null
+          click_count?: number
+          unique_click_count?: number
+          expires_at?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "url_mappings_message_id_fkey"
+            columns: ["message_id"]
+            isOneToOne: false
+            referencedRelation: "messages"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      url_clicks: {
+        Row: {
+          id: string
+          url_mapping_id: string
+          line_friend_id: string | null
+          ip_address: string | null
+          user_agent: string | null
+          referrer: string | null
+          clicked_at: string
+        }
+        Insert: {
+          id?: string
+          url_mapping_id: string
+          line_friend_id?: string | null
+          ip_address?: string | null
+          user_agent?: string | null
+          referrer?: string | null
+          clicked_at?: string
+        }
+        Update: {
+          id?: string
+          url_mapping_id?: string
+          line_friend_id?: string | null
+          ip_address?: string | null
+          user_agent?: string | null
+          referrer?: string | null
+          clicked_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "url_clicks_url_mapping_id_fkey"
+            columns: ["url_mapping_id"]
+            isOneToOne: false
+            referencedRelation: "url_mappings"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      custom_reports: {
+        Row: {
+          id: string
+          user_id: string
+          name: string
+          description: string | null
+          status: 'active' | 'inactive' | 'draft'
+          format: 'pdf' | 'csv' | 'excel'
+          date_range: Json
+          metrics: Json
+          schedule: Json | null
+          last_generated: string | null
+          next_scheduled: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          name: string
+          description?: string | null
+          status: 'active' | 'inactive' | 'draft'
+          format: 'pdf' | 'csv' | 'excel'
+          date_range?: Json
+          metrics?: Json
+          schedule?: Json | null
+          last_generated?: string | null
+          next_scheduled?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          name?: string
+          description?: string | null
+          status?: 'active' | 'inactive' | 'draft'
+          format?: 'pdf' | 'csv' | 'excel'
+          date_range?: Json
+          metrics?: Json
+          schedule?: Json | null
+          last_generated?: string | null
+          next_scheduled?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "custom_reports_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      report_history: {
+        Row: {
+          id: string
+          report_id: string
+          report_name: string
+          generated_at: string
+          format: 'pdf' | 'csv' | 'excel'
+          file_url: string | null
+          file_size: number | null
+          status: 'generating' | 'completed' | 'failed'
+          error: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          report_id: string
+          report_name: string
+          generated_at?: string
+          format: 'pdf' | 'csv' | 'excel'
+          file_url?: string | null
+          file_size?: number | null
+          status: 'generating' | 'completed' | 'failed'
+          error?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          report_id?: string
+          report_name?: string
+          generated_at?: string
+          format?: 'pdf' | 'csv' | 'excel'
+          file_url?: string | null
+          file_size?: number | null
+          status?: 'generating' | 'completed' | 'failed'
+          error?: string | null
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "report_history_report_id_fkey"
+            columns: ["report_id"]
+            isOneToOne: false
+            referencedRelation: "custom_reports"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
     }
     Views: {
       [_ in never]: never

@@ -9,3 +9,7 @@ functions:
   - name: send-reservation-reminders
     schedule: "0 * * * *" # Every hour at minute 0
     description: Send LINE reminder messages for upcoming reservations
+
+  - name: aggregate-analytics
+    schedule: "0 2 * * *" # Every day at 2:00 AM
+    description: Aggregate daily analytics data from events into daily stats table
