@@ -367,6 +367,104 @@ export interface Database {
           }
         ]
       }
+      forms: {
+        Row: {
+          id: string
+          user_id: string
+          title: string
+          description: string | null
+          status: 'draft' | 'published' | 'closed'
+          questions: Json
+          settings: Json
+          total_responses: number
+          response_rate: number
+          created_at: string
+          updated_at: string
+          published_at: string | null
+          closed_at: string | null
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          title: string
+          description?: string | null
+          status?: 'draft' | 'published' | 'closed'
+          questions?: Json
+          settings?: Json
+          total_responses?: number
+          response_rate?: number
+          created_at?: string
+          updated_at?: string
+          published_at?: string | null
+          closed_at?: string | null
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          title?: string
+          description?: string | null
+          status?: 'draft' | 'published' | 'closed'
+          questions?: Json
+          settings?: Json
+          total_responses?: number
+          response_rate?: number
+          created_at?: string
+          updated_at?: string
+          published_at?: string | null
+          closed_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "forms_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      form_responses: {
+        Row: {
+          id: string
+          form_id: string
+          friend_id: string
+          answers: Json
+          submitted_at: string
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          form_id: string
+          friend_id: string
+          answers: Json
+          submitted_at?: string
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          form_id?: string
+          friend_id?: string
+          answers?: Json
+          submitted_at?: string
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "form_responses_form_id_fkey"
+            columns: ["form_id"]
+            isOneToOne: false
+            referencedRelation: "forms"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "form_responses_friend_id_fkey"
+            columns: ["friend_id"]
+            isOneToOne: false
+            referencedRelation: "friends"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
     }
     Views: {
       [_ in never]: never
