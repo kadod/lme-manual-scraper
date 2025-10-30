@@ -248,7 +248,7 @@ async function handleMessageEvent(
     .from('conversations')
     .select('id')
     .eq('line_friend_id', friend.id)
-    .eq('status', 'open')
+    .eq('status', 'active')
     .order('created_at', { ascending: false })
     .limit(1)
     .single()
@@ -261,7 +261,7 @@ async function handleMessageEvent(
       .insert({
         organization_id: lineChannel.organization_id,
         line_friend_id: friend.id,
-        status: 'open',
+        status: 'active',
         last_message_at: new Date(event.timestamp).toISOString()
       })
       .select('id')
