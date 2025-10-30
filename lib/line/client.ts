@@ -12,7 +12,7 @@ export interface LineClientConfig {
 }
 
 /**
- * Get LINE client configuration for an organization
+ * Get LINE client configuration for a company (organization)
  * Fetches active LINE channel credentials from database
  */
 export async function getLineClient(

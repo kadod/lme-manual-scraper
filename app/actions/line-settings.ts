@@ -7,14 +7,14 @@ import { revalidatePath } from 'next/cache'
 export interface LineChannel {
   id: string
   organization_id: string
+  name: string
   channel_id: string
   channel_secret: string
   channel_access_token: string
-  channel_name: string | null
-  channel_icon_url: string | null
+  webhook_url: string | null
+  picture_url: string | null
   settings: {
     liff_id?: string
-    webhook_url?: string
     [key: string]: unknown
   }
   status: 'active' | 'inactive'
@@ -31,21 +31,21 @@ export interface LineSettingsFormData {
 }
 
 /**
- * Get LINE channel settings for current organization
+ * Get LINE channel settings for current company (organization)
  */
 export async function getLineSettings() {
-  const organizationId = await getCurrentUserOrganizationId()
+  const companyId = await getCurrentUserOrganizationId()
 
-  if (!organizationId) {
-    throw new Error('Organization not found')
+  if (!companyId) {
+    throw new Error('Company not found')
   }
 
   const supabase = await createClient()
 
-  const { data, error } = await supabase
+  const { data, error} = await supabase
     .from('line_channels')
     .select('*')
-    .eq('organization_id', organizationId)
+    .eq('organization_id', companyId)
     .eq('status', 'active')
     .single()
 
@@ -62,10 +62,10 @@ export async function getLineSettings() {
  * Save or update LINE channel settings
  */
 export async function saveLineSettings(data: LineSettingsFormData) {
-  const organizationId = await getCurrentUserOrganizationId()
+  const companyId = await getCurrentUserOrganizationId()
 
-  if (!organizationId) {
-    throw new Error('Organization not found')
+  if (!companyId) {
+    throw new Error('Company not found')
   }
 
   const supabase = await createClient()
@@ -79,14 +79,13 @@ export async function saveLineSettings(data: LineSettingsFormData) {
     throw new Error('Authentication required')
   }
 
-  const { data: userOrg } = await supabase
-    .from('user_organizations')
+  const { data: userProfile } = await supabase
+    .from('users')
     .select('role')
-    .eq('user_id', user.id)
-    .eq('organization_id', organizationId)
+    .eq('id', user.id)
     .single()
 
-  if (!userOrg || (userOrg.role !== 'owner' && userOrg.role !== 'admin')) {
+  if (!userProfile || !['owner', 'admin'].includes(userProfile.role)) {
     throw new Error(
       'Insufficient permissions: Only owners and admins can update LINE settings'
     )
@@ -96,18 +95,18 @@ export async function saveLineSettings(data: LineSettingsFormData) {
   const { data: existingChannel } = await supabase
     .from('line_channels')
     .select('id')
-    .eq('organization_id', organizationId)
+    .eq('organization_id', companyId)
     .single()
 
   const channelData = {
-    organization_id: organizationId,
+    organization_id: companyId,
+    name: data.channelName || 'LINE Channel',
     channel_id: data.channelId,
     channel_secret: data.channelSecret,
     channel_access_token: data.channelAccessToken,
-    channel_name: data.channelName || null,
+    webhook_url: `${process.env.NEXT_PUBLIC_APP_URL}/api/line/webhook`,
     settings: {
       liff_id: data.liffId || null,
-      webhook_url: `${process.env.NEXT_PUBLIC_APP_URL}/api/line/webhook`,
     },
     status: 'active' as const,
     updated_at: new Date().toISOString(),
@@ -204,10 +203,10 @@ export async function testLineConnection(channelAccessToken: string) {
  * Update channel profile (name and icon) from LINE API
  */
 export async function updateChannelProfile() {
-  const organizationId = await getCurrentUserOrganizationId()
+  const companyId = await getCurrentUserOrganizationId()
 
-  if (!organizationId) {
-    throw new Error('Organization not found')
+  if (!companyId) {
+    throw new Error('Company not found')
   }
 
   const supabase = await createClient()
@@ -216,7 +215,7 @@ export async function updateChannelProfile() {
   const { data: channel, error: channelError } = await supabase
     .from('line_channels')
     .select('*')
-    .eq('organization_id', organizationId)
+    .eq('organization_id', companyId)
     .eq('status', 'active')
     .single()
 
@@ -235,8 +234,8 @@ export async function updateChannelProfile() {
   const { data: updatedChannel, error: updateError } = await supabase
     .from('line_channels')
     .update({
-      channel_name: connectionTest.data.displayName,
-      channel_icon_url: connectionTest.data.pictureUrl,
+      name: connectionTest.data.displayName,
+      picture_url: connectionTest.data.pictureUrl,
       updated_at: new Date().toISOString(),
     })
     .eq('id', channel.id)
@@ -257,10 +256,10 @@ export async function updateChannelProfile() {
  * This is useful for initial setup to import existing followers
  */
 export async function fetchExistingFriends() {
-  const organizationId = await getCurrentUserOrganizationId()
+  const companyId = await getCurrentUserOrganizationId()
 
-  if (!organizationId) {
-    throw new Error('Organization not found')
+  if (!companyId) {
+    throw new Error('Company not found')
   }
 
   const supabase = await createClient()
@@ -269,7 +268,7 @@ export async function fetchExistingFriends() {
   const { data: channel, error: channelError } = await supabase
     .from('line_channels')
     .select('*')
-    .eq('organization_id', organizationId)
+    .eq('organization_id', companyId)
     .eq('status', 'active')
     .single()
 

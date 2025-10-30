@@ -51,8 +51,8 @@ export default function LineSettingsPage() {
         setChannelId(settings.channel_id)
         setChannelSecret(settings.channel_secret)
         setChannelAccessToken(settings.channel_access_token)
-        setChannelName(settings.channel_name || '')
-        setChannelIconUrl(settings.channel_icon_url)
+        setChannelName(settings.name || '')
+        setChannelIconUrl(settings.picture_url)
         setLiffId(settings.settings.liff_id || '')
       }
 
@@ -130,8 +130,8 @@ export default function LineSettingsPage() {
       setTesting(true)
       const updated = await updateChannelProfile()
 
-      setChannelName(updated.channel_name || '')
-      setChannelIconUrl(updated.channel_icon_url)
+      setChannelName(updated.name || '')
+      setChannelIconUrl(updated.picture_url)
 
       toast.success('アカウント情報を更新しました')
     } catch (error) {

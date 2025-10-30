@@ -3,9 +3,8 @@
 import { createClient } from '@/lib/supabase/server'
 
 /**
- * Get the current user's organization ID
- * Uses the user_organizations table to find the organization
- * Returns the first organization if user belongs to multiple
+ * Get the current user's company ID (organization)
+ * Uses the user_profiles table to find the company
  */
 export async function getCurrentUserOrganizationId(): Promise<string | null> {
   const supabase = await createClient()
@@ -15,29 +14,28 @@ export async function getCurrentUserOrganizationId(): Promise<string | null> {
   } = await supabase.auth.getUser()
 
   if (!user) {
+    console.error('[getCurrentUserOrganizationId] No user found')
     return null
   }
 
-  // First try to get from users table (legacy support)
-  const { data: userData } = await supabase
+  console.log('[getCurrentUserOrganizationId] User ID:', user.id)
+  console.log('[getCurrentUserOrganizationId] User email:', user.email)
+
+  // Get organization_id from users table
+  const { data: userData, error } = await supabase
     .from('users')
     .select('organization_id')
     .eq('id', user.id)
     .single()
 
-  if (userData?.organization_id) {
-    return userData.organization_id
+  console.log('[getCurrentUserOrganizationId] Query result - User Data:', userData)
+  console.log('[getCurrentUserOrganizationId] Query result - Error:', error)
+
+  if (error) {
+    console.error('[getCurrentUserOrganizationId] Error details:', JSON.stringify(error, null, 2))
   }
 
-  // Then try from user_organizations table (new multi-tenant support)
-  const { data: userOrg } = await supabase
-    .from('user_organizations')
-    .select('organization_id')
-    .eq('user_id', user.id)
-    .limit(1)
-    .single()
-
-  return userOrg?.organization_id || null
+  return userData?.organization_id || null
 }
 
 /**
@@ -52,7 +50,7 @@ export async function getCurrentUserId(): Promise<string | null> {
 }
 
 /**
- * Get user's organization with role
+ * Get user's company (organization) with role
  */
 export async function getUserOrganization() {
   const supabase = await createClient()
@@ -65,54 +63,26 @@ export async function getUserOrganization() {
     return null
   }
 
-  // Try from user_organizations table first
-  const { data: userOrg } = await supabase
-    .from('user_organizations')
+  // Get from user_profiles with company details
+  const { data: userProfile } = await supabase
+    .from('user_profiles')
     .select(`
-      organization_id,
+      company_id,
       role,
-      organization:organizations (
+      company:companies (
         id,
         name,
-        slug,
-        plan,
-        status
-      )
-    `)
-    .eq('user_id', user.id)
-    .limit(1)
-    .single()
-
-  if (userOrg) {
-    return {
-      organizationId: userOrg.organization_id,
-      role: userOrg.role,
-      organization: userOrg.organization,
-    }
-  }
-
-  // Fallback to users table (legacy)
-  const { data: userData } = await supabase
-    .from('users')
-    .select(`
-      organization_id,
-      role,
-      organization:organizations (
-        id,
-        name,
-        slug,
-        plan,
-        status
+        slug
       )
     `)
     .eq('id', user.id)
     .single()
 
-  if (userData) {
+  if (userProfile && userProfile.company_id) {
     return {
-      organizationId: userData.organization_id,
-      role: userData.role,
-      organization: userData.organization,
+      organizationId: userProfile.company_id,
+      role: userProfile.role,
+      organization: userProfile.company,
     }
   }
 
