@@ -51,6 +51,36 @@ const navigation = [
     items: [
       { name: 'ホーム', href: '/dashboard', icon: HomeIcon },
       {
+        name: '1:1チャット',
+        href: '/dashboard/chat',
+        icon: ChatBubbleLeftRightIcon,
+        subItems: [
+          { name: '1:1チャット', href: '/dashboard/chat' },
+          { name: 'チャット設定', href: '/dashboard/chat/settings' },
+        ]
+      },
+      {
+        name: '顧客対応',
+        href: '/dashboard/customer-support',
+        icon: ChatBubbleBottomCenterTextIcon,
+        subItems: [
+          { name: 'チャット管理', href: '/dashboard/customer-support/chat-management' },
+          { name: '自動応答', href: '/dashboard/auto-response' },
+          { name: 'リッチメニュー', href: '/dashboard/rich-menus' },
+          { name: '通知設定', href: '/dashboard/customer-support/notifications' },
+        ]
+      },
+      {
+        name: 'あいさつメッセージ',
+        href: '/dashboard/customer-support/greeting',
+        icon: SparklesIcon,
+        subItems: [
+          { name: '新規友だち用', href: '/dashboard/customer-support/greeting?tab=new' },
+          { name: '既存友だち用', href: '/dashboard/customer-support/greeting?tab=existing' },
+          { name: 'ブロック解除友だち用', href: '/dashboard/customer-support/greeting?tab=unblock' },
+        ]
+      },
+      {
         name: 'メッセージ',
         href: '/dashboard/messages',
         icon: DocumentTextIcon,
@@ -58,6 +88,7 @@ const navigation = [
           { name: '新規メッセージ', href: '/dashboard/messages/new' },
           { name: 'テンプレート', href: '/dashboard/messages/templates' },
           { name: 'ステップ配信', href: '/dashboard/messages/step-campaigns' },
+          { name: 'フォーム', href: '/dashboard/forms' },
         ]
       },
       {
@@ -80,33 +111,6 @@ const navigation = [
           { name: 'カレンダー', href: '/dashboard/reservations/calendar' },
           { name: '予約タイプ', href: '/dashboard/reservations/types' },
           { name: '設定', href: '/dashboard/reservations/settings' },
-        ]
-      },
-      {
-        name: 'フォーム',
-        href: '/dashboard/forms',
-        icon: ClipboardDocumentListIcon,
-        subItems: [
-          { name: 'フォーム一覧', href: '/dashboard/forms' },
-        ]
-      },
-      {
-        name: 'リッチメニュー',
-        href: '/dashboard/rich-menus',
-        icon: Squares2X2Icon,
-        subItems: [
-          { name: 'リッチメニュー一覧', href: '/dashboard/rich-menus' },
-          { name: '新規作成', href: '/dashboard/rich-menus/new' },
-        ]
-      },
-      {
-        name: '自動応答',
-        href: '/dashboard/auto-response',
-        icon: ChatBubbleBottomCenterTextIcon,
-        subItems: [
-          { name: '自動応答一覧', href: '/dashboard/auto-response' },
-          { name: 'AI応答', href: '/dashboard/auto-response/ai' },
-          { name: '分析', href: '/dashboard/auto-response/analytics' },
         ]
       },
       {
@@ -171,7 +175,7 @@ export default function DashboardSidebar() {
             </h3>
             <ul className="space-y-1">
               {section.items.map((item) => {
-                const isActive = pathname === item.href || pathname.startsWith(`${item.href}/`)
+                const isActive = pathname === item.href || (item.href !== '/dashboard' && pathname.startsWith(`${item.href}/`))
                 const hasSubItems = item.subItems && item.subItems.length > 0
 
                 return (

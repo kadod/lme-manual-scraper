@@ -3,6 +3,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { TablesUpdate } from '@/types/supabase'
 import { revalidatePath } from 'next/cache'
+import { getCurrentUserOrganizationId } from '@/lib/utils/organization'
 
 export type Reservation = {
   id: string
@@ -24,7 +25,6 @@ export type Reservation = {
     name: string
     description: string | null
     duration_minutes: number
-    buffer_minutes: number
   }
   slot?: {
     id: string
@@ -53,18 +53,10 @@ export type ReservationFilters = {
   limit?: number
 }
 
-async function getCurrentUserId(): Promise<string | null> {
-  const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-  return user?.id || null
-}
-
 export async function getReservations(filters?: ReservationFilters) {
-  const userId = await getCurrentUserId()
-  if (!userId) {
-    throw new Error('User not authenticated')
+  const organizationId = await getCurrentUserOrganizationId()
+  if (!organizationId) {
+    throw new Error('Organization not found')
   }
 
   const supabase = await createClient()
@@ -83,24 +75,23 @@ export async function getReservations(filters?: ReservationFilters) {
         name,
         description,
         duration_minutes,
-        buffer_minutes,
-        user_id
+        organization_id
       ),
-      slot:available_slots (
+      slot:schedule_slots (
         id,
         start_time,
         end_time,
         capacity,
         booked_count
       ),
-      friend:friends (
+      friend:line_friends (
         id,
         display_name,
         picture_url,
         line_user_id
       )
     `, { count: 'exact' })
-    .eq('reservation_type.user_id', userId)
+    .eq('reservation_type.organization_id', organizationId)
 
   if (filters?.status && filters.status !== 'all') {
     query = query.eq('status', filters.status)
@@ -147,9 +138,9 @@ export async function getReservations(filters?: ReservationFilters) {
 }
 
 export async function getReservation(id: string) {
-  const userId = await getCurrentUserId()
-  if (!userId) {
-    throw new Error('User not authenticated')
+  const organizationId = await getCurrentUserOrganizationId()
+  if (!organizationId) {
+    throw new Error('Organization not found')
   }
 
   const supabase = await createClient()
@@ -162,18 +153,17 @@ export async function getReservation(id: string) {
         name,
         description,
         duration_minutes,
-        buffer_minutes,
         settings,
-        user_id
+        organization_id
       ),
-      slot:available_slots (
+      slot:schedule_slots (
         id,
         start_time,
         end_time,
         capacity,
         booked_count
       ),
-      friend:friends (
+      friend:line_friends (
         id,
         display_name,
         picture_url,
@@ -182,7 +172,7 @@ export async function getReservation(id: string) {
       )
     `)
     .eq('id', id)
-    .eq('reservation_type.user_id', userId)
+    .eq('reservation_type.organization_id', organizationId)
     .single()
 
   if (error) {
@@ -197,9 +187,9 @@ export async function updateReservationStatus(
   id: string,
   status: 'confirmed' | 'cancelled' | 'completed' | 'no_show'
 ) {
-  const userId = await getCurrentUserId()
-  if (!userId) {
-    throw new Error('User not authenticated')
+  const organizationId = await getCurrentUserOrganizationId()
+  if (!organizationId) {
+    throw new Error('Organization not found')
   }
 
   const supabase = await createClient()
@@ -210,11 +200,11 @@ export async function updateReservationStatus(
       id,
       status,
       reservation_type:reservation_types!inner (
-        user_id
+        organization_id
       )
     `)
     .eq('id', id)
-    .eq('reservation_type.user_id', userId)
+    .eq('reservation_type.organization_id', organizationId)
     .single()
 
   if (!existing) {
@@ -244,17 +234,16 @@ export async function updateReservationStatus(
         id,
         name,
         description,
-        duration_minutes,
-        buffer_minutes
+        duration_minutes
       ),
-      slot:available_slots (
+      slot:schedule_slots (
         id,
         start_time,
         end_time,
         capacity,
         booked_count
       ),
-      friend:friends (
+      friend:line_friends (
         id,
         display_name,
         picture_url,
@@ -278,9 +267,9 @@ export async function cancelReservation(id: string) {
 
 export async function exportReservationsToCSV(filters?: ReservationFilters) {
   try {
-    const userId = await getCurrentUserId()
-    if (!userId) {
-      return { success: false, error: 'User not authenticated' }
+    const organizationId = await getCurrentUserOrganizationId()
+    if (!organizationId) {
+      return { success: false, error: 'Organization not found' }
     }
 
     const result = await getReservations({ ...filters, limit: 10000 })
@@ -339,9 +328,9 @@ export async function getReservationStats(
   startDate?: string,
   endDate?: string
 ) {
-  const userId = await getCurrentUserId()
-  if (!userId) {
-    throw new Error('User not authenticated')
+  const organizationId = await getCurrentUserOrganizationId()
+  if (!organizationId) {
+    throw new Error('Organization not found')
   }
 
   const supabase = await createClient()
@@ -352,13 +341,13 @@ export async function getReservationStats(
       status,
       created_at,
       reservation_type:reservation_types!inner (
-        user_id
+        organization_id
       ),
-      slot:available_slots (
+      slot:schedule_slots (
         start_time
       )
     `, { count: 'exact' })
-    .eq('reservation_type.user_id', userId)
+    .eq('reservation_type.organization_id', organizationId)
 
   if (startDate) {
     query = query.gte('slot.start_time', startDate)
@@ -395,9 +384,9 @@ export async function getReservationStats(
 }
 
 export async function getReservationTypes() {
-  const userId = await getCurrentUserId()
-  if (!userId) {
-    throw new Error('User not authenticated')
+  const organizationId = await getCurrentUserOrganizationId()
+  if (!organizationId) {
+    throw new Error('Organization not found')
   }
 
   const supabase = await createClient()
@@ -405,8 +394,8 @@ export async function getReservationTypes() {
   const { data, error } = await supabase
     .from('reservation_types')
     .select('*')
-    .eq('user_id', userId)
-    .eq('status', 'active')
+    .eq('organization_id', organizationId)
+    .eq('is_active', true)
     .order('name')
 
   if (error) {

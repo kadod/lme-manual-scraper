@@ -55,7 +55,7 @@ export default async function DashboardPage() {
   ]
 
   return (
-    <div className="p-8 pt-24">
+    <div className="p-8">
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900">ホーム</h1>
         <p className="text-gray-600 mt-2">L Message SaaS管理画面へようこそ</p>

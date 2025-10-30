@@ -15,8 +15,6 @@ const messageSchema = z.object({
   scheduled_at: z.string().datetime().optional().nullable(),
   target_type: z.enum(['all', 'segments', 'tags', 'manual']).default('all'),
   target_ids: z.array(z.string()).optional(),
-  exclude_blocked: z.boolean().default(true),
-  exclude_unsubscribed: z.boolean().default(true),
 })
 
 export type MessageFormData = z.infer<typeof messageSchema>
@@ -314,9 +312,7 @@ export async function uploadMessageMedia(file: File): Promise<string> {
 
 export async function getTargetCount(
   targetType: 'all' | 'segments' | 'tags' | 'manual',
-  targetIds?: string[],
-  excludeBlocked: boolean = true,
-  excludeUnsubscribed: boolean = true
+  targetIds?: string[]
 ): Promise<number> {
   const supabase = await createClient()
 
@@ -326,17 +322,9 @@ export async function getTargetCount(
   }
 
   let query = supabase
-    .from('friends')
+    .from('line_friends')
     .select('id', { count: 'exact', head: true })
-    .eq('user_id', user.id)
-
-  if (excludeBlocked) {
-    query = query.eq('is_blocked', false)
-  }
-
-  if (excludeUnsubscribed) {
-    query = query.eq('is_subscribed', true)
-  }
+    .eq('follow_status', 'following')
 
   if (targetType === 'segments' && targetIds && targetIds.length > 0) {
     query = query.in('segment_id', targetIds)

@@ -30,7 +30,7 @@ export default async function DashboardLayout({
       {/* ヘッダー */}
       <DashboardHeader user={userData} />
 
-      <div className="flex">
+      <div className="flex pt-16">
         {/* サイドバー */}
         <DashboardSidebar />
 

@@ -27,6 +27,8 @@ async function getOrganizationData(userId: string) {
     throw new Error('You are not a member of any organization. Please contact support or create a new organization.')
   }
 
+  console.log('User org data:', userOrg)
+
   // Get organization details
   const { data: organization, error: orgError } = await supabase
     .from('organizations')
@@ -34,13 +36,15 @@ async function getOrganizationData(userId: string) {
     .eq('id', userOrg.organization_id)
     .maybeSingle()
 
+  console.log('Organization query result:', { organization, orgError })
+
   if (orgError) {
     console.error('Error fetching organization:', orgError)
     throw new Error(`Failed to fetch organization: ${orgError.message}`)
   }
 
   if (!organization) {
-    throw new Error('Organization data not found. The organization may have been deleted.')
+    throw new Error(`Organization data not found for ID: ${userOrg.organization_id}. The organization may have been deleted.`)
   }
 
   // Get all staff members
@@ -53,7 +57,7 @@ async function getOrganizationData(userId: string) {
       users:user_id (
         id,
         email,
-        full_name,
+        display_name,
         avatar_url
       )
     `)
@@ -74,7 +78,7 @@ async function getOrganizationData(userId: string) {
   const activeMembers = (staffMembers || []).map((member: any) => ({
     id: member.users.id,
     email: member.users.email,
-    fullName: member.users.full_name,
+    fullName: member.users.display_name,
     avatarUrl: member.users.avatar_url,
     role: member.role,
     status: 'active' as const,

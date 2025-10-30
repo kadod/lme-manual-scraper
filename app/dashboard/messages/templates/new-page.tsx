@@ -14,12 +14,12 @@ import {
   TrashIcon,
 } from '@heroicons/react/24/outline'
 
-interface StepCampaign {
+interface Template {
   id: string
   name: string
-  subscribing: number
-  stopped: number
-  completed: number
+  content: string
+  preview: string
+  createdAt: string
   folder: string
 }
 
@@ -29,64 +29,97 @@ interface Folder {
   count: number
 }
 
-export default function StepCampaignsListPage() {
-  const [selectedCampaigns, setSelectedCampaigns] = useState<string[]>([])
+export default function TemplatesListPage() {
+  const [selectedTemplates, setSelectedTemplates] = useState<string[]>([])
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedFolder, setSelectedFolder] = useState<string | null>(null)
 
   const folders: Folder[] = [
     { id: 'uncategorized', name: '未分類', count: 0 },
-    { id: 'onboarding', name: 'オンボーディング', count: 3 },
-    { id: 'survey', name: 'アンケート', count: 2 },
+    { id: 'initial-survey', name: '初期アンケート', count: 8 },
+    { id: 'initial-survey-result', name: '初期アンケート_結果', count: 8 },
+    { id: 'reminder', name: 'リマインド', count: 8 },
   ]
 
-  const campaigns: StepCampaign[] = [
+  const templates: Template[] = [
     {
       id: '1',
-      name: '退職手続き予定リマインド【1ヶ月前】',
-      subscribing: 26,
-      stopped: 5,
-      completed: 21,
-      folder: 'onboarding',
+      name: '初期アンケート_開始',
+      content: '{name}さん、友達追加ありがとうございます...',
+      preview: 'パネル',
+      createdAt: '2025.07.30',
+      folder: 'initial-survey',
     },
     {
       id: '2',
-      name: '退職手続き予定リマインド【1週間前】',
-      subscribing: 16,
-      stopped: 3,
-      completed: 13,
-      folder: 'onboarding',
+      name: '初期アンケート_質問①',
+      content: '退職予定は　パネル / 退職時期はお決まり...',
+      preview: 'パネル',
+      createdAt: '2025.07.30',
+      folder: 'initial-survey',
     },
     {
       id: '3',
-      name: '初期アンケート【1日後】',
-      subscribing: 118,
-      stopped: 21,
-      completed: 97,
-      folder: 'survey',
+      name: '初期アンケート_質問②',
+      content: '年齢は？　パネル / 現在おいくつですか...',
+      preview: 'パネル',
+      createdAt: '2025.07.30',
+      folder: 'initial-survey',
+    },
+    {
+      id: '4',
+      name: '初期アンケート_質問③',
+      content: '無期雇用か期間 / 雇用保険の合計加入...',
+      preview: 'パネル',
+      createdAt: '2025.07.30',
+      folder: 'initial-survey',
+    },
+    {
+      id: '5',
+      name: '初期アンケート_質問④',
+      content: '失業の場合は？　パネル / 月給は？...',
+      preview: 'パネル',
+      createdAt: '2025.07.30',
+      folder: 'initial-survey',
+    },
+    {
+      id: '6',
+      name: '初期アンケート_質問⑤',
+      content: '数値明記は　パネル / 再就職先は決まって...',
+      preview: 'パネル',
+      createdAt: '2025.07.30',
+      folder: 'initial-survey',
+    },
+    {
+      id: '7',
+      name: '初期アンケート_質問5.5',
+      content: 'パネル / 再就職先から内定を...',
+      preview: 'パネル',
+      createdAt: '2025.07.30',
+      folder: 'initial-survey',
     },
   ]
 
-  const toggleCampaign = (id: string) => {
-    setSelectedCampaigns((prev) =>
-      prev.includes(id) ? prev.filter((cid) => cid !== id) : [...prev, id]
+  const toggleTemplate = (id: string) => {
+    setSelectedTemplates((prev) =>
+      prev.includes(id) ? prev.filter((tid) => tid !== id) : [...prev, id]
     )
   }
 
-  const toggleAllCampaigns = () => {
-    if (selectedCampaigns.length === campaigns.length) {
-      setSelectedCampaigns([])
+  const toggleAllTemplates = () => {
+    if (selectedTemplates.length === templates.length) {
+      setSelectedTemplates([])
     } else {
-      setSelectedCampaigns(campaigns.map((c) => c.id))
+      setSelectedTemplates(templates.map((t) => t.id))
     }
   }
 
   return (
-    <div className="flex h-screen">
+    <div className="flex-1 flex h-screen">
       {/* Left Sidebar - Folders */}
       <aside className="w-64 bg-white border-r flex flex-col">
         <div className="p-4 border-b">
-          <h2 className="font-bold text-lg mb-3">ステップ配信</h2>
+          <h2 className="font-bold text-lg mb-3">テンプレート</h2>
           <Button variant="outline" className="w-full mb-2">
             <PlusIcon className="h-4 w-4 mr-2" />
             フォルダ追加
@@ -135,7 +168,7 @@ export default function StepCampaignsListPage() {
         <div className="bg-white border-b p-4">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-3">
-              <Link href="/dashboard/messages/step-campaigns/new">
+              <Link href="/dashboard/messages/templates/new">
                 <Button className="bg-blue-500 hover:bg-blue-600">
                   <PlusIcon className="h-5 w-5 mr-2" />
                   新規作成
@@ -172,47 +205,51 @@ export default function StepCampaignsListPage() {
             <div className="grid grid-cols-12 gap-4 p-4 bg-gray-50 border-b font-medium text-sm">
               <div className="col-span-1 flex items-center">
                 <Checkbox
-                  checked={selectedCampaigns.length === campaigns.length && campaigns.length > 0}
-                  onCheckedChange={toggleAllCampaigns}
+                  checked={selectedTemplates.length === templates.length && templates.length > 0}
+                  onCheckedChange={toggleAllTemplates}
                 />
               </div>
-              <div className="col-span-4">管理名</div>
-              <div className="col-span-2 text-center">購読中の友だち</div>
-              <div className="col-span-2 text-center">途中で終了した友だち</div>
-              <div className="col-span-2 text-center">読了済の友だち</div>
-              <div className="col-span-1 text-center">操作</div>
+              <div className="col-span-3">管理名</div>
+              <div className="col-span-4">内容</div>
+              <div className="col-span-2">作成日</div>
+              <div className="col-span-2 text-center">操作</div>
             </div>
 
             {/* Table Rows */}
-            {campaigns.map((campaign) => (
+            {templates.map((template) => (
               <div
-                key={campaign.id}
+                key={template.id}
                 className="grid grid-cols-12 gap-4 p-4 border-b last:border-b-0 hover:bg-gray-50"
               >
                 <div className="col-span-1 flex items-center">
                   <Checkbox
-                    checked={selectedCampaigns.includes(campaign.id)}
-                    onCheckedChange={() => toggleCampaign(campaign.id)}
+                    checked={selectedTemplates.includes(template.id)}
+                    onCheckedChange={() => toggleTemplate(template.id)}
                   />
                 </div>
+                <div className="col-span-3 font-medium">{template.name}</div>
                 <div className="col-span-4">
-                  <Link href={`/dashboard/messages/step-campaigns/${campaign.id}`} className="font-medium hover:text-blue-600">
-                    {campaign.name}
+                  <div className="flex items-center gap-2">
+                    {template.preview === 'パネル' && (
+                      <div className="flex gap-1">
+                        <div className="w-8 h-2 bg-yellow-400 rounded"></div>
+                        <div className="w-8 h-2 bg-yellow-400 rounded"></div>
+                        <div className="w-8 h-2 bg-yellow-400 rounded"></div>
+                      </div>
+                    )}
+                    <span className="text-sm text-gray-600">{template.content}</span>
+                  </div>
+                </div>
+                <div className="col-span-2 text-sm text-gray-600">{template.createdAt}</div>
+                <div className="col-span-2 flex items-center justify-center gap-2">
+                  <Link href={`/dashboard/messages/templates/${template.id}`}>
+                    <Button variant="outline" size="sm">
+                      <PlayIcon className="h-4 w-4" />
+                    </Button>
                   </Link>
-                </div>
-                <div className="col-span-2 text-center text-blue-600 font-medium">
-                  {campaign.subscribing}
-                </div>
-                <div className="col-span-2 text-center text-gray-600">
-                  {campaign.stopped}
-                </div>
-                <div className="col-span-2 text-center text-gray-600">
-                  {campaign.completed}
-                </div>
-                <div className="col-span-1 flex items-center justify-center">
-                  <button className="p-1 hover:bg-gray-200 rounded">
-                    <EllipsisHorizontalIcon className="h-5 w-5 text-gray-500" />
-                  </button>
+                  <Button variant="outline" size="sm">
+                    <EllipsisHorizontalIcon className="h-4 w-4" />
+                  </Button>
                 </div>
               </div>
             ))}
@@ -224,14 +261,14 @@ export default function StepCampaignsListPage() {
           <div className="flex items-center gap-4">
             <Button
               variant="outline"
-              disabled={selectedCampaigns.length === 0}
+              disabled={selectedTemplates.length === 0}
             >
               <FolderIcon className="h-4 w-4 mr-2" />
               一括フォルダ変更
             </Button>
             <Button
               variant="outline"
-              disabled={selectedCampaigns.length === 0}
+              disabled={selectedTemplates.length === 0}
               className="text-red-600 hover:text-red-700"
             >
               <TrashIcon className="h-4 w-4 mr-2" />

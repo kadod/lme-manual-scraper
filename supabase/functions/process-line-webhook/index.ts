@@ -68,7 +68,7 @@ async function handleDelivery(
   for (const userId of event.delivery.userIds) {
     // Find friend by LINE user ID
     const { data: friend } = await supabase
-      .from('friends')
+      .from('line_friends')
       .select('id')
       .eq('line_user_id', userId)
       .single();
@@ -96,20 +96,45 @@ async function handleMessage(
 ) {
   if (!event.source.userId) return;
 
+  // Get friend details
+  const { data: friend } = await supabase
+    .from('line_friends')
+    .select('id, organization_id')
+    .eq('line_user_id', event.source.userId)
+    .single();
+
+  if (!friend) return;
+
   // Update friend last interaction
   await supabase
-    .from('friends')
+    .from('line_friends')
     .update({
       last_interaction_at: new Date().toISOString(),
     })
     .eq('line_user_id', event.source.userId);
 
-  // Get friend details
-  const { data: friend } = await supabase
-    .from('friends')
-    .select('id, user_id')
-    .eq('line_user_id', event.source.userId)
-    .single();
+  // Save incoming message to chat_messages table
+  if (event.message) {
+    const messageType = event.message.type === 'text' ? 'text' :
+                       event.message.type === 'image' ? 'image' :
+                       event.message.type === 'sticker' ? 'sticker' : 'text';
+
+    await supabase
+      .from('chat_messages')
+      .insert({
+        conversation_id: friend.id,
+        sender_type: 'friend',
+        message_type: messageType,
+        content: event.message.text || `[${event.message.type}]`,
+        metadata: {
+          line_message_id: event.message.id,
+          line_message_type: event.message.type,
+        },
+        is_read: false,
+        sent_at: new Date(event.timestamp).toISOString(),
+        organization_id: friend.organization_id,
+      });
+  }
 
   if (friend) {
     // Trigger auto-response processing (fire and forget)
@@ -158,7 +183,7 @@ async function handlePostback(
 
   // Update friend last interaction
   await supabase
-    .from('friends')
+    .from('line_friends')
     .update({
       last_interaction_at: new Date().toISOString(),
     })
@@ -197,10 +222,10 @@ async function handleFollow(
 
   // Upsert friend record
   await supabase
-    .from('friends')
+    .from('line_friends')
     .upsert({
       line_user_id: event.source.userId,
-      is_blocked: false,
+      follow_status: 'following',
       last_interaction_at: new Date().toISOString(),
     }, {
       onConflict: 'line_user_id',
@@ -218,9 +243,9 @@ async function handleUnfollow(
 
   // Update friend status
   await supabase
-    .from('friends')
+    .from('line_friends')
     .update({
-      is_blocked: true,
+      follow_status: 'unfollowed',
     })
     .eq('line_user_id', event.source.userId);
 }

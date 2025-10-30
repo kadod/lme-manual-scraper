@@ -45,17 +45,26 @@ export async function getTags() {
 export async function createTag(formData: TagFormData) {
   const supabase = await createClient()
 
+  // Verify user is authenticated
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) {
+    throw new Error('認証が必要です')
+  }
+
   const organizationId = await getCurrentUserOrganizationId()
   if (!organizationId) {
-    throw new Error('認証が必要です')
+    throw new Error('組織が見つかりません')
   }
 
   const validatedData = tagSchema.parse(formData)
 
+  // Insert tag with explicit organization_id
   const { data, error } = await supabase
     .from('tags')
     .insert({
-      ...validatedData,
+      name: validatedData.name,
+      color: validatedData.color,
+      description: validatedData.description || null,
       organization_id: organizationId,
     })
     .select()
@@ -63,7 +72,7 @@ export async function createTag(formData: TagFormData) {
 
   if (error) {
     console.error('タグ作成エラー:', error)
-    throw new Error('タグの作成に失敗しました')
+    throw new Error(`タグの作成に失敗しました: ${error.message}`)
   }
 
   revalidatePath('/dashboard/friends/tags')
