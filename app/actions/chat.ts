@@ -20,6 +20,7 @@ export interface ChatMessage {
 
 export interface ConversationPreview {
   id: string
+  friendId: string
   display_name: string | null
   picture_url: string | null
   follow_status: string
@@ -39,30 +40,43 @@ export async function getConversations(): Promise<ConversationPreview[]> {
     throw new Error('Organization not found')
   }
 
-  // Get all friends
-  const { data: friends, error: friendsError } = await supabase
-    .from('line_friends')
-    .select('id, display_name, picture_url, follow_status')
+  // Get all conversations with friend details
+  const { data: conversations, error: conversationsError } = await supabase
+    .from('conversations')
+    .select(`
+      id,
+      line_friend_id,
+      status,
+      last_message_at,
+      line_friends (
+        id,
+        display_name,
+        picture_url,
+        follow_status
+      )
+    `)
     .eq('organization_id', organizationId)
-    .eq('follow_status', 'following')
-    .order('last_interaction_at', { ascending: false })
+    .eq('status', 'active')
+    .order('last_message_at', { ascending: false, nullsFirst: false })
 
-  if (friendsError) {
-    console.error('Error fetching friends:', friendsError)
+  if (conversationsError) {
+    console.error('Error fetching conversations:', conversationsError)
     throw new Error('Failed to fetch conversations')
   }
 
-  if (!friends || friends.length === 0) {
+  if (!conversations || conversations.length === 0) {
     return []
   }
 
-  // Get latest messages for each friend
+  // Get latest messages and unread counts for each conversation
   const conversationsWithMessages = await Promise.all(
-    friends.map(async (friend) => {
+    conversations.map(async (conversation: any) => {
+      const friend = conversation.line_friends
+
       const { data: latestMessage } = await supabase
         .from('chat_messages')
         .select('content, sent_at')
-        .eq('conversation_id', friend.id)
+        .eq('conversation_id', conversation.id)
         .eq('organization_id', organizationId)
         .order('sent_at', { ascending: false })
         .limit(1)
@@ -71,18 +85,19 @@ export async function getConversations(): Promise<ConversationPreview[]> {
       const { count: unreadCount } = await supabase
         .from('chat_messages')
         .select('*', { count: 'exact', head: true })
-        .eq('conversation_id', friend.id)
+        .eq('conversation_id', conversation.id)
         .eq('organization_id', organizationId)
         .eq('sender_type', 'friend')
         .eq('is_read', false)
 
       return {
-        id: friend.id,
+        id: conversation.id,
+        friendId: friend.id,
         display_name: friend.display_name,
         picture_url: friend.picture_url,
         follow_status: friend.follow_status,
         last_message: latestMessage?.content || null,
-        last_message_at: latestMessage?.sent_at || null,
+        last_message_at: latestMessage?.sent_at || conversation.last_message_at || null,
         unread_count: unreadCount || 0,
       }
     })
@@ -142,18 +157,26 @@ export async function sendMessage(
     throw new Error('Message content cannot be empty')
   }
 
-  // Get friend's LINE user ID
-  const { data: friend, error: friendError } = await supabase
-    .from('line_friends')
-    .select('line_user_id')
+  // Get conversation and friend's LINE user ID
+  const { data: conversation, error: conversationError } = await supabase
+    .from('conversations')
+    .select(`
+      id,
+      line_friend_id,
+      line_friends (
+        line_user_id
+      )
+    `)
     .eq('id', conversationId)
     .eq('organization_id', organizationId)
     .single()
 
-  if (friendError || !friend) {
-    console.error('Error fetching friend:', friendError)
-    throw new Error('Friend not found')
+  if (conversationError || !conversation) {
+    console.error('Error fetching conversation:', conversationError)
+    throw new Error('Conversation not found')
   }
+
+  const friend = conversation.line_friends as any
 
   // Get LINE credentials from organization settings
   const { data: org } = await supabase
@@ -201,11 +224,18 @@ export async function sendMessage(
     throw new Error('Failed to send message')
   }
 
+  // Update conversation last message time
+  await supabase
+    .from('conversations')
+    .update({ last_message_at: new Date().toISOString() })
+    .eq('id', conversationId)
+    .eq('organization_id', organizationId)
+
   // Update friend's last interaction time
   await supabase
     .from('line_friends')
     .update({ last_interaction_at: new Date().toISOString() })
-    .eq('id', conversationId)
+    .eq('id', conversation.line_friend_id)
     .eq('organization_id', organizationId)
 
   revalidatePath('/dashboard/chat')
