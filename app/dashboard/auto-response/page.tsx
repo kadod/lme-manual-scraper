@@ -17,12 +17,12 @@ interface PageProps {
 
 export default async function AutoResponsePage({ searchParams }: PageProps) {
   const filters = {
-    type: searchParams.type as any,
-    status: searchParams.status as any,
+    type: (searchParams.type as 'keyword' | 'scenario' | 'ai' | undefined) || undefined,
+    status: (searchParams.status as 'active' | 'inactive' | undefined) || undefined,
     search: searchParams.search,
   }
 
-  let rules = []
+  let rules: any[] = []
   let stats = {
     totalResponses: 0,
     totalResponsesChange: 0,

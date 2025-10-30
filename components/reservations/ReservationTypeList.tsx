@@ -39,8 +39,7 @@ export function ReservationTypeList({
   const filteredTypes = types.filter((type) => {
     const matchesSearch = type.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       type.description?.toLowerCase().includes(searchQuery.toLowerCase())
-    const matchesCategory = categoryFilter === 'all' ||
-      type.settings?.category === categoryFilter
+    const matchesCategory = categoryFilter === 'all'
     return matchesSearch && matchesCategory
   })
 

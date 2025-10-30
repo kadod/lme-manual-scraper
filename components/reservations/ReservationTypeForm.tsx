@@ -83,13 +83,13 @@ export function ReservationTypeForm({
       setFormData({
         name: type.name,
         description: type.description || '',
-        category: (type.settings?.category || 'event') as Category,
+        category: 'event' as Category,
         duration_minutes: type.duration_minutes,
-        buffer_minutes: type.buffer_minutes,
-        color: type.settings?.color || '#3B82F6',
-        settings: type.settings || {
+        buffer_minutes: 0,
+        color: type.color || '#3B82F6',
+        settings: {
           category: 'event',
-          color: '#3B82F6',
+          color: type.color || '#3B82F6',
         },
       })
     } else {

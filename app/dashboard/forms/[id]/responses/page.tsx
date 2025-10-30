@@ -44,12 +44,17 @@ export default function FormResponsesPage() {
       ])
 
       if (responsesResult.success) {
-        setResponses(responsesResult.data || [])
+        // Handle null line_friend_id by filtering or transforming
+        const validResponses = (responsesResult.data || []).map(response => ({
+          ...response,
+          line_friend_id: response.line_friend_id || '',
+        }))
+        setResponses(validResponses as FormResponse[])
       } else {
         console.error('Failed to load responses:', responsesResult.error)
       }
 
-      if (statsResult.success) {
+      if (statsResult.success && statsResult.data) {
         setStats(statsResult.data)
       } else {
         console.error('Failed to load stats:', statsResult.error)

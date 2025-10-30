@@ -2,6 +2,7 @@ import { KeywordBuilder } from '@/components/auto-response/KeywordBuilder'
 import { createClient } from '@/lib/supabase/server'
 import { redirect, notFound } from 'next/navigation'
 import { KeywordRuleFormData } from '@/types/auto-response'
+import { getCurrentUserOrganizationId } from '@/lib/utils/organization'
 
 export const metadata = {
   title: 'キーワード応答ルール編集 | L Message',
@@ -11,37 +12,37 @@ export const metadata = {
 async function updateKeywordRule(id: string, formData: KeywordRuleFormData) {
   'use server'
 
-  const supabase = await createClient()
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-
-  if (!user) {
-    throw new Error('認証が必要です')
+  const organizationId = await getCurrentUserOrganizationId()
+  if (!organizationId) {
+    throw new Error('Organization not found')
   }
 
-  const { error } = await supabase
-    .from('keyword_rules')
+  const supabase = await createClient()
+
+  // Update the rule in auto_response_rules with the correct schema
+  const { error: ruleError } = await supabase
+    .from('auto_response_rules')
     .update({
       name: formData.name,
       description: formData.description,
       priority: formData.priority,
-      keywords: formData.keywords,
-      response: formData.response,
-      time_conditions: formData.timeConditions,
-      friend_conditions: formData.friendConditions,
-      limit_conditions: formData.limitConditions,
-      actions: formData.actions,
       is_active: formData.isActive,
-      valid_until: formData.validUntil,
-      updated_at: new Date().toISOString(),
-    })
+      trigger_keywords: formData.keywords.map(kw => kw.text),
+      trigger_config: {
+        keywords: formData.keywords,
+        timeConditions: formData.timeConditions,
+        friendConditions: formData.friendConditions,
+        limitConditions: formData.limitConditions,
+      },
+      response_type: formData.response.type,
+      response_content: formData.response,
+      match_type: formData.keywords[0]?.matchType || 'partial',
+    } as any)
     .eq('id', id)
-    .eq('user_id', user.id)
+    .eq('organization_id', organizationId)
 
-  if (error) {
-    throw new Error(error.message)
+  if (ruleError) {
+    throw new Error(ruleError.message)
   }
 }
 
@@ -50,22 +51,20 @@ export default async function EditKeywordRulePage({
 }: {
   params: { id: string }
 }) {
-  const supabase = await createClient()
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-
-  if (!user) {
+  const organizationId = await getCurrentUserOrganizationId()
+  if (!organizationId) {
     redirect('/login')
   }
 
-  // Fetch the keyword rule
+  const supabase = await createClient()
+
+  // Fetch the rule from auto_response_rules
   const { data: rule, error } = await supabase
-    .from('keyword_rules')
+    .from('auto_response_rules')
     .select('*')
     .eq('id', params.id)
-    .eq('user_id', user.id)
+    .eq('organization_id', organizationId)
+    .eq('trigger_type', 'keyword')
     .single()
 
   if (error || !rule) {
@@ -76,36 +75,36 @@ export default async function EditKeywordRulePage({
   const { data: tags } = await supabase
     .from('tags')
     .select('id, name, color')
-    .eq('user_id', user.id)
+    .eq('organization_id', organizationId)
     .order('name', { ascending: true })
 
   // Fetch segments
   const { data: segments } = await supabase
     .from('segments')
     .select('id, name')
-    .eq('user_id', user.id)
+    .eq('organization_id', organizationId)
     .order('name', { ascending: true })
 
-  // Fetch message templates
-  const { data: templates } = await supabase
-    .from('message_templates')
-    .select('id, name, type')
-    .eq('user_id', user.id)
-    .order('name', { ascending: true })
+  // Message templates (if table exists)
+  const templates: Array<{ id: string; name: string; type: string }> = []
+
+  // Get configuration from JSONB
+  const triggerConfig = (rule.trigger_config as any) || {}
+  const keywords = triggerConfig.keywords || []
 
   // Transform database data to form data
   const initialData: KeywordRuleFormData = {
     name: rule.name,
-    description: rule.description,
-    priority: rule.priority,
-    keywords: rule.keywords || [],
-    response: rule.response || { type: 'text', text: '' },
-    timeConditions: rule.time_conditions || undefined,
-    friendConditions: rule.friend_conditions || undefined,
-    limitConditions: rule.limit_conditions || undefined,
-    actions: rule.actions || undefined,
-    isActive: rule.is_active,
-    validUntil: rule.valid_until,
+    description: rule.description || null,
+    priority: rule.priority || 0,
+    keywords: keywords.length > 0 ? keywords : [{ id: '1', text: '', matchType: 'partial' as const }],
+    response: (rule.response_content as any) || { type: 'text', text: '' },
+    timeConditions: triggerConfig.timeConditions || undefined,
+    friendConditions: triggerConfig.friendConditions || undefined,
+    limitConditions: triggerConfig.limitConditions || undefined,
+    actions: undefined,
+    isActive: rule.is_active || false,
+    validUntil: null,
   }
 
   return (
@@ -131,7 +130,7 @@ export default async function EditKeywordRulePage({
             })) || []
           }
           segments={segments || []}
-          templates={templates || []}
+          templates={templates}
           stepCampaigns={[]}
           onSave={(formData) => updateKeywordRule(params.id, formData)}
         />

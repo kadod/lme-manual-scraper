@@ -92,16 +92,19 @@ async function getOrganizationData(userId: string) {
     invitedAt: invitation.created_at,
   }))
 
+  // Extract settings from JSON field
+  const settings = (organization.settings as any) || {}
+
   return {
     organization: {
       id: organization.id,
       name: organization.name,
       slug: organization.slug,
-      logoUrl: organization.logo_url,
-      primaryColor: organization.primary_color || '#00B900',
-      secondaryColor: organization.secondary_color || '#06C755',
-      websiteUrl: organization.website_url,
-      contactEmail: organization.contact_email,
+      logoUrl: settings.logo_url || null,
+      primaryColor: settings.primary_color || '#00B900',
+      secondaryColor: settings.secondary_color || '#06C755',
+      websiteUrl: settings.website_url || null,
+      contactEmail: settings.contact_email || null,
     },
     currentUserRole: userOrg.role,
     members: [...activeMembers, ...pendingMembers],

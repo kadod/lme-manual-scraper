@@ -40,7 +40,13 @@ export function MessageList({ initialMessages }: MessageListProps) {
 
     if (filters.search) {
       const searchLower = filters.search.toLowerCase()
-      filtered = filtered.filter((m) => m.title.toLowerCase().includes(searchLower))
+      filtered = filtered.filter((m) => {
+        // Search in content text if it exists
+        const contentText = typeof m.content === 'string'
+          ? m.content
+          : m.content?.text || JSON.stringify(m.content)
+        return contentText.toLowerCase().includes(searchLower)
+      })
     }
 
     setMessages(filtered)
@@ -103,7 +109,7 @@ export function MessageList({ initialMessages }: MessageListProps) {
       {deleteMessage && (
         <DeleteMessageDialog
           messageId={deleteMessage.id}
-          messageTitle={deleteMessage.title}
+          messageTitle={typeof deleteMessage.content === 'string' ? deleteMessage.content.slice(0, 50) : 'メッセージ'}
           open={!!deleteMessage}
           onOpenChange={(open) => !open && setDeleteMessage(null)}
           onSuccess={handleDeleteSuccess}

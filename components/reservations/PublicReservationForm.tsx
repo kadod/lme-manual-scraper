@@ -75,12 +75,14 @@ export function PublicReservationForm({ reservationType, lineUserId }: PublicRes
     try {
       const result = await createReservation({
         reservation_type_id: reservationType.id,
-        slot_id: selectedSlot.id,
+        schedule_id: selectedSlot.schedule_id,
+        schedule_slot_id: selectedSlot.id,
         customer_name: formData.customer_name,
         customer_email: formData.customer_email,
         customer_phone: formData.customer_phone || undefined,
-        customer_memo: formData.customer_memo || undefined,
-        line_user_id: lineUserId
+        notes: formData.customer_memo || undefined,
+        line_user_id: lineUserId,
+        organization_id: reservationType.organization_id
       })
 
       if (result.success && result.data) {

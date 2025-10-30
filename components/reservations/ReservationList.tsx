@@ -19,7 +19,7 @@ import type { Reservation } from '@/app/actions/reservations'
 interface ReservationListProps {
   reservations: Reservation[]
   onViewDetail: (reservation: Reservation) => void
-  onStatusChange: (id: string, status: 'confirmed' | 'cancelled' | 'completed' | 'no_show') => Promise<void>
+  onStatusChange: (id: string, status: 'confirmed' | 'cancelled') => Promise<void>
 }
 
 export function ReservationList({
@@ -31,7 +31,7 @@ export function ReservationList({
 
   const handleStatusChange = async (
     id: string,
-    status: 'confirmed' | 'cancelled' | 'completed' | 'no_show'
+    status: 'confirmed' | 'cancelled'
   ) => {
     setLoadingId(id)
     try {
@@ -118,7 +118,7 @@ export function ReservationList({
                 <ReservationStatusBadge status={reservation.status} />
               </TableCell>
               <TableCell className="text-sm text-muted-foreground">
-                {format(new Date(reservation.created_at), 'PP', {
+                {reservation.created_at && format(new Date(reservation.created_at), 'PP', {
                   locale: ja,
                 })}
               </TableCell>
@@ -132,24 +132,14 @@ export function ReservationList({
                     <EyeIcon className="h-4 w-4" />
                   </Button>
                   {reservation.status === 'confirmed' && (
-                    <>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleStatusChange(reservation.id, 'completed')}
-                        disabled={loadingId === reservation.id}
-                      >
-                        <CheckIcon className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleStatusChange(reservation.id, 'cancelled')}
-                        disabled={loadingId === reservation.id}
-                      >
-                        <XMarkIcon className="h-4 w-4" />
-                      </Button>
-                    </>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleStatusChange(reservation.id, 'cancelled')}
+                      disabled={loadingId === reservation.id}
+                    >
+                      <XMarkIcon className="h-4 w-4" />
+                    </Button>
                   )}
                 </div>
               </TableCell>

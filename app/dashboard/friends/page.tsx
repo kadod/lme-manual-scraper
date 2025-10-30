@@ -48,7 +48,7 @@ async function FriendsContent({
 
   // Status filter
   if (status && status !== 'all') {
-    query = query.eq('status', status)
+    query = query.eq('follow_status', status)
   }
 
   // Last interaction filter

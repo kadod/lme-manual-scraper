@@ -54,7 +54,7 @@ export function ReservationTypeCard({
   onDuplicate,
   onToggleStatus,
 }: ReservationTypeCardProps) {
-  const Icon = getCategoryIcon(type.settings?.category || 'event')
+  const Icon = getCategoryIcon('event')
 
   return (
     <Card className="hover:shadow-md transition-shadow">
@@ -62,11 +62,11 @@ export function ReservationTypeCard({
         <div className="flex items-start gap-3">
           <div
             className="p-2 rounded-lg shrink-0"
-            style={{ backgroundColor: `${type.settings?.color || '#3B82F6'}20` }}
+            style={{ backgroundColor: `${type.color || '#3B82F6'}20` }}
           >
             <Icon
               className="size-5"
-              style={{ color: type.settings?.color || '#3B82F6' }}
+              style={{ color: type.color || '#3B82F6' }}
             />
           </div>
           <div className="flex-1 min-w-0">
@@ -109,7 +109,7 @@ export function ReservationTypeCard({
       <CardContent className="space-y-3">
         <div className="flex items-center gap-2 flex-wrap">
           <Badge variant="outline">
-            {getCategoryLabel(type.settings?.category || 'event')}
+            {getCategoryLabel('event')}
           </Badge>
           <Badge variant={type.status === 'active' ? 'default' : 'secondary'}>
             {type.status === 'active' ? '有効' : '無効'}
@@ -120,12 +120,6 @@ export function ReservationTypeCard({
             <span className="text-muted-foreground">時間:</span>
             <span className="ml-1 font-medium">{type.duration_minutes}分</span>
           </div>
-          {type.buffer_minutes > 0 && (
-            <div>
-              <span className="text-muted-foreground">準備:</span>
-              <span className="ml-1 font-medium">{type.buffer_minutes}分</span>
-            </div>
-          )}
         </div>
       </CardContent>
     </Card>

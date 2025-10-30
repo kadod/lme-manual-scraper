@@ -15,7 +15,7 @@ import {
   BellAlertIcon,
   PencilIcon,
 } from '@heroicons/react/24/outline'
-import { updateLineSettings } from '@/app/actions/line-settings'
+import { saveLineSettings } from '@/app/actions/line-settings'
 
 interface LineSettingsClientProps {
   organization: {
@@ -54,7 +54,8 @@ export function LineSettingsClient({
     setSuccess(false)
 
     try {
-      await updateLineSettings(organization.id, {
+      await saveLineSettings({
+        channelId: '',
         channelAccessToken: channelAccessToken.trim(),
         channelSecret: channelSecret.trim(),
       })

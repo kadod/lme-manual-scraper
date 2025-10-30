@@ -25,7 +25,7 @@ interface ReservationDetailProps {
   reservation: Reservation | null
   open: boolean
   onOpenChange: (open: boolean) => void
-  onStatusChange: (id: string, status: 'confirmed' | 'cancelled' | 'completed' | 'no_show') => Promise<void>
+  onStatusChange: (id: string, status: 'confirmed' | 'cancelled') => Promise<void>
 }
 
 export function ReservationDetail({
@@ -36,7 +36,7 @@ export function ReservationDetail({
 }: ReservationDetailProps) {
   if (!reservation) return null
 
-  const handleStatusChange = async (status: 'confirmed' | 'cancelled' | 'completed' | 'no_show') => {
+  const handleStatusChange = async (status: 'confirmed' | 'cancelled') => {
     await onStatusChange(reservation.id, status)
     onOpenChange(false)
   }
@@ -137,13 +137,13 @@ export function ReservationDetail({
               </div>
             )}
 
-            {reservation.customer_memo && (
+            {reservation.notes && (
               <div className="flex items-start gap-3">
                 <ChatBubbleBottomCenterTextIcon className="h-5 w-5 text-muted-foreground mt-0.5" />
                 <div>
-                  <div className="font-medium">Memo</div>
+                  <div className="font-medium">Notes</div>
                   <div className="text-sm text-muted-foreground whitespace-pre-wrap">
-                    {reservation.customer_memo}
+                    {reservation.notes}
                   </div>
                 </div>
               </div>
@@ -158,39 +158,27 @@ export function ReservationDetail({
               </div>
             )}
 
-            <div className="pt-4 border-t text-xs text-muted-foreground">
-              <div>Created: {format(new Date(reservation.created_at), 'PPp', { locale: ja })}</div>
-              {reservation.cancelled_at && (
-                <div>Cancelled: {format(new Date(reservation.cancelled_at), 'PPp', { locale: ja })}</div>
-              )}
-              {reservation.completed_at && (
-                <div>Completed: {format(new Date(reservation.completed_at), 'PPp', { locale: ja })}</div>
-              )}
-            </div>
+            {reservation.created_at && (
+              <div className="pt-4 border-t text-xs text-muted-foreground">
+                <div>Created: {format(new Date(reservation.created_at), 'PPp', { locale: ja })}</div>
+                {reservation.cancelled_at && (
+                  <div>Cancelled: {format(new Date(reservation.cancelled_at), 'PPp', { locale: ja })}</div>
+                )}
+                {reservation.confirmed_at && (
+                  <div>Confirmed: {format(new Date(reservation.confirmed_at), 'PPp', { locale: ja })}</div>
+                )}
+              </div>
+            )}
           </div>
 
           {reservation.status === 'confirmed' && (
             <div className="flex gap-2 pt-4 border-t">
               <Button
-                variant="default"
-                onClick={() => handleStatusChange('completed')}
-                className="flex-1"
-              >
-                Mark Completed
-              </Button>
-              <Button
-                variant="outline"
-                onClick={() => handleStatusChange('no_show')}
-                className="flex-1"
-              >
-                No Show
-              </Button>
-              <Button
                 variant="destructive"
                 onClick={() => handleStatusChange('cancelled')}
                 className="flex-1"
               >
-                Cancel
+                Cancel Reservation
               </Button>
             </div>
           )}

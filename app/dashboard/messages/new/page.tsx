@@ -18,19 +18,34 @@ export default async function NewMessagePage() {
     redirect('/login')
   }
 
-  // セグメントを取得
-  const { data: segments } = await supabase
-    .from('segments')
-    .select('id, name')
-    .eq('user_id', user.id)
-    .order('name', { ascending: true })
+  // セグメントを取得 (テーブルが存在しない場合は空配列)
+  let segments: Array<{ id: string; name: string }> = []
+  try {
+    const { data } = await supabase
+      .from('segments')
+      .select('id, name')
+      .eq('user_id', user.id)
+      .order('name', { ascending: true })
+    segments = data || []
+  } catch (error) {
+    console.warn('Segments table not found:', error)
+  }
 
-  // タグを取得
-  const { data: tags } = await supabase
-    .from('tags')
-    .select('id, name, color')
-    .eq('user_id', user.id)
-    .order('name', { ascending: true })
+  // タグを取得 (テーブルが存在しない場合は空配列)
+  let tags: Array<{ id: string; name: string; color: string }> = []
+  try {
+    const { data } = await supabase
+      .from('tags')
+      .select('id, name, color')
+      .eq('user_id', user.id)
+      .order('name', { ascending: true })
+    tags = data?.map((tag) => ({
+      ...tag,
+      color: tag.color || '#6366F1',
+    })) || []
+  } catch (error) {
+    console.warn('Tags table not found:', error)
+  }
 
   return (
     <div className="container max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
@@ -45,13 +60,8 @@ export default async function NewMessagePage() {
 
         {/* Wizard */}
         <MessageCreationWizard
-          segments={segments || []}
-          tags={
-            tags?.map((tag) => ({
-              ...tag,
-              color: tag.color || '#6366F1',
-            })) || []
-          }
+          segments={segments}
+          tags={tags}
         />
       </div>
     </div>

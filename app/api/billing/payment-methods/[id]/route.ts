@@ -6,8 +6,9 @@ import { stripe } from '@/lib/stripe'
 // This endpoint requires: payment_methods table
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  props: { params: Promise<{ id: string }> }
 ) {
+  const params = await props.params
   return NextResponse.json(
     { error: 'Payment method management requires database schema migration. Please create the payment_methods table first.' },
     { status: 501 }

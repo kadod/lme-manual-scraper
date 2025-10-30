@@ -8,6 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { ReportPreview } from '@/components/analytics/ReportPreview'
 import { ReportHistory } from '@/components/analytics/ReportHistory'
 import { getCustomReport, getReportHistory, executeReport } from '@/app/actions/custom-reports'
+import type { CustomReport, ReportHistory as ReportHistoryType } from '@/types/custom-reports'
 import {
   PencilIcon,
   PlayIcon,
@@ -24,13 +25,16 @@ interface ReportPageProps {
 }
 
 async function ReportDetailWrapper({ id }: { id: string }) {
+  // Feature not yet available - show placeholder
+  // TODO: Uncomment when database migrations are run
+  /*
   try {
     const [report, history] = await Promise.all([
       getCustomReport(id),
       getReportHistory(id),
     ])
 
-    const getStatusBadge = (status: typeof report.status) => {
+    const getStatusBadge = (status: CustomReport['status']) => {
       const variants = {
         active: { label: '有効', variant: 'default' as const },
         inactive: { label: '無効', variant: 'secondary' as const },
@@ -40,7 +44,7 @@ async function ReportDetailWrapper({ id }: { id: string }) {
       return <Badge variant={variant}>{label}</Badge>
     }
 
-    const getFormatLabel = (format: typeof report.format) => {
+    const getFormatLabel = (format: CustomReport['format']) => {
       const labels = {
         pdf: 'PDF',
         csv: 'CSV',
@@ -147,6 +151,34 @@ async function ReportDetailWrapper({ id }: { id: string }) {
   } catch (error) {
     notFound()
   }
+  */
+
+  return (
+    <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle>機能準備中</CardTitle>
+          <CardDescription>
+            カスタムレポート機能は現在開発中です
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            <p className="text-sm text-muted-foreground">
+              データベースマイグレーションの実行後に利用可能になります。
+            </p>
+            <div className="pt-4">
+              <Button variant="outline" asChild>
+                <Link href="/dashboard/analytics/reports">
+                  レポート一覧に戻る
+                </Link>
+              </Button>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  )
 }
 
 export default async function ReportPage({ params }: ReportPageProps) {

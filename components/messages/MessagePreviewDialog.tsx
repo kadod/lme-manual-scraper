@@ -66,7 +66,11 @@ export function MessagePreviewDialog({ message, open, onOpenChange }: MessagePre
           {/* Header Info */}
           <div className="flex items-start justify-between">
             <div className="space-y-2">
-              <h3 className="text-xl font-semibold">{message.title}</h3>
+              <h3 className="text-xl font-semibold">
+                {typeof message.content === 'string'
+                  ? message.content.slice(0, 100)
+                  : message.content?.text?.slice(0, 100) || 'メッセージ'}
+              </h3>
               <div className="flex items-center gap-2">
                 <Badge className={getStatusColor(message.status)}>
                   {getStatusLabel(message.status)}

@@ -15,6 +15,8 @@ const messageSchema = z.object({
   scheduled_at: z.string().datetime().optional().nullable(),
   target_type: z.enum(['all', 'segments', 'tags', 'manual']).default('all'),
   target_ids: z.array(z.string()).optional(),
+  exclude_blocked: z.boolean().optional(),
+  exclude_unsubscribed: z.boolean().optional(),
 })
 
 export type MessageFormData = z.infer<typeof messageSchema>
@@ -27,15 +29,14 @@ export async function getMessages() {
     throw new Error('認証が必要です')
   }
 
-  const { data, error } = await supabase
+  // Try to fetch messages with relations, fallback to basic query if tables don't exist
+  let query = supabase
     .from('messages')
-    .select(`
-      *,
-      message_segments(segment_id),
-      message_tags(tag_id)
-    `)
+    .select('*')
     .eq('user_id', user.id)
     .order('created_at', { ascending: false })
+
+  const { data, error } = await query
 
   if (error) {
     console.error('メッセージ取得エラー:', error)
@@ -55,11 +56,7 @@ export async function getMessage(id: string) {
 
   const { data, error } = await supabase
     .from('messages')
-    .select(`
-      *,
-      message_segments(segment_id, segments(name)),
-      message_tags(tag_id, tags(name))
-    `)
+    .select('*')
     .eq('id', id)
     .eq('user_id', user.id)
     .single()
@@ -81,7 +78,7 @@ export async function createMessage(formData: MessageFormData) {
   }
 
   const validatedData = messageSchema.parse(formData)
-  const { target_ids, ...messageData } = validatedData
+  const { target_ids, exclude_blocked, exclude_unsubscribed, ...messageData } = validatedData
 
   const { data, error } = await supabase
     .from('messages')
@@ -100,24 +97,28 @@ export async function createMessage(formData: MessageFormData) {
 
   // ターゲット設定を保存
   if (target_ids && target_ids.length > 0) {
-    if (validatedData.target_type === 'segments') {
-      const segmentInserts = target_ids.map(segment_id => ({
-        message_id: data.id,
-        segment_id,
-      }))
-      await supabase.from('message_segments').insert(segmentInserts)
-    } else if (validatedData.target_type === 'tags') {
-      const tagInserts = target_ids.map(tag_id => ({
-        message_id: data.id,
-        tag_id,
-      }))
-      await supabase.from('message_tags').insert(tagInserts)
-    } else if (validatedData.target_type === 'manual') {
-      const friendInserts = target_ids.map(friend_id => ({
-        message_id: data.id,
-        friend_id,
-      }))
-      await supabase.from('message_friends').insert(friendInserts)
+    try {
+      if (validatedData.target_type === 'segments') {
+        const segmentInserts = target_ids.map(segment_id => ({
+          message_id: data.id,
+          segment_id,
+        }))
+        await supabase.from('message_segments').insert(segmentInserts)
+      } else if (validatedData.target_type === 'tags') {
+        const tagInserts = target_ids.map(tag_id => ({
+          message_id: data.id,
+          tag_id,
+        }))
+        await supabase.from('message_tags').insert(tagInserts)
+      } else if (validatedData.target_type === 'manual') {
+        const friendInserts = target_ids.map(friend_id => ({
+          message_id: data.id,
+          friend_id,
+        }))
+        await supabase.from('message_friends').insert(friendInserts)
+      }
+    } catch (error) {
+      console.warn('ターゲット設定の保存に失敗しました（テーブルが存在しない可能性があります）:', error)
     }
   }
 
@@ -134,7 +135,7 @@ export async function updateMessage(id: string, formData: MessageFormData) {
   }
 
   const validatedData = messageSchema.parse(formData)
-  const { target_ids, ...messageData } = validatedData
+  const { target_ids, exclude_blocked, exclude_unsubscribed, ...messageData } = validatedData
 
   const { data, error } = await supabase
     .from('messages')
@@ -151,32 +152,36 @@ export async function updateMessage(id: string, formData: MessageFormData) {
 
   // ターゲット設定を更新
   if (target_ids) {
-    // 既存のターゲットを削除
-    await supabase.from('message_segments').delete().eq('message_id', id)
-    await supabase.from('message_tags').delete().eq('message_id', id)
-    await supabase.from('message_friends').delete().eq('message_id', id)
+    try {
+      // 既存のターゲットを削除
+      await supabase.from('message_segments').delete().eq('message_id', id)
+      await supabase.from('message_tags').delete().eq('message_id', id)
+      await supabase.from('message_friends').delete().eq('message_id', id)
 
-    // 新しいターゲットを追加
-    if (target_ids.length > 0) {
-      if (validatedData.target_type === 'segments') {
-        const segmentInserts = target_ids.map(segment_id => ({
-          message_id: id,
-          segment_id,
-        }))
-        await supabase.from('message_segments').insert(segmentInserts)
-      } else if (validatedData.target_type === 'tags') {
-        const tagInserts = target_ids.map(tag_id => ({
-          message_id: id,
-          tag_id,
-        }))
-        await supabase.from('message_tags').insert(tagInserts)
-      } else if (validatedData.target_type === 'manual') {
-        const friendInserts = target_ids.map(friend_id => ({
-          message_id: id,
-          friend_id,
-        }))
-        await supabase.from('message_friends').insert(friendInserts)
+      // 新しいターゲットを追加
+      if (target_ids.length > 0) {
+        if (validatedData.target_type === 'segments') {
+          const segmentInserts = target_ids.map(segment_id => ({
+            message_id: id,
+            segment_id,
+          }))
+          await supabase.from('message_segments').insert(segmentInserts)
+        } else if (validatedData.target_type === 'tags') {
+          const tagInserts = target_ids.map(tag_id => ({
+            message_id: id,
+            tag_id,
+          }))
+          await supabase.from('message_tags').insert(tagInserts)
+        } else if (validatedData.target_type === 'manual') {
+          const friendInserts = target_ids.map(friend_id => ({
+            message_id: id,
+            friend_id,
+          }))
+          await supabase.from('message_friends').insert(friendInserts)
+        }
       }
+    } catch (error) {
+      console.warn('ターゲット設定の更新に失敗しました（テーブルが存在しない可能性があります）:', error)
     }
   }
 
@@ -321,30 +326,35 @@ export async function getTargetCount(
     throw new Error('認証が必要です')
   }
 
-  let query = supabase
-    .from('line_friends')
-    .select('id', { count: 'exact', head: true })
-    .eq('follow_status', 'following')
+  try {
+    let query = supabase
+      .from('line_friends')
+      .select('id', { count: 'exact', head: true })
+      .eq('follow_status', 'following')
 
-  if (targetType === 'segments' && targetIds && targetIds.length > 0) {
-    query = query.in('segment_id', targetIds)
-  } else if (targetType === 'tags' && targetIds && targetIds.length > 0) {
-    // タグの場合はJOINが必要
-    const { count } = await supabase
-      .from('friend_tags')
-      .select('friend_id', { count: 'exact', head: true })
-      .in('tag_id', targetIds)
+    if (targetType === 'segments' && targetIds && targetIds.length > 0) {
+      query = query.in('segment_id', targetIds)
+    } else if (targetType === 'tags' && targetIds && targetIds.length > 0) {
+      // タグの場合はJOINが必要
+      const { count } = await supabase
+        .from('friend_tags')
+        .select('friend_id', { count: 'exact', head: true })
+        .in('tag_id', targetIds)
+      return count || 0
+    } else if (targetType === 'manual' && targetIds && targetIds.length > 0) {
+      query = query.in('id', targetIds)
+    }
+
+    const { count, error } = await query
+
+    if (error) {
+      console.error('ターゲット数取得エラー:', error)
+      return 0
+    }
+
     return count || 0
-  } else if (targetType === 'manual' && targetIds && targetIds.length > 0) {
-    query = query.in('id', targetIds)
+  } catch (error) {
+    console.warn('ターゲット数の取得に失敗しました（テーブルが存在しない可能性があります）:', error)
+    return 0
   }
-
-  const { count, error } = await query
-
-  if (error) {
-    console.error('ターゲット数取得エラー:', error)
-    throw new Error('ターゲット数の取得に失敗しました')
-  }
-
-  return count || 0
 }

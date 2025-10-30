@@ -46,11 +46,11 @@ interface TopURL {
   id: string
   original_url: string
   short_code: string
-  custom_slug: string | null
-  campaign_name: string | null
+  custom_slug?: string | null
+  campaign_name?: string | null
   total_clicks: number
   unique_clicks: number
-  created_at: string
+  created_at: string | null
 }
 
 interface AnalyticsPageClientProps {
@@ -218,7 +218,7 @@ export function AnalyticsPageClient({
               short_code: url.short_code,
               click_count: url.total_clicks,
               unique_click_count: url.unique_clicks,
-              created_at: url.created_at,
+              created_at: url.created_at || new Date().toISOString(),
             }))} />
           </div>
         </TabsContent>

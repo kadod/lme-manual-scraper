@@ -3,7 +3,7 @@ import type { Tables } from '@/types/supabase';
 
 type Reservation = Tables<'reservations'>;
 type ReservationType = Tables<'reservation_types'>;
-type AvailableSlot = Tables<'available_slots'>;
+type ScheduleSlot = Tables<'schedule_slots'>;
 
 export class ReservationsQueries {
   private supabase = createClient();
@@ -25,17 +25,16 @@ export class ReservationsQueries {
           id,
           name,
           description,
-          duration_minutes,
-          buffer_minutes
+          duration_minutes
         ),
-        available_slots (
+        schedule_slots (
           id,
           start_time,
           end_time,
           capacity,
           booked_count
         ),
-        friends (
+        line_friends (
           id,
           display_name,
           picture_url
@@ -49,11 +48,11 @@ export class ReservationsQueries {
     }
 
     if (options?.startDate) {
-      query = query.gte('available_slots.start_time', options.startDate);
+      query = query.gte('schedule_slots.start_time', options.startDate);
     }
 
     if (options?.endDate) {
-      query = query.lte('available_slots.end_time', options.endDate);
+      query = query.lte('schedule_slots.end_time', options.endDate);
     }
 
     if (options?.limit) {
@@ -75,18 +74,16 @@ export class ReservationsQueries {
           id,
           name,
           description,
-          duration_minutes,
-          buffer_minutes,
-          settings
+          duration_minutes
         ),
-        available_slots (
+        schedule_slots (
           id,
           start_time,
           end_time,
           capacity,
           booked_count
         ),
-        friends (
+        line_friends (
           id,
           display_name,
           picture_url,
@@ -112,22 +109,22 @@ export class ReservationsQueries {
         .from('reservations')
         .select('id', { count: 'exact', head: true })
         .eq('reservation_types.user_id', userId)
-        .gte('available_slots.start_time', today)
-        .lt('available_slots.start_time', `${today}T23:59:59`),
+        .gte('schedule_slots.start_time', today)
+        .lt('schedule_slots.start_time', `${today}T23:59:59`),
 
       // This week's reservations
       this.supabase
         .from('reservations')
         .select('id', { count: 'exact', head: true })
         .eq('reservation_types.user_id', userId)
-        .gte('available_slots.start_time', weekStart.toISOString()),
+        .gte('schedule_slots.start_time', weekStart.toISOString()),
 
       // This month's reservations
       this.supabase
         .from('reservations')
         .select('id', { count: 'exact', head: true })
         .eq('reservation_types.user_id', userId)
-        .gte('available_slots.start_time', monthStart.toISOString()),
+        .gte('schedule_slots.start_time', monthStart.toISOString()),
 
       // Status breakdown
       this.supabase
@@ -152,10 +149,10 @@ export class ReservationsQueries {
   }
 
   /**
-   * Get available slots for a reservation type
+   * Get available slots for a schedule
    */
   async getAvailableSlots(
-    reservationTypeId: string,
+    scheduleId: string,
     options?: {
       startDate?: string;
       endDate?: string;
@@ -163,9 +160,9 @@ export class ReservationsQueries {
     }
   ) {
     let query = this.supabase
-      .from('available_slots')
+      .from('schedule_slots')
       .select('*')
-      .eq('reservation_type_id', reservationTypeId)
+      .eq('schedule_id', scheduleId)
       .order('start_time', { ascending: true });
 
     if (options?.startDate) {
@@ -205,25 +202,27 @@ export class ReservationsQueries {
    */
   async createReservation(data: {
     reservationTypeId: string;
-    slotId: string;
-    friendId?: string;
+    scheduleId: string;
+    scheduleSlotId: string;
+    lineFriendId?: string;
     customerName: string;
     customerEmail: string;
     customerPhone?: string;
-    customerMemo?: string;
-    lineUserId?: string;
+    notes?: string;
+    organizationId: string;
   }) {
     return this.supabase
       .from('reservations')
       .insert({
         reservation_type_id: data.reservationTypeId,
-        slot_id: data.slotId,
-        friend_id: data.friendId || null,
+        schedule_id: data.scheduleId,
+        schedule_slot_id: data.scheduleSlotId,
+        line_friend_id: data.lineFriendId || null,
         customer_name: data.customerName,
         customer_email: data.customerEmail,
         customer_phone: data.customerPhone || null,
-        customer_memo: data.customerMemo || null,
-        line_user_id: data.lineUserId || null,
+        notes: data.notes || null,
+        organization_id: data.organizationId,
         status: 'confirmed'
       })
       .select()
@@ -237,12 +236,15 @@ export class ReservationsQueries {
     reservationId: string,
     status: Reservation['status']
   ) {
-    const updates: Partial<Reservation> = { status };
+    const updates: Partial<Reservation> = {
+      status,
+      updated_at: new Date().toISOString()
+    };
 
     if (status === 'cancelled') {
       updates.cancelled_at = new Date().toISOString();
-    } else if (status === 'completed') {
-      updates.completed_at = new Date().toISOString();
+    } else if (status === 'confirmed') {
+      updates.confirmed_at = new Date().toISOString();
     }
 
     return this.supabase
@@ -258,12 +260,5 @@ export class ReservationsQueries {
    */
   async cancelReservation(reservationId: string) {
     return this.updateReservationStatus(reservationId, 'cancelled');
-  }
-
-  /**
-   * Complete a reservation
-   */
-  async completeReservation(reservationId: string) {
-    return this.updateReservationStatus(reservationId, 'completed');
   }
 }

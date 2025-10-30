@@ -35,9 +35,9 @@ async function getOrganizationAndChannel() {
   // Get active LINE channel
   const { data: channel, error: channelError } = await supabase
     .from('line_channels')
-    .select('id, channel_name')
+    .select('id, name')
     .eq('organization_id', userOrg.organization_id)
-    .eq('is_active', true)
+    .eq('status', 'active')
     .single()
 
   if (channelError || !channel) {
@@ -48,7 +48,7 @@ async function getOrganizationAndChannel() {
   return {
     organizationId: userOrg.organization_id,
     channelId: channel.id,
-    channelName: channel.channel_name,
+    channelName: channel.name,
   }
 }
 

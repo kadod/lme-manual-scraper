@@ -168,6 +168,9 @@ function generateMockConversations(): ActiveConversation[] {
     const totalSteps = Math.floor(Math.random() * 5) + 3
     const currentStep = Math.floor(Math.random() * totalSteps) + 1
 
+    const status: import('@/types/auto-response').ConversationStatus =
+      currentStep >= totalSteps ? 'completed' : Math.random() > 0.2 ? 'active' : 'timeout'
+
     conversations.push({
       id: `conv-${i + 1}`,
       user_id: 'user-123',
@@ -177,7 +180,7 @@ function generateMockConversations(): ActiveConversation[] {
       scenario_name: scenarioNames[Math.floor(Math.random() * scenarioNames.length)],
       current_step: currentStep,
       total_steps: totalSteps,
-      status: currentStep >= totalSteps ? 'completed' : Math.random() > 0.2 ? 'active' : 'expired',
+      status: status,
       started_at: startDate.toISOString(),
       last_interaction_at: lastInteraction.toISOString(),
       expires_at: expiresAt.toISOString(),

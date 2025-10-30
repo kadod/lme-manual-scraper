@@ -20,6 +20,12 @@ export default async function ChatDetailPage({ params }: ChatDetailPageProps) {
       getFriendDetails(friendId),
     ])
 
+    // Transform friend data to ensure custom_fields is properly typed
+    const friendData = {
+      ...friend,
+      custom_fields: friend.custom_fields as Record<string, any> | null,
+    }
+
     return (
       <div className="flex-1">
         <ChatLayout conversations={conversations}>
@@ -31,7 +37,7 @@ export default async function ChatDetailPage({ params }: ChatDetailPageProps) {
               initialMessages={messages}
             />
           </div>
-          <FriendDetailSidebar friend={friend} />
+          <FriendDetailSidebar friend={friendData} />
         </ChatLayout>
       </div>
     )

@@ -22,7 +22,7 @@ async function FriendDetailContent({ friendId }: { friendId: string }) {
 
   // Fetch friend with tags
   const { data: friend, error: friendError } = await supabase
-    .from('friends')
+    .from('line_friends')
     .select(
       `
       *,

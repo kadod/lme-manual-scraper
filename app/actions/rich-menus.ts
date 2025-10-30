@@ -356,14 +356,28 @@ export async function getRichMenus() {
     .from('rich_menus')
     .select('*')
     .eq('organization_id', organizationId)
-    .order('created_at', { ascending: false });
+    .order('created_at', { ascending: false});
 
   if (error) {
     console.error('Error fetching rich menus:', error);
     throw error;
   }
 
-  return data;
+  // Transform data to match expected format
+  return (data || []).map((menu) => ({
+    rich_menu_id: menu.id, // Use DB id as rich_menu_id for the UI
+    name: menu.name,
+    chat_bar_text: menu.chat_bar_text,
+    size: {
+      width: menu.size_width,
+      height: menu.size_height
+    },
+    areas: [], // Areas stored separately
+    status: menu.status,
+    is_default: menu.is_default ?? undefined,
+    line_rich_menu_id: menu.line_rich_menu_id ?? undefined,
+    created_at: menu.created_at || new Date().toISOString()
+  }));
 }
 
 /**

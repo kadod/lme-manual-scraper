@@ -1,6 +1,6 @@
 import React from 'react';
 import { CheckCircleIcon, ClockIcon, XCircleIcon } from '@heroicons/react/24/solid';
-import type { Reservation } from '@/types/reservations';
+import type { Reservation } from '@/app/actions/reservations';
 
 interface ReservationTimelineProps {
   reservation: Reservation;
@@ -84,7 +84,7 @@ function getTimelineSteps(reservation: Reservation): TimelineStep[] {
     status: 'completed',
     label: '予約作成',
     icon: CheckCircleIcon,
-    timestamp: reservation.created_at
+    timestamp: reservation.created_at || undefined
   });
 
   // Confirmed
@@ -93,22 +93,14 @@ function getTimelineSteps(reservation: Reservation): TimelineStep[] {
       status: 'cancelled',
       label: 'キャンセル',
       icon: XCircleIcon,
-      timestamp: reservation.cancelled_at
+      timestamp: reservation.cancelled_at || undefined
     });
   } else {
     steps.push({
-      status: reservation.confirmed_at ? 'completed' : reservation.status === 'pending' ? 'current' : 'upcoming',
+      status: reservation.confirmed_at ? 'completed' : 'current',
       label: '予約確定',
       icon: CheckCircleIcon,
-      timestamp: reservation.confirmed_at
-    });
-
-    // Completed
-    steps.push({
-      status: reservation.completed_at ? 'completed' : reservation.status === 'confirmed' ? 'current' : 'upcoming',
-      label: '完了',
-      icon: CheckCircleIcon,
-      timestamp: reservation.completed_at
+      timestamp: reservation.confirmed_at || undefined
     });
   }
 

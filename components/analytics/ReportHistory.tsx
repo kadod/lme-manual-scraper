@@ -40,10 +40,10 @@ export function ReportHistory({ history, reportId }: ReportHistoryProps) {
     }
   }
 
-  const handleDownload = async (historyId: string) => {
+  const handleDownload = async (historyId: string, format: ReportHistoryType['format']) => {
     setDownloadingId(historyId)
     try {
-      const data = await downloadReport(historyId)
+      const data = await downloadReport(historyId, format)
       // In a real implementation, this would trigger a file download
       toast.success('ダウンロードを開始しました')
       console.log('Download:', data)
@@ -157,7 +157,7 @@ export function ReportHistory({ history, reportId }: ReportHistoryProps) {
                 <Button
                   size="sm"
                   variant="outline"
-                  onClick={() => handleDownload(item.id)}
+                  onClick={() => handleDownload(item.id, item.format)}
                   disabled={downloadingId === item.id}
                 >
                   <ArrowDownTrayIcon className="size-4" />

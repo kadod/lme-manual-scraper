@@ -24,7 +24,7 @@ export default function AIAutoResponsePage() {
     basePrompt: "あなたは親切なカスタマーサポートアシスタントです。ユーザーの質問に対して、正確で分かりやすい回答を提供してください。",
     characterSettings: "丁寧で親しみやすい口調で話します。専門用語は避け、誰にでも理解できる言葉を使用します。",
     responseStyle: "簡潔で分かりやすい回答を心がけます。必要に応じて箇条書きや段落分けを使用します。",
-    forbiddenWords: []
+    forbiddenWords: [] as string[]
   })
 
   const [contextConfig, setContextConfig] = useState({
@@ -39,11 +39,16 @@ export default function AIAutoResponsePage() {
     retryCount: 2
   })
 
-  const [responseRules, setResponseRules] = useState([
+  const [responseRules, setResponseRules] = useState<Array<{
+    id: string;
+    keywords: string[];
+    condition: { type: "tag" | "segment" | "always"; value: string };
+    priority: number;
+  }>>([
     {
       id: "1",
       keywords: ["予約", "予約したい"],
-      condition: { type: "always" as const, value: "" },
+      condition: { type: "always", value: "" },
       priority: 1
     }
   ])

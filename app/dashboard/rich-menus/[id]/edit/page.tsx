@@ -30,8 +30,7 @@ export default async function EditRichMenuPage({ params }: PageProps) {
   const { data: richMenu, error } = await supabase
     .from('rich_menus')
     .select('*')
-    .eq('rich_menu_id', resolvedParams.id)
-    .eq('user_id', user.id)
+    .eq('id', resolvedParams.id)
     .single();
 
   if (error || !richMenu) {
@@ -61,12 +60,15 @@ export default async function EditRichMenuPage({ params }: PageProps) {
         <RichMenuEditor
           mode="edit"
           initialData={{
-            richMenuId: richMenu.rich_menu_id,
+            richMenuId: richMenu.line_rich_menu_id || undefined,
             name: richMenu.name,
             chatBarText: richMenu.chat_bar_text,
-            size: richMenu.size,
-            selected: richMenu.selected,
-            areas: richMenu.areas,
+            size: {
+              width: 2500,
+              height: richMenu.size_height as 1686 | 843
+            },
+            selected: richMenu.is_default ?? false,
+            areas: [],
           }}
         />
       </div>

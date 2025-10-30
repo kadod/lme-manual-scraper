@@ -75,16 +75,16 @@ export function FriendsTable({ friends }: FriendsTableProps) {
               <TableCell>
                 <Badge
                   variant={
-                    friend.status === 'active'
+                    friend.follow_status === 'active'
                       ? 'default'
-                      : friend.status === 'blocked'
+                      : friend.follow_status === 'blocked'
                       ? 'destructive'
                       : 'secondary'
                   }
                 >
-                  {friend.status === 'active'
+                  {friend.follow_status === 'active'
                     ? 'アクティブ'
-                    : friend.status === 'blocked'
+                    : friend.follow_status === 'blocked'
                     ? 'ブロック'
                     : '配信停止'}
                 </Badge>

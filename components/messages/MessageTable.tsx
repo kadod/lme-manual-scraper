@@ -77,11 +77,17 @@ export function MessageTable({
     return <Badge variant="outline">{labels[type] || type}</Badge>
   }
 
-  const getTargetLabel = (targetType: string, targetValue: string | null) => {
-    if (targetType === 'all') return 'すべての友だち'
-    if (targetType === 'segment') return `セグメント: ${targetValue}`
-    if (targetType === 'tags') return `タグ: ${targetValue}`
-    return targetType
+  const getTargetLabel = (message: Message) => {
+    if (message.target_type === 'all') return 'すべての友だち'
+    if (message.target_type === 'segment') return 'セグメント'
+    if (message.target_type === 'tags') return 'タグ'
+    return message.target_type
+  }
+
+  const getContentPreview = (content: any): string => {
+    if (typeof content === 'string') return content.slice(0, 50)
+    if (content?.text) return content.text.slice(0, 50)
+    return 'メッセージ'
   }
 
   const formatDate = (dateString: string | null) => {
@@ -125,7 +131,7 @@ export function MessageTable({
                   onClick={() => onPreview(message)}
                   className="text-left hover:text-blue-600 hover:underline"
                 >
-                  {message.title}
+                  {getContentPreview(message.content)}
                 </button>
                 <div className="text-xs text-gray-500 mt-1">
                   {format(new Date(message.created_at), 'yyyy/MM/dd HH:mm', { locale: ja })}
@@ -133,7 +139,7 @@ export function MessageTable({
               </TableCell>
               <TableCell>{getTypeBadge(message.type)}</TableCell>
               <TableCell className="text-sm">
-                {getTargetLabel(message.target_type, message.target_value)}
+                {getTargetLabel(message)}
               </TableCell>
               <TableCell>{getStatusBadge(message.status)}</TableCell>
               <TableCell className="text-sm">

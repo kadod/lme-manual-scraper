@@ -2,76 +2,80 @@ import { KeywordBuilder } from '@/components/auto-response/KeywordBuilder'
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { KeywordRuleFormData } from '@/types/auto-response'
+import { getCurrentUserOrganizationId } from '@/lib/utils/organization'
 
 export const metadata = {
   title: 'キーワード応答ルール作成 | L Message',
   description: '新しいキーワード応答ルールを作成',
 }
 
-async function createKeywordRule(formData: KeywordRuleFormData) {
+async function createKeywordRule(formData: KeywordRuleFormData): Promise<void> {
   'use server'
+
+  const organizationId = await getCurrentUserOrganizationId()
+  if (!organizationId) {
+    throw new Error('Organization not found')
+  }
 
   const supabase = await createClient()
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  // Create the rule in auto_response_rules with the correct schema
+  const { data: rule, error: ruleError } = await supabase
+    .from('auto_response_rules')
+    .insert({
+      organization_id: organizationId,
+      name: formData.name,
+      description: formData.description,
+      trigger_type: 'keyword',
+      trigger_keywords: formData.keywords.map(kw => kw.text),
+      trigger_config: {
+        keywords: formData.keywords,
+        timeConditions: formData.timeConditions,
+        friendConditions: formData.friendConditions,
+        limitConditions: formData.limitConditions,
+      },
+      response_type: formData.response.type,
+      response_content: formData.response,
+      match_type: formData.keywords[0]?.matchType || 'partial',
+      priority: formData.priority,
+      is_active: formData.isActive,
+    } as any)
+    .select()
+    .single()
 
-  if (!user) {
-    throw new Error('認証が必要です')
-  }
-
-  const { error } = await supabase.from('keyword_rules').insert({
-    user_id: user.id,
-    name: formData.name,
-    description: formData.description,
-    priority: formData.priority,
-    keywords: formData.keywords,
-    response: formData.response,
-    time_conditions: formData.timeConditions,
-    friend_conditions: formData.friendConditions,
-    limit_conditions: formData.limitConditions,
-    actions: formData.actions,
-    is_active: formData.isActive,
-    valid_until: formData.validUntil,
-  })
-
-  if (error) {
-    throw new Error(error.message)
+  if (ruleError) {
+    throw new Error(ruleError.message)
   }
 }
 
 export default async function NewKeywordRulePage() {
-  const supabase = await createClient()
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-
-  if (!user) {
+  const organizationId = await getCurrentUserOrganizationId()
+  if (!organizationId) {
     redirect('/login')
   }
+
+  const supabase = await createClient()
 
   // Fetch tags
   const { data: tags } = await supabase
     .from('tags')
     .select('id, name, color')
-    .eq('user_id', user.id)
+    .eq('organization_id', organizationId)
     .order('name', { ascending: true })
 
   // Fetch segments
   const { data: segments } = await supabase
     .from('segments')
     .select('id, name')
-    .eq('user_id', user.id)
+    .eq('organization_id', organizationId)
     .order('name', { ascending: true })
 
-  // Fetch message templates
-  const { data: templates } = await supabase
-    .from('message_templates')
-    .select('id, name, type')
-    .eq('user_id', user.id)
-    .order('name', { ascending: true })
+  // Fetch message templates (if table exists)
+  // const { data: templates } = await supabase
+  //   .from('message_templates')
+  //   .select('id, name, type')
+  //   .eq('user_id', user.id)
+  //   .order('name', { ascending: true })
 
   // Fetch step campaigns (if available)
   // const { data: stepCampaigns } = await supabase
@@ -79,6 +83,8 @@ export default async function NewKeywordRulePage() {
   //   .select('id, name')
   //   .eq('user_id', user.id)
   //   .order('name', { ascending: true })
+
+  const templates: Array<{ id: string; name: string; type: string }> = []
 
   return (
     <div className="container max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
@@ -102,7 +108,7 @@ export default async function NewKeywordRulePage() {
             })) || []
           }
           segments={segments || []}
-          templates={templates || []}
+          templates={templates}
           stepCampaigns={[]}
           onSave={createKeywordRule}
         />

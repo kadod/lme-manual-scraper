@@ -12,7 +12,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import { createShortenedURL } from '@/app/actions/url-tracking'
+import { createShortUrl } from '@/app/actions/url-tracking'
 import { toast } from 'sonner'
 
 interface URLCreateFormProps {
@@ -49,21 +49,20 @@ export function URLCreateForm({ open, onOpenChange }: URLCreateFormProps) {
 
     setIsSubmitting(true)
 
-    const result = await createShortenedURL({
-      original_url: originalUrl,
-      custom_slug: customSlug || undefined,
-    })
-
-    if (result.error) {
-      toast.error(result.error)
-    } else {
+    try {
+      await createShortUrl({
+        originalUrl: originalUrl,
+        customSlug: customSlug || undefined,
+      })
       toast.success('短縮URLを作成しました')
       setOriginalUrl('')
       setCustomSlug('')
       onOpenChange(false)
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : '短縮URLの作成に失敗しました')
+    } finally {
+      setIsSubmitting(false)
     }
-
-    setIsSubmitting(false)
   }
 
   return (

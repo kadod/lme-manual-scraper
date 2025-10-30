@@ -284,7 +284,7 @@ async function logWebhookEvent(
     .insert({
       line_channel_id: lineChannelId,
       event_type: event.type,
-      payload: event,
+      payload: event as unknown as any, // Cast to any to match Json type
       status,
       error_message: errorMessage || null,
       processed_at: new Date().toISOString()

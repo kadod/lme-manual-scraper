@@ -82,7 +82,7 @@ export default function ReservationsPage() {
 
   const handleStatusChange = async (
     id: string,
-    status: 'confirmed' | 'cancelled' | 'completed' | 'no_show'
+    status: 'confirmed' | 'cancelled'
   ) => {
     try {
       await updateReservationStatus(id, status)

@@ -1,4 +1,9 @@
 import { createClient } from '../server'
+import type { Database } from '@/types/supabase'
+import type { Json } from '@/types/supabase'
+
+type DbForm = Database['public']['Tables']['forms']['Row']
+type DbFormResponse = Database['public']['Tables']['form_responses']['Row']
 
 export interface Form {
   id: string
@@ -9,9 +14,10 @@ export interface Form {
   settings: FormSettings
   status: 'draft' | 'active' | 'closed'
   created_by: string | null
-  created_at: string
-  updated_at: string
+  created_at: string | null
+  updated_at: string | null
   published_at: string | null
+  total_responses?: number | null
 }
 
 export interface FormField {
@@ -41,17 +47,11 @@ export interface FormResponse {
   id: string
   form_id: string
   line_friend_id: string | null
-  response_data: Record<string, any>
-  metadata: {
-    device?: string
-    browser?: string
-    ip?: string
-    userAgent?: string
-  }
-  started_at: string | null
-  submitted_at: string
-  completion_time_seconds: number | null
-  created_at: string
+  responses: Json
+  ip_address: unknown
+  user_agent: string | null
+  submitted_at: string | null
+  created_at: string | null
 }
 
 export interface FormAnalytics {
@@ -87,7 +87,14 @@ export async function getForms(): Promise<Form[]> {
     .order('created_at', { ascending: false })
 
   if (error) throw error
-  return data || []
+
+  // Transform database rows to Form interface
+  return (data || []).map(dbForm => ({
+    ...dbForm,
+    fields: [],
+    settings: (dbForm.settings as FormSettings) || {},
+    published_at: null
+  }))
 }
 
 /**
@@ -103,7 +110,15 @@ export async function getForm(formId: string): Promise<Form | null> {
     .single()
 
   if (error) throw error
-  return data
+  if (!data) return null
+
+  // Transform database row to Form interface
+  return {
+    ...data,
+    fields: [],
+    settings: (data.settings as FormSettings) || {},
+    published_at: null
+  }
 }
 
 /**
@@ -112,14 +127,23 @@ export async function getForm(formId: string): Promise<Form | null> {
 export async function createForm(form: Omit<Form, 'id' | 'created_at' | 'updated_at'>): Promise<Form> {
   const supabase = await createClient()
 
+  const { fields, published_at, ...dbFormData } = form
+
   const { data, error } = await supabase
     .from('forms')
-    .insert(form)
+    .insert(dbFormData as Database['public']['Tables']['forms']['Insert'])
     .select()
     .single()
 
   if (error) throw error
-  return data
+
+  // Transform database row to Form interface
+  return {
+    ...data,
+    fields: fields || [],
+    settings: (data.settings as FormSettings) || {},
+    published_at: null
+  }
 }
 
 /**
@@ -128,15 +152,27 @@ export async function createForm(form: Omit<Form, 'id' | 'created_at' | 'updated
 export async function updateForm(formId: string, updates: Partial<Form>): Promise<Form> {
   const supabase = await createClient()
 
+  const { fields, published_at, ...dbUpdates } = updates
+
   const { data, error } = await supabase
     .from('forms')
-    .update({ ...updates, updated_at: new Date().toISOString() })
+    .update({
+      ...dbUpdates as Database['public']['Tables']['forms']['Update'],
+      updated_at: new Date().toISOString()
+    })
     .eq('id', formId)
     .select()
     .single()
 
   if (error) throw error
-  return data
+
+  // Transform database row to Form interface
+  return {
+    ...data,
+    fields: fields || [],
+    settings: (data.settings as FormSettings) || {},
+    published_at: null
+  }
 }
 
 /**
@@ -192,7 +228,7 @@ export async function getFormResponses(
   const { data, error } = await query
 
   if (error) throw error
-  return data || []
+  return (data || []) as FormResponse[]
 }
 
 /**
@@ -220,13 +256,13 @@ export async function getResponseTrends(
   const supabase = await createClient()
 
   const { data, error } = await supabase
-    .rpc('get_response_trends', {
+    .rpc('get_response_trends' as any, {
       p_form_id: formId,
       p_days: days
     })
 
   if (error) throw error
-  return data || []
+  return (data as ResponseTrend[]) || []
 }
 
 /**
@@ -241,7 +277,7 @@ export async function getFieldStatistics(
   const supabase = await createClient()
 
   const { data, error } = await supabase
-    .rpc('aggregate_field_responses', {
+    .rpc('aggregate_field_responses' as any, {
       p_form_id: formId,
       p_field_id: fieldId,
       p_start_date: startDate || null,
@@ -249,7 +285,7 @@ export async function getFieldStatistics(
     })
 
   if (error) throw error
-  return data || {}
+  return (data as Record<string, any>) || {}
 }
 
 /**
@@ -393,7 +429,7 @@ export async function recalculateFormStatistics(
   const supabase = await createClient()
 
   const { error } = await supabase
-    .rpc('calculate_form_statistics', {
+    .rpc('calculate_form_statistics' as any, {
       p_form_id: formId,
       p_date: date
     })
