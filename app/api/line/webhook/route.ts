@@ -301,6 +301,7 @@ export async function POST(request: NextRequest) {
     const signature = request.headers.get('x-line-signature')
 
     if (!signature) {
+      console.error('Missing x-line-signature header')
       return NextResponse.json(
         { error: 'Missing signature' },
         { status: 401 }
@@ -309,9 +310,21 @@ export async function POST(request: NextRequest) {
 
     // Get raw body
     const rawBody = await request.text()
+    console.log('Webhook received, body length:', rawBody.length)
+
     const body: LineWebhookBody = JSON.parse(rawBody)
+    console.log('Parsed webhook body:', {
+      destination: body.destination,
+      eventCount: body.events?.length || 0,
+      eventTypes: body.events?.map(e => e.type) || []
+    })
 
     if (!body.destination || !body.events || body.events.length === 0) {
+      console.error('Invalid webhook payload:', {
+        hasDestination: !!body.destination,
+        hasEvents: !!body.events,
+        eventsLength: body.events?.length || 0
+      })
       return NextResponse.json(
         { error: 'Invalid webhook payload' },
         { status: 400 }
@@ -319,7 +332,21 @@ export async function POST(request: NextRequest) {
     }
 
     // Get LINE channel configuration
-    const lineChannel = await getLineChannel(body.destination)
+    let lineChannel
+    try {
+      lineChannel = await getLineChannel(body.destination)
+      console.log('LINE channel found:', {
+        id: lineChannel.id,
+        name: lineChannel.name,
+        organizationId: lineChannel.organization_id
+      })
+    } catch (error) {
+      console.error('Failed to get LINE channel:', error)
+      return NextResponse.json(
+        { error: 'LINE channel not found', destination: body.destination },
+        { status: 404 }
+      )
+    }
 
     // Verify signature
     const isValid = verifySignature(
@@ -336,20 +363,30 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    console.log('Signature verified successfully')
+
     // Process each event
     for (const event of body.events) {
       try {
+        console.log(`Processing event: ${event.type}`, {
+          userId: event.source.userId,
+          timestamp: event.timestamp
+        })
+
         switch (event.type) {
           case 'follow':
             await handleFollowEvent(event, lineChannel)
+            console.log('Follow event processed successfully')
             break
 
           case 'unfollow':
             await handleUnfollowEvent(event, lineChannel)
+            console.log('Unfollow event processed successfully')
             break
 
           case 'message':
             await handleMessageEvent(event, lineChannel)
+            console.log('Message event processed successfully')
             break
 
           case 'postback':
@@ -366,6 +403,7 @@ export async function POST(request: NextRequest) {
 
       } catch (error) {
         console.error(`Error processing event ${event.type}:`, error)
+        console.error('Error stack:', error instanceof Error ? error.stack : 'No stack trace')
 
         // Log error
         await logWebhookEvent(
