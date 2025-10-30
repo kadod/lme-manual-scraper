@@ -311,7 +311,7 @@ async function handleMessageEvent(
 async function logWebhookEvent(
   lineChannelId: string,
   event: LineWebhookEvent,
-  status: 'success' | 'error',
+  status: 'processed' | 'failed',
   errorMessage?: string
 ) {
   const supabase = createServiceRoleClient()
@@ -443,7 +443,7 @@ export async function POST(request: NextRequest) {
         }
 
         // Log successful processing
-        await logWebhookEvent(lineChannel.id, event, 'success')
+        await logWebhookEvent(lineChannel.id, event, 'processed')
 
       } catch (error) {
         console.error(`Error processing event ${event.type}:`, error)
@@ -453,7 +453,7 @@ export async function POST(request: NextRequest) {
         await logWebhookEvent(
           lineChannel.id,
           event,
-          'error',
+          'failed',
           error instanceof Error ? error.message : 'Unknown error'
         )
       }
