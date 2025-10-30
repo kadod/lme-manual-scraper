@@ -141,6 +141,7 @@ async function handleFollowEvent(
       .eq('id', existingFriend.id)
   } else {
     // Create new friend
+    const timestamp = new Date(event.timestamp).toISOString()
     await supabase
       .from('line_friends')
       .insert({
@@ -151,7 +152,9 @@ async function handleFollowEvent(
         picture_url: profile?.pictureUrl || null,
         status_message: profile?.statusMessage || null,
         follow_status: 'active',
-        followed_at: new Date(event.timestamp).toISOString()
+        first_followed_at: timestamp,
+        last_followed_at: timestamp,
+        last_interaction_at: timestamp
       })
   }
 
@@ -211,6 +214,7 @@ async function handleMessageEvent(
     const profile = await getLineProfile(userId, lineChannel.channel_access_token)
 
     // Auto-create friend record
+    const timestamp = new Date(event.timestamp).toISOString()
     const { data: newFriend, error: friendError } = await supabase
       .from('line_friends')
       .insert({
@@ -221,7 +225,9 @@ async function handleMessageEvent(
         picture_url: profile?.pictureUrl || null,
         status_message: profile?.statusMessage || null,
         follow_status: 'active',
-        followed_at: new Date(event.timestamp).toISOString()
+        first_followed_at: timestamp,
+        last_followed_at: timestamp,
+        last_interaction_at: timestamp
       })
       .select('id')
       .single()
