@@ -26,6 +26,11 @@ export default async function ChatDetailPage({ params }: ChatDetailPageProps) {
     const supabase = await createClient()
     const organizationId = await getCurrentUserOrganizationId()
 
+    if (!organizationId) {
+      console.error('Organization not found')
+      notFound()
+    }
+
     const { data: conversation, error } = await supabase
       .from('conversations')
       .select(`
