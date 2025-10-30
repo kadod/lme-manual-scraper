@@ -100,6 +100,9 @@ const navigation = [
           { name: 'タグ管理', href: '/dashboard/friends/tags' },
           { name: 'セグメント', href: '/dashboard/friends/segments' },
           { name: 'インポート', href: '/dashboard/friends/import' },
+          { name: '友だち情報管理', href: '/dashboard/data-management/friend-info' },
+          { name: 'アクションスケジュール実行', href: '/dashboard/data-management/action-schedule' },
+          { name: 'QRコードアクション', href: '/dashboard/data-management/qr-actions' },
         ]
       },
       {
