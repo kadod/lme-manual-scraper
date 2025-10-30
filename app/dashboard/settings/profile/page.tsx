@@ -142,7 +142,7 @@ export default async function ProfileSettingsPage() {
           <ActiveSessionsList
             userId={user.id}
             lastLoginAt={profile?.last_login_at}
-            lastLoginIp={profile?.last_login_ip}
+            lastLoginIp={profile?.last_login_ip as string | null | undefined}
           />
         </CardContent>
       </Card>

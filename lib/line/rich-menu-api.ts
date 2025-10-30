@@ -111,7 +111,7 @@ export class LineRichMenuAPI {
             'Content-Type': contentType,
             Authorization: `Bearer ${this.accessToken}`,
           },
-          body: imageBuffer,
+          body: imageBuffer as unknown as BodyInit,
         }
       );
 

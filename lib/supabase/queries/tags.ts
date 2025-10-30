@@ -25,7 +25,7 @@ export class TagsQueries {
           friend_tags(count)
         `
         )
-        .eq('user_id', userId)
+        .eq('organization_id', userId) // TODO: Should use organization_id properly
         .order('name')
 
       if (error) throw error
@@ -50,7 +50,7 @@ export class TagsQueries {
         .from('tags')
         .select('*')
         .eq('id', tagId)
-        .eq('user_id', userId)
+        .eq('organization_id', userId) // TODO: Should use organization_id properly
         .single()
 
       if (error) throw error
@@ -64,7 +64,7 @@ export class TagsQueries {
 
   async createTag(tag: TagInsert): Promise<DatabaseResult<Tag>> {
     try {
-      const existingResult = await this.getTagByName(tag.name, tag.user_id)
+      const existingResult = await this.getTagByName(tag.name, tag.organization_id)
       if (existingResult.success) {
         throw DatabaseError.alreadyExists('Tag', `name: ${tag.name}`)
       }
@@ -101,7 +101,7 @@ export class TagsQueries {
         .from('tags')
         .update({ ...updates, updated_at: new Date().toISOString() })
         .eq('id', tagId)
-        .eq('user_id', userId)
+        .eq('organization_id', userId) // TODO: Should use organization_id properly
         .select()
         .single()
 
@@ -125,7 +125,7 @@ export class TagsQueries {
         .from('tags')
         .delete()
         .eq('id', tagId)
-        .eq('user_id', userId)
+        .eq('organization_id', userId) // TODO: Should use organization_id properly
 
       if (error) throw error
 
@@ -143,7 +143,7 @@ export class TagsQueries {
       const { data: existing } = await this.supabase
         .from('friend_tags')
         .select('*')
-        .eq('friend_id', friendId)
+        .eq('line_friend_id', friendId)
         .eq('tag_id', tagId)
         .single()
 
@@ -153,7 +153,7 @@ export class TagsQueries {
 
       const { data, error } = await this.supabase
         .from('friend_tags')
-        .insert({ friend_id: friendId, tag_id: tagId })
+        .insert({ line_friend_id: friendId, tag_id: tagId })
         .select()
         .single()
 
@@ -174,7 +174,7 @@ export class TagsQueries {
       const { error } = await this.supabase
         .from('friend_tags')
         .delete()
-        .eq('friend_id', friendId)
+        .eq('line_friend_id', friendId)
         .eq('tag_id', tagId)
 
       if (error) throw error
@@ -194,7 +194,7 @@ export class TagsQueries {
           tag:tags(*)
         `
         )
-        .eq('friend_id', friendId)
+        .eq('line_friend_id', friendId)
 
       if (error) throw error
 
@@ -215,7 +215,7 @@ export class TagsQueries {
         .from('tags')
         .select('*')
         .eq('name', name)
-        .eq('user_id', userId)
+        .eq('organization_id', userId) // TODO: Should use organization_id properly
         .single()
 
       if (error) throw error

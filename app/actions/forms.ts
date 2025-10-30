@@ -12,8 +12,11 @@ export type Form = {
   title: string
   description: string | null
   status: 'draft' | 'active' | 'closed'
+  fields?: any // The 'fields' column from database (can also be accessed as 'questions' after migration)
+  questions?: any // Alias for 'fields' (for backwards compatibility)
   settings: any
   total_responses: number
+  response_rate?: number // Added for forms analytics
   created_at: string
   updated_at: string
 }

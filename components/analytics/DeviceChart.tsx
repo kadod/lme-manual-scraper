@@ -8,6 +8,7 @@ import {
   Tooltip,
   Legend,
   ResponsiveContainer,
+  PieLabelRenderProps,
 } from 'recharts'
 
 interface DeviceData {
@@ -28,6 +29,13 @@ const COLORS = {
 }
 
 export function DeviceChart({ data }: DeviceChartProps) {
+  // Transform data to match expected chart format
+  const chartData = data.map(item => ({
+    ...item,
+    name: item.name,
+    value: item.value
+  }))
+
   return (
     <Card>
       <CardHeader>
@@ -38,7 +46,7 @@ export function DeviceChart({ data }: DeviceChartProps) {
         <ResponsiveContainer width="100%" height={350}>
           <PieChart>
             <Pie
-              data={data}
+              data={chartData}
               cx="50%"
               cy="50%"
               innerRadius={60}
@@ -46,7 +54,11 @@ export function DeviceChart({ data }: DeviceChartProps) {
               fill="#8884d8"
               paddingAngle={5}
               dataKey="value"
-              label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+              label={(props: PieLabelRenderProps) => {
+                const { name, percent } = props
+                const percentValue = typeof percent === 'number' ? percent : 0
+                return `${name} ${(percentValue * 100).toFixed(0)}%`
+              }}
             >
               {data.map((entry, index) => (
                 <Cell

@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label'
 import { Checkbox } from '@/components/ui/checkbox'
 import { createAPIKey } from '@/app/actions/system'
 import { useToast } from '@/hooks/use-toast'
-import type { APIKey } from '@/types/system'
+import type { APIKey, APIKeyWithSecret } from '@/types/system'
 
 interface CreateAPIKeyDialogProps {
   open: boolean
@@ -49,18 +49,12 @@ export function CreateAPIKeyDialog({
 
   const handleCreate = async () => {
     if (!name.trim()) {
-      toast({
-        title: 'APIキー名を入力してください',
-        variant: 'destructive',
-      })
+      toast.error('APIキー名を入力してください')
       return
     }
 
     if (selectedPermissions.length === 0) {
-      toast({
-        title: '最低1つの権限を選択してください',
-        variant: 'destructive',
-      })
+      toast.error('最低1つの権限を選択してください')
       return
     }
 
@@ -72,7 +66,8 @@ export function CreateAPIKeyDialog({
         rate_limit: parseInt(rateLimit),
       })
 
-      onKeyCreated(result)
+      // Map APIKeyWithSecret to expected format
+      onKeyCreated({ ...result, full_key: result.key })
       onOpenChange(false)
 
       // Reset form
@@ -80,16 +75,9 @@ export function CreateAPIKeyDialog({
       setSelectedPermissions([])
       setRateLimit('1000')
 
-      toast({
-        title: 'APIキーを作成しました',
-        description: 'キーは一度だけ表示されます。安全に保管してください。',
-      })
+      toast.success('APIキーを作成しました。キーは一度だけ表示されます。安全に保管してください。')
     } catch (error) {
-      toast({
-        title: 'APIキーの作成に失敗しました',
-        description: error instanceof Error ? error.message : '不明なエラー',
-        variant: 'destructive',
-      })
+      toast.error(error instanceof Error ? error.message : 'APIキーの作成に失敗しました')
     } finally {
       setIsLoading(false)
     }

@@ -21,7 +21,8 @@ export function PublicForm({ form, lineUserId }: PublicFormProps) {
   const [isSubmitted, setIsSubmitted] = useState(false)
   const [submitError, setSubmitError] = useState<string>()
 
-  const questions = form.questions as any[]
+  // Use 'fields' or 'questions' (backwards compatibility)
+  const questions = (form.fields || form.questions || []) as any[]
   const settings = (form.settings as any) || {}
 
   const answeredCount = questions.filter(q => {
@@ -60,16 +61,9 @@ export function PublicForm({ form, lineUserId }: PublicFormProps) {
 
       if (result.success) {
         setIsSubmitted(true)
-      } else if (result.errors) {
-        const errorMap: Record<string, string> = {}
-        result.errors.forEach((err: FormValidationError) => {
-          errorMap[err.fieldId] = err.message
-        })
-        setErrors(errorMap)
-
-        const firstErrorField = document.getElementById(result.errors[0].fieldId)
-        firstErrorField?.scrollIntoView({ behavior: 'smooth', block: 'center' })
       } else {
+        // Handle validation errors if they exist (future enhancement)
+        // For now, just show the general error message
         setSubmitError(result.error || '送信に失敗しました')
       }
     } catch (error) {

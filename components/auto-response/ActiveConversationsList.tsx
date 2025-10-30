@@ -20,11 +20,13 @@ export function ActiveConversationsList({ conversations, onViewDetails }: Active
   const [selectedConversationId, setSelectedConversationId] = useState<string | null>(null)
 
   const getStatusBadge = (status: ConversationStatus) => {
-    const config = {
-      active: { label: 'アクティブ', variant: 'default' as const },
-      completed: { label: '完了', variant: 'secondary' as const },
-      expired: { label: '期限切れ', variant: 'destructive' as const },
-      abandoned: { label: '放棄', variant: 'outline' as const },
+    const config: Record<ConversationStatus, { label: string; variant: 'default' | 'secondary' | 'destructive' | 'outline' }> = {
+      active: { label: 'アクティブ', variant: 'default' },
+      completed: { label: '完了', variant: 'secondary' },
+      expired: { label: '期限切れ', variant: 'destructive' },
+      abandoned: { label: '放棄', variant: 'outline' },
+      timeout: { label: 'タイムアウト', variant: 'destructive' },
+      cancelled: { label: 'キャンセル', variant: 'outline' },
     }
     return config[status] || config.active
   }
@@ -36,9 +38,13 @@ export function ActiveConversationsList({ conversations, onViewDetails }: Active
       case 'completed':
         return <CheckCircleIcon className="h-5 w-5 text-green-600" />
       case 'expired':
+      case 'timeout':
         return <ClockIcon className="h-5 w-5 text-red-600" />
       case 'abandoned':
+      case 'cancelled':
         return <XCircleIcon className="h-5 w-5 text-gray-600" />
+      default:
+        return <ChatBubbleLeftRightIcon className="h-5 w-5 text-blue-600" />
     }
   }
 

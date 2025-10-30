@@ -31,26 +31,17 @@ export function APIKeyDetailsDialog({
 
   const handleCopy = async () => {
     if (!isNewKey) {
-      toast({
-        title: 'このキーはコピーできません',
-        description: 'セキュリティ上の理由により、既存のキーは表示されません',
-        variant: 'destructive',
-      })
+      toast.error('セキュリティ上の理由により、既存のキーは表示されません')
       return
     }
 
     try {
       await navigator.clipboard.writeText(displayKey)
       setCopied(true)
-      toast({
-        title: 'APIキーをコピーしました',
-      })
+      toast.success('APIキーをコピーしました')
       setTimeout(() => setCopied(false), 2000)
     } catch (error) {
-      toast({
-        title: 'コピーに失敗しました',
-        variant: 'destructive',
-      })
+      toast.error('コピーに失敗しました')
     }
   }
 

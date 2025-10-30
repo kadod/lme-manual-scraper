@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
+// @ts-ignore - d3-cloud doesn't have TypeScript definitions
 import cloud from 'd3-cloud'
 
 interface Word {
@@ -59,7 +60,7 @@ export function WordCloud({ words, fieldLabel }: WordCloudProps) {
       .padding(5)
       .rotate(() => (Math.random() > 0.5 ? 0 : 90))
       .font('Inter, system-ui, sans-serif')
-      .fontSize(d => d.size!)
+      .fontSize((d: any) => d.size!)
       .on('end', draw)
 
     layout.start()

@@ -68,6 +68,72 @@ export type Database = {
           },
         ]
       }
+      api_keys: {
+        Row: {
+          allowed_ips: string[] | null
+          created_at: string | null
+          created_by: string | null
+          expires_at: string | null
+          id: string
+          is_active: boolean | null
+          key_hash: string
+          key_prefix: string
+          last_used_at: string | null
+          name: string
+          organization_id: string
+          permissions: Json | null
+          rate_limit: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          allowed_ips?: string[] | null
+          created_at?: string | null
+          created_by?: string | null
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          key_hash: string
+          key_prefix: string
+          last_used_at?: string | null
+          name: string
+          organization_id: string
+          permissions?: Json | null
+          rate_limit?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          allowed_ips?: string[] | null
+          created_at?: string | null
+          created_by?: string | null
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          key_hash?: string
+          key_prefix?: string
+          last_used_at?: string | null
+          name?: string
+          organization_id?: string
+          permissions?: Json | null
+          rate_limit?: number | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "api_keys_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "api_keys_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       audit_logs: {
         Row: {
           action: string
@@ -533,6 +599,73 @@ export type Database = {
             columns: ["tag_id"]
             isOneToOne: false
             referencedRelation: "tags"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      invitations: {
+        Row: {
+          accepted_at: string | null
+          accepted_by: string | null
+          created_at: string | null
+          email: string
+          expires_at: string
+          id: string
+          invited_by: string | null
+          organization_id: string
+          role: string
+          status: string
+          token: string
+          updated_at: string | null
+        }
+        Insert: {
+          accepted_at?: string | null
+          accepted_by?: string | null
+          created_at?: string | null
+          email: string
+          expires_at?: string
+          id?: string
+          invited_by?: string | null
+          organization_id: string
+          role: string
+          status?: string
+          token?: string
+          updated_at?: string | null
+        }
+        Update: {
+          accepted_at?: string | null
+          accepted_by?: string | null
+          created_at?: string | null
+          email?: string
+          expires_at?: string
+          id?: string
+          invited_by?: string | null
+          organization_id?: string
+          role?: string
+          status?: string
+          token?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invitations_accepted_by_fkey"
+            columns: ["accepted_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invitations_invited_by_fkey"
+            columns: ["invited_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invitations_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
         ]
@@ -1606,12 +1739,20 @@ export type Database = {
           created_at: string | null
           display_name: string | null
           email: string
+          full_name: string | null
           id: string
           last_login_at: string | null
+          last_login_ip: unknown | null
+          locale: string | null
+          notification_settings: Json | null
           organization_id: string
+          phone_number: string | null
           preferences: Json | null
           role: string
           status: string
+          timezone: string | null
+          two_factor_enabled: boolean | null
+          two_factor_secret: string | null
           updated_at: string | null
         }
         Insert: {
@@ -1619,12 +1760,20 @@ export type Database = {
           created_at?: string | null
           display_name?: string | null
           email: string
+          full_name?: string | null
           id: string
           last_login_at?: string | null
+          last_login_ip?: unknown | null
+          locale?: string | null
+          notification_settings?: Json | null
           organization_id: string
+          phone_number?: string | null
           preferences?: Json | null
           role?: string
           status?: string
+          timezone?: string | null
+          two_factor_enabled?: boolean | null
+          two_factor_secret?: string | null
           updated_at?: string | null
         }
         Update: {
@@ -1632,12 +1781,20 @@ export type Database = {
           created_at?: string | null
           display_name?: string | null
           email?: string
+          full_name?: string | null
           id?: string
           last_login_at?: string | null
+          last_login_ip?: unknown | null
+          locale?: string | null
+          notification_settings?: Json | null
           organization_id?: string
+          phone_number?: string | null
           preferences?: Json | null
           role?: string
           status?: string
+          timezone?: string | null
+          two_factor_enabled?: boolean | null
+          two_factor_secret?: string | null
           updated_at?: string | null
         }
         Relationships: [

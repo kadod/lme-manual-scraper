@@ -63,18 +63,11 @@ export function OrganizationSettingsClient({
         throw new Error('Failed to update organization')
       }
 
-      toast({
-        title: '保存しました',
-        description: '組織情報を更新しました',
-      })
+      toast.success('組織情報を更新しました')
 
       router.refresh()
     } catch (error) {
-      toast({
-        title: 'エラー',
-        description: '組織情報の更新に失敗しました',
-        variant: 'destructive',
-      })
+      toast.error('組織情報の更新に失敗しました')
     } finally {
       setIsLoading(false)
     }
@@ -94,18 +87,11 @@ export function OrganizationSettingsClient({
         throw new Error('Failed to upload logo')
       }
 
-      toast({
-        title: 'アップロードしました',
-        description: 'ロゴ画像を更新しました',
-      })
+      toast.success('ロゴ画像を更新しました')
 
       router.refresh()
     } catch (error) {
-      toast({
-        title: 'エラー',
-        description: 'ロゴのアップロードに失敗しました',
-        variant: 'destructive',
-      })
+      toast.error('ロゴのアップロードに失敗しました')
     }
   }
 
@@ -125,18 +111,11 @@ export function OrganizationSettingsClient({
         throw new Error('Failed to invite staff')
       }
 
-      toast({
-        title: '招待を送信しました',
-        description: `${data.email} に招待メールを送信しました`,
-      })
+      toast.success(`${data.email} に招待メールを送信しました`)
 
       router.refresh()
     } catch (error) {
-      toast({
-        title: 'エラー',
-        description: 'スタッフの招待に失敗しました',
-        variant: 'destructive',
-      })
+      toast.error('スタッフの招待に失敗しました')
     }
   }
 
@@ -150,16 +129,9 @@ export function OrganizationSettingsClient({
         throw new Error('Failed to resend invitation')
       }
 
-      toast({
-        title: '招待を再送信しました',
-        description: '招待メールを再送信しました',
-      })
+      toast.success('招待メールを再送信しました')
     } catch (error) {
-      toast({
-        title: 'エラー',
-        description: '招待の再送信に失敗しました',
-        variant: 'destructive',
-      })
+      toast.error('招待の再送信に失敗しました')
     }
   }
 
@@ -173,18 +145,11 @@ export function OrganizationSettingsClient({
         throw new Error('Failed to remove staff')
       }
 
-      toast({
-        title: '削除しました',
-        description: 'スタッフメンバーを削除しました',
-      })
+      toast.success('スタッフメンバーを削除しました')
 
       router.refresh()
     } catch (error) {
-      toast({
-        title: 'エラー',
-        description: 'スタッフの削除に失敗しました',
-        variant: 'destructive',
-      })
+      toast.error('スタッフの削除に失敗しました')
     }
   }
 
@@ -200,18 +165,11 @@ export function OrganizationSettingsClient({
         throw new Error('Failed to change role')
       }
 
-      toast({
-        title: '変更しました',
-        description: 'スタッフの役割を変更しました',
-      })
+      toast.success('スタッフの役割を変更しました')
 
       router.refresh()
     } catch (error) {
-      toast({
-        title: 'エラー',
-        description: '役割の変更に失敗しました',
-        variant: 'destructive',
-      })
+      toast.error('役割の変更に失敗しました')
     }
   }
 
@@ -225,18 +183,11 @@ export function OrganizationSettingsClient({
         throw new Error('Failed to delete organization')
       }
 
-      toast({
-        title: '削除しました',
-        description: '組織を完全に削除しました',
-      })
+      toast.success('組織を完全に削除しました')
 
       router.push('/dashboard')
     } catch (error) {
-      toast({
-        title: 'エラー',
-        description: '組織の削除に失敗しました',
-        variant: 'destructive',
-      })
+      toast.error('組織の削除に失敗しました')
       throw error
     }
   }

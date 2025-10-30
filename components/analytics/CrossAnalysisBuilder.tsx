@@ -36,6 +36,27 @@ export function CrossAnalysisBuilder({ onAnalyze }: CrossAnalysisBuilderProps) {
   const [presets, setPresets] = useState<AnalysisPreset[]>([])
   const [activeTab, setActiveTab] = useState('table')
 
+  // Define getAxisLabel before it's used
+  const getAxisLabel = (axisValue: string, isX: boolean) => {
+    const options = isX
+      ? [
+          { value: 'date', label: '日付' },
+          { value: 'tag', label: 'タグ' },
+          { value: 'segment', label: 'セグメント' },
+          { value: 'message_type', label: 'メッセージタイプ' },
+          { value: 'device', label: 'デバイス' }
+        ]
+      : [
+          { value: 'friends', label: '友だち数' },
+          { value: 'messages', label: 'メッセージ数' },
+          { value: 'delivery_rate', label: '配信率' },
+          { value: 'engagement', label: 'エンゲージメント率' },
+          { value: 'clicks', label: 'クリック数' }
+        ]
+
+    return options.find(o => o.value === axisValue)?.label || axisValue
+  }
+
   const handleAnalyze = async () => {
     setLoading(true)
     try {
@@ -106,26 +127,6 @@ export function CrossAnalysisBuilder({ onAnalyze }: CrossAnalysisBuilderProps) {
     alert('PNG エクスポート機能は実装中です')
   }
 
-  const getAxisLabel = (axisValue: string, isX: boolean) => {
-    const options = isX
-      ? [
-          { value: 'date', label: '日付' },
-          { value: 'tag', label: 'タグ' },
-          { value: 'segment', label: 'セグメント' },
-          { value: 'message_type', label: 'メッセージタイプ' },
-          { value: 'device', label: 'デバイス' }
-        ]
-      : [
-          { value: 'friends', label: '友だち数' },
-          { value: 'messages', label: 'メッセージ数' },
-          { value: 'delivery_rate', label: '配信率' },
-          { value: 'engagement', label: 'エンゲージメント率' },
-          { value: 'clicks', label: 'クリック数' }
-        ]
-
-    return options.find(o => o.value === axisValue)?.label || axisValue
-  }
-
   return (
     <div className="space-y-6">
       {/* Configuration Section */}
@@ -143,8 +144,8 @@ export function CrossAnalysisBuilder({ onAnalyze }: CrossAnalysisBuilderProps) {
               <AxisSelector
                 xAxis={xAxis}
                 yAxis={yAxis}
-                onXAxisChange={setXAxis}
-                onYAxisChange={setYAxis}
+                onXAxisChange={(value) => setXAxis(value as CrossAnalysisConfig['xAxis'])}
+                onYAxisChange={(value) => setYAxis(value as CrossAnalysisConfig['yAxis'])}
               />
             </CardContent>
           </Card>

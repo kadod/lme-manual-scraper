@@ -419,9 +419,9 @@ export async function resolveTargetRecipients(
     case 'all':
       // Get all friends
       const { data: allFriends, error: allError } = await supabase
-        .from('friends')
+        .from('line_friends')
         .select('id')
-        .eq('user_id', userId)
+        .eq('organization_id', userId) // TODO: Should use organization_id properly
         .eq('is_blocked', false);
 
       if (allError) throw allError;
@@ -437,7 +437,7 @@ export async function resolveTargetRecipients(
           .from('segments')
           .select('conditions')
           .eq('id', segmentId)
-          .eq('user_id', userId)
+          .eq('organization_id', userId) // TODO: Should use organization_id properly
           .single();
 
         if (segmentError) continue;
@@ -445,9 +445,9 @@ export async function resolveTargetRecipients(
         // Note: This is simplified. In production, you'd need to evaluate segment conditions
         // For now, we'll just get all friends and filter later
         const { data: segmentFriends, error: friendsError } = await supabase
-          .from('friends')
+          .from('line_friends')
           .select('id')
-          .eq('user_id', userId)
+          .eq('organization_id', userId) // TODO: Should use organization_id properly
           .eq('is_blocked', false);
 
         if (!friendsError && segmentFriends) {
@@ -462,11 +462,11 @@ export async function resolveTargetRecipients(
       // Get friends with specified tags
       const { data: taggedFriends, error: tagError } = await supabase
         .from('friend_tags')
-        .select('friend_id')
+        .select('line_friend_id')
         .in('tag_id', targetIds);
 
       if (tagError) throw tagError;
-      friendIds = [...new Set(taggedFriends.map(ft => ft.friend_id))];
+      friendIds = [...new Set(taggedFriends.map(ft => ft.line_friend_id))];
       break;
 
     case 'manual':

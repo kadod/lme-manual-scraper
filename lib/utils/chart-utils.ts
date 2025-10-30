@@ -104,19 +104,19 @@ export function calculateTrend(current: number, previous: number): 'up' | 'down'
 }
 
 // Export chart data to CSV
-export function exportToCSV(data: ChartData[] | TimeSeriesData[], filename: string): void {
+export function exportToCSV(data: ChartData[] | TimeSeriesData[] | Record<string, any>[], filename: string): void {
   if (data.length === 0) return
 
   const headers = Object.keys(data[0])
   const csvContent = [
     headers.join(','),
     ...data.map(row => headers.map(header => {
-      const value = row[header]
+      const value = (row as Record<string, any>)[header]
       // Escape values containing commas or quotes
       if (typeof value === 'string' && (value.includes(',') || value.includes('"'))) {
         return `"${value.replace(/"/g, '""')}"`
       }
-      return value
+      return value ?? ''
     }).join(','))
   ].join('\n')
 

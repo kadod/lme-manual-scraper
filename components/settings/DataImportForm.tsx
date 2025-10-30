@@ -33,29 +33,18 @@ export function DataImportForm() {
     // Validate file type
     const extension = file.name.split('.').pop()?.toLowerCase()
     if (!['csv', 'json'].includes(extension || '')) {
-      toast({
-        title: 'サポートされていないファイル形式です',
-        description: 'CSVまたはJSONファイルを選択してください',
-        variant: 'destructive',
-      })
+      toast.error('CSVまたはJSONファイルを選択してください')
       return
     }
 
     // Preview the data
     setIsPreviewLoading(true)
     try {
-      const formData = new FormData()
-      formData.append('file', file)
-      formData.append('type', importType)
-
-      const preview = await previewImport(formData)
+      const text = await file.text()
+      const preview = await previewImport(importType, text)
       setPreviewData(preview)
     } catch (error) {
-      toast({
-        title: 'ファイルの読み込みに失敗しました',
-        description: error instanceof Error ? error.message : '不明なエラー',
-        variant: 'destructive',
-      })
+      toast.error(error instanceof Error ? error.message : 'ファイルの読み込みに失敗しました')
     } finally {
       setIsPreviewLoading(false)
     }
@@ -90,20 +79,17 @@ export function DataImportForm() {
         setProgress((prev) => Math.min(prev + 10, 90))
       }, 300)
 
-      const formData = new FormData()
-      formData.append('file', selectedFile)
-      formData.append('type', importType)
-      formData.append('duplicateStrategy', duplicateStrategy)
-
-      const result = await importData(formData)
+      const text = await selectedFile.text()
+      const result = await importData(importType, text, duplicateStrategy)
 
       clearInterval(progressInterval)
       setProgress(100)
 
-      toast({
-        title: 'インポート完了',
-        description: `${result.imported}件のデータをインポートしました（スキップ: ${result.skipped}件、エラー: ${result.errors}件）`,
-      })
+      if (result.success) {
+        toast.success(`${result.importedCount}件のデータをインポートしました（スキップ: ${result.skippedCount}件、エラー: ${result.errorCount}件）`)
+      } else {
+        throw new Error('インポートに失敗しました')
+      }
 
       // Reset form
       setSelectedFile(null)
@@ -112,11 +98,7 @@ export function DataImportForm() {
         fileInputRef.current.value = ''
       }
     } catch (error) {
-      toast({
-        title: 'インポートに失敗しました',
-        description: error instanceof Error ? error.message : '不明なエラー',
-        variant: 'destructive',
-      })
+      toast.error(error instanceof Error ? error.message : 'インポートに失敗しました')
     } finally {
       setIsImporting(false)
       setTimeout(() => setProgress(0), 1000)

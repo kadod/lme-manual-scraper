@@ -98,7 +98,9 @@ export function FormList({ forms, viewMode, onDelete, onDuplicate, onShowQR }: F
                 <ChartBarIcon className="h-4 w-4" />
                 <span>{form.total_responses}件</span>
               </div>
-              <span>{form.response_rate}%</span>
+              {form.response_rate !== undefined && (
+                <span>{form.response_rate}%</span>
+              )}
             </div>
             <div className="text-xs text-muted-foreground min-w-[100px] text-right">
               {formatDistanceToNow(new Date(form.created_at), { addSuffix: true, locale: ja })}

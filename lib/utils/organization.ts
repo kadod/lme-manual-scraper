@@ -63,13 +63,13 @@ export async function getUserOrganization() {
     return null
   }
 
-  // Get from user_profiles with company details
-  const { data: userProfile } = await supabase
-    .from('user_profiles')
+  // Get from users table with organization details
+  const { data: userData } = await supabase
+    .from('users')
     .select(`
-      company_id,
+      organization_id,
       role,
-      company:companies (
+      organization:organizations (
         id,
         name,
         slug
@@ -78,11 +78,11 @@ export async function getUserOrganization() {
     .eq('id', user.id)
     .single()
 
-  if (userProfile && userProfile.company_id) {
+  if (userData && userData.organization_id) {
     return {
-      organizationId: userProfile.company_id,
-      role: userProfile.role,
-      organization: userProfile.company,
+      organizationId: userData.organization_id,
+      role: userData.role,
+      organization: userData.organization,
     }
   }
 

@@ -11,8 +11,9 @@ import { ArrowDownTrayIcon } from '@heroicons/react/24/outline'
 import { exportData } from '@/app/actions/system'
 import { useToast } from '@/hooks/use-toast'
 
+import type { ExportFormat } from '@/types/system'
+
 type DataType = 'friends' | 'tags' | 'segments' | 'messages' | 'forms' | 'reservations' | 'analytics'
-type ExportFormat = 'csv' | 'json' | 'excel'
 
 export function DataExportForm() {
   const { toast } = useToast()
@@ -43,10 +44,7 @@ export function DataExportForm() {
 
   const handleExport = async () => {
     if (selectedData.length === 0) {
-      toast({
-        title: 'エクスポート対象を選択してください',
-        variant: 'destructive',
-      })
+      toast.error('エクスポート対象を選択してください')
       return
     }
 
@@ -69,27 +67,21 @@ export function DataExportForm() {
       clearInterval(progressInterval)
       setProgress(100)
 
-      // Download the file
-      const blob = new Blob([result.data], { type: result.mimeType })
-      const url = window.URL.createObjectURL(blob)
-      const a = document.createElement('a')
-      a.href = url
-      a.download = result.filename
-      document.body.appendChild(a)
-      a.click()
-      document.body.removeChild(a)
-      window.URL.revokeObjectURL(url)
+      if (result.success && result.fileUrl && result.fileName) {
+        // Download the file
+        const a = document.createElement('a')
+        a.href = result.fileUrl
+        a.download = result.fileName
+        document.body.appendChild(a)
+        a.click()
+        document.body.removeChild(a)
 
-      toast({
-        title: 'エクスポート完了',
-        description: `${result.filename}をダウンロードしました`,
-      })
+        toast.success(`${result.fileName}をダウンロードしました（${result.recordCount || 0}件）`)
+      } else {
+        throw new Error(result.error || 'エクスポートに失敗しました')
+      }
     } catch (error) {
-      toast({
-        title: 'エクスポートに失敗しました',
-        description: error instanceof Error ? error.message : '不明なエラー',
-        variant: 'destructive',
-      })
+      toast.error(error instanceof Error ? error.message : 'エクスポートに失敗しました')
     } finally {
       setIsExporting(false)
       setTimeout(() => setProgress(0), 1000)
@@ -137,12 +129,6 @@ export function DataExportForm() {
             <RadioGroupItem value="json" id="json" />
             <Label htmlFor="json" className="font-normal cursor-pointer">
               JSON (構造化データ)
-            </Label>
-          </div>
-          <div className="flex items-center space-x-2">
-            <RadioGroupItem value="excel" id="excel" />
-            <Label htmlFor="excel" className="font-normal cursor-pointer">
-              Excel (XLSX形式)
             </Label>
           </div>
         </RadioGroup>

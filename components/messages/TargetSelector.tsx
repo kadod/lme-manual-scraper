@@ -45,9 +45,7 @@ export function TargetSelector({
       try {
         const count = await getTargetCount(
           targetType,
-          targetIds,
-          excludeBlocked,
-          excludeUnsubscribed
+          targetIds
         )
         setEstimatedCount(count)
       } catch (error) {
@@ -58,7 +56,7 @@ export function TargetSelector({
     }
 
     fetchCount()
-  }, [targetType, targetIds, excludeBlocked, excludeUnsubscribed])
+  }, [targetType, targetIds])
 
   const toggleTargetId = (id: string) => {
     const newIds = targetIds.includes(id)

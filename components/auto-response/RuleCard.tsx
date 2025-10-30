@@ -85,19 +85,13 @@ export function RuleCard({ rule }: RuleCardProps) {
   }
 
   const getStatusBadge = () => {
-    if (rule.valid_until && new Date(rule.valid_until) < new Date()) {
-      return <Badge variant="outline" className="text-orange-600">期限切れ</Badge>
-    }
     if (rule.is_active) {
       return <Badge variant="default" className="bg-green-600">有効</Badge>
     }
     return <Badge variant="secondary">無効</Badge>
   }
 
-  const handleToggleStatus = async (e: React.MouseEvent) => {
-    e.preventDefault()
-    e.stopPropagation()
-
+  const handleToggleStatus = async (checked: boolean) => {
     setIsToggling(true)
     try {
       await toggleAutoResponseRuleStatus(rule.id)
@@ -137,8 +131,6 @@ export function RuleCard({ rule }: RuleCardProps) {
     }
   }
 
-  const isExpired = rule.valid_until && new Date(rule.valid_until) < new Date()
-
   return (
     <Card
       ref={setNodeRef}
@@ -159,7 +151,7 @@ export function RuleCard({ rule }: RuleCardProps) {
             <div className="flex items-start justify-between gap-4 mb-3">
               <div className="flex items-center gap-3 flex-1 min-w-0">
                 <div className="p-2 bg-accent rounded-lg">
-                  {getTypeIcon(rule.rule_type)}
+                  {getTypeIcon(rule.trigger_type)}
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1">
@@ -169,7 +161,7 @@ export function RuleCard({ rule }: RuleCardProps) {
                     >
                       {rule.name}
                     </Link>
-                    <Badge variant="outline">{getTypeLabel(rule.rule_type)}</Badge>
+                    <Badge variant="outline">{getTypeLabel(rule.trigger_type)}</Badge>
                     {getStatusBadge()}
                   </div>
                   {rule.description && (
@@ -182,9 +174,9 @@ export function RuleCard({ rule }: RuleCardProps) {
 
               <div className="flex items-center gap-2">
                 <Switch
-                  checked={rule.is_active && !isExpired}
+                  checked={rule.is_active}
                   onCheckedChange={handleToggleStatus}
-                  disabled={isToggling || isExpired}
+                  disabled={isToggling}
                 />
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
@@ -218,19 +210,6 @@ export function RuleCard({ rule }: RuleCardProps) {
                 <ChartBarIcon className="h-4 w-4" />
                 <span>優先度: {rule.priority}</span>
               </div>
-              {rule.valid_until && (
-                <div className="flex items-center gap-1">
-                  <CalendarIcon className="h-4 w-4" />
-                  <span>
-                    {new Date(rule.valid_until) > new Date()
-                      ? `期限: ${formatDistanceToNow(new Date(rule.valid_until), {
-                          addSuffix: true,
-                          locale: ja,
-                        })}`
-                      : '期限切れ'}
-                  </span>
-                </div>
-              )}
               <div className="text-xs ml-auto">
                 {formatDistanceToNow(new Date(rule.created_at), {
                   addSuffix: true,

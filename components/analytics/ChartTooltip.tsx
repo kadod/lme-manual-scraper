@@ -3,7 +3,15 @@
 import type { TooltipProps } from 'recharts'
 import { formatNumber, formatPercentage, formatCurrency } from '@/lib/utils/chart-utils'
 
-interface CustomTooltipProps extends TooltipProps<number, string> {
+interface CustomTooltipProps {
+  active?: boolean
+  payload?: Array<{
+    name?: string
+    value?: number
+    color?: string
+    dataKey?: string
+  }>
+  label?: string
   formatter?: 'number' | 'percentage' | 'currency'
   unit?: string
 }
@@ -28,7 +36,7 @@ export function ChartTooltip({ active, payload, label, formatter = 'number', uni
     <div className="rounded-lg border bg-popover p-3 shadow-md">
       <p className="mb-2 text-sm font-medium text-popover-foreground">{label}</p>
       <div className="space-y-1">
-        {payload.map((entry, index) => (
+        {payload.map((entry, index: number) => (
           <div key={`item-${index}`} className="flex items-center gap-2 text-sm">
             <div
               className="h-3 w-3 rounded-sm"

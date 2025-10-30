@@ -107,7 +107,7 @@ export function ResponseTable({ formId, responses, onDelete }: ResponseTableProp
               <TableCell>
                 <div className="max-w-md">
                   <p className="text-sm text-muted-foreground line-clamp-2">
-                    {getAnswerPreview(response.answers)}
+                    {getAnswerPreview(response.responses)}
                   </p>
                 </div>
               </TableCell>

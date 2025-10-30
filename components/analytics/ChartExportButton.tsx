@@ -10,10 +10,9 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { exportToCSV } from '@/lib/utils/chart-utils'
-import type { ChartData, TimeSeriesData } from '@/types/analytics'
 
 interface ChartExportButtonProps {
-  data: ChartData[] | TimeSeriesData[]
+  data: Record<string, string | number | undefined>[]
   filename: string
   chartId?: string
   variant?: 'default' | 'outline' | 'ghost'

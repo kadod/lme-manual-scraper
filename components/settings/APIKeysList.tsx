@@ -30,15 +30,9 @@ export function APIKeysList({ apiKeys: initialKeys }: APIKeysListProps) {
     try {
       await deleteAPIKey(keyId)
       setApiKeys((prev) => prev.filter((k) => k.id !== keyId))
-      toast({
-        title: 'APIキーを削除しました',
-      })
+      toast.success('APIキーを削除しました')
     } catch (error) {
-      toast({
-        title: 'APIキーの削除に失敗しました',
-        description: error instanceof Error ? error.message : '不明なエラー',
-        variant: 'destructive',
-      })
+      toast.error(error instanceof Error ? error.message : 'APIキーの削除に失敗しました')
     }
   }
 
@@ -48,15 +42,9 @@ export function APIKeysList({ apiKeys: initialKeys }: APIKeysListProps) {
       setApiKeys((prev) =>
         prev.map((k) => (k.id === keyId ? { ...k, is_active: !isActive } : k))
       )
-      toast({
-        title: isActive ? 'APIキーを無効化しました' : 'APIキーを有効化しました',
-      })
+      toast.success(isActive ? 'APIキーを無効化しました' : 'APIキーを有効化しました')
     } catch (error) {
-      toast({
-        title: 'APIキーの状態変更に失敗しました',
-        description: error instanceof Error ? error.message : '不明なエラー',
-        variant: 'destructive',
-      })
+      toast.error(error instanceof Error ? error.message : 'APIキーの状態変更に失敗しました')
     }
   }
 

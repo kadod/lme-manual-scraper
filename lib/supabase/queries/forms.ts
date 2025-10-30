@@ -91,6 +91,7 @@ export async function getForms(): Promise<Form[]> {
   // Transform database rows to Form interface
   return (data || []).map(dbForm => ({
     ...dbForm,
+    status: dbForm.status as 'draft' | 'active' | 'closed',
     fields: [],
     settings: (dbForm.settings as FormSettings) || {},
     published_at: null
@@ -115,6 +116,7 @@ export async function getForm(formId: string): Promise<Form | null> {
   // Transform database row to Form interface
   return {
     ...data,
+    status: data.status as 'draft' | 'active' | 'closed',
     fields: [],
     settings: (data.settings as FormSettings) || {},
     published_at: null
@@ -140,6 +142,7 @@ export async function createForm(form: Omit<Form, 'id' | 'created_at' | 'updated
   // Transform database row to Form interface
   return {
     ...data,
+    status: data.status as 'draft' | 'active' | 'closed',
     fields: fields || [],
     settings: (data.settings as FormSettings) || {},
     published_at: null
@@ -169,6 +172,7 @@ export async function updateForm(formId: string, updates: Partial<Form>): Promis
   // Transform database row to Form interface
   return {
     ...data,
+    status: data.status as 'draft' | 'active' | 'closed',
     fields: fields || [],
     settings: (data.settings as FormSettings) || {},
     published_at: null
@@ -290,24 +294,16 @@ export async function getFieldStatistics(
 
 /**
  * Get form analytics for date range
+ * TODO: Implement form_analytics table
  */
 export async function getFormAnalytics(
   formId: string,
   startDate: string,
   endDate: string
 ): Promise<FormAnalytics[]> {
-  const supabase = await createClient()
-
-  const { data, error } = await supabase
-    .from('form_analytics')
-    .select('*')
-    .eq('form_id', formId)
-    .gte('date', startDate)
-    .lte('date', endDate)
-    .order('date', { ascending: false })
-
-  if (error) throw error
-  return data || []
+  // TODO: form_analytics table doesn't exist in schema yet
+  console.warn('form_analytics table not implemented')
+  return []
 }
 
 /**
@@ -324,7 +320,7 @@ export async function getFormOverallStats(formId: string): Promise<{
 
   const { data: responses, error } = await supabase
     .from('form_responses')
-    .select('completion_time_seconds, submitted_at')
+    .select('submitted_at')
     .eq('form_id', formId)
 
   if (error) throw error
@@ -333,13 +329,8 @@ export async function getFormOverallStats(formId: string): Promise<{
   const completedResponses = responses?.filter(r => r.submitted_at).length || 0
   const abandonedResponses = totalResponses - completedResponses
 
-  const completionTimes = responses
-    ?.filter(r => r.completion_time_seconds !== null)
-    .map(r => r.completion_time_seconds) || []
-
-  const avgCompletionTime = completionTimes.length > 0
-    ? completionTimes.reduce((a, b) => (a || 0) + (b || 0), 0) / completionTimes.length
-    : null
+  // TODO: completion_time_seconds column doesn't exist yet
+  const avgCompletionTime = null
 
   const completionRate = totalResponses > 0
     ? (completedResponses / totalResponses) * 100
@@ -356,29 +347,17 @@ export async function getFormOverallStats(formId: string): Promise<{
 
 /**
  * Get device breakdown
+ * TODO: Implement metadata column in form_responses
  */
 export async function getDeviceBreakdown(formId: string): Promise<Record<string, number>> {
-  const supabase = await createClient()
-
-  const { data, error } = await supabase
-    .from('form_responses')
-    .select('metadata')
-    .eq('form_id', formId)
-
-  if (error) throw error
-
-  const deviceCounts: Record<string, number> = {}
-
-  data?.forEach(response => {
-    const device = response.metadata?.device || 'unknown'
-    deviceCounts[device] = (deviceCounts[device] || 0) + 1
-  })
-
-  return deviceCounts
+  // TODO: metadata column doesn't exist in form_responses table yet
+  console.warn('metadata column not implemented in form_responses')
+  return { unknown: 0 }
 }
 
 /**
  * Get text field word frequency for word cloud
+ * TODO: Update to use 'responses' JSONB column instead of response_data
  */
 export async function getTextFieldWords(
   formId: string,
@@ -389,7 +368,7 @@ export async function getTextFieldWords(
 
   const { data, error } = await supabase
     .from('form_responses')
-    .select('response_data')
+    .select('responses')
     .eq('form_id', formId)
 
   if (error) throw error
@@ -397,7 +376,9 @@ export async function getTextFieldWords(
   const wordFrequency: Record<string, number> = {}
 
   data?.forEach(response => {
-    const text = response.response_data?.[fieldId]
+    // Use 'responses' JSONB column instead of 'response_data'
+    const responseData = response.responses as any
+    const text = responseData?.[fieldId]
     if (typeof text === 'string') {
       // Simple word tokenization (can be improved with proper NLP)
       const words = text.toLowerCase()

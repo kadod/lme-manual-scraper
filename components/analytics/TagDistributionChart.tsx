@@ -8,6 +8,7 @@ import {
   Tooltip,
   Legend,
   ResponsiveContainer,
+  PieLabelRenderProps,
 } from 'recharts'
 
 interface TagDistributionData {
@@ -31,6 +32,13 @@ const COLORS = [
 ]
 
 export function TagDistributionChart({ data }: TagDistributionChartProps) {
+  // Transform data to match expected chart format
+  const chartData = data.map(item => ({
+    ...item,
+    name: item.name,
+    value: item.value
+  }))
+
   return (
     <Card>
       <CardHeader>
@@ -41,11 +49,15 @@ export function TagDistributionChart({ data }: TagDistributionChartProps) {
         <ResponsiveContainer width="100%" height={350}>
           <PieChart>
             <Pie
-              data={data}
+              data={chartData}
               cx="50%"
               cy="50%"
               labelLine={false}
-              label={({ name, percent }) => `${name} (${(percent * 100).toFixed(0)}%)`}
+              label={(props: PieLabelRenderProps) => {
+                const { name, percent } = props
+                const percentValue = typeof percent === 'number' ? percent : 0
+                return `${name} (${(percentValue * 100).toFixed(0)}%)`
+              }}
               outerRadius={100}
               fill="#8884d8"
               dataKey="value"

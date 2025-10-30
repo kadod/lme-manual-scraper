@@ -102,9 +102,11 @@ export function FormCard({ form, onDelete, onDuplicate, onShowQR }: FormCardProp
             <ChartBarIcon className="h-4 w-4" />
             <span>{form.total_responses}件の回答</span>
           </div>
-          <div>
-            <span>回答率: {form.response_rate}%</span>
-          </div>
+          {form.response_rate !== undefined && (
+            <div>
+              <span>回答率: {form.response_rate}%</span>
+            </div>
+          )}
         </div>
       </CardContent>
       <CardFooter className="text-xs text-muted-foreground">

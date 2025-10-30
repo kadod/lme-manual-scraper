@@ -7,15 +7,25 @@ import { Switch } from '@/components/ui/switch'
 import { toast } from 'sonner'
 import { updateNotificationSettings } from '@/app/actions/profile'
 
-interface NotificationSettingsProps {
-  userId: string
-  currentSettings?: {
-    email: Record<string, boolean>
-    push: Record<string, boolean>
+interface NotificationSettingsData {
+  email: {
+    message_sent: boolean
+    form_submitted: boolean
+    reservation_created: boolean
+    weekly_report: boolean
+  }
+  push: {
+    message_failed: boolean
+    reservation_reminder: boolean
   }
 }
 
-const DEFAULT_SETTINGS = {
+interface NotificationSettingsProps {
+  userId: string
+  currentSettings?: NotificationSettingsData
+}
+
+const DEFAULT_SETTINGS: NotificationSettingsData = {
   email: {
     message_sent: true,
     form_submitted: true,
@@ -37,7 +47,7 @@ export function NotificationSettings({ userId, currentSettings }: NotificationSe
       ...prev,
       [category]: {
         ...prev[category],
-        [key]: !prev[category][key],
+        [key]: !(prev[category] as any)[key],
       },
     }))
   }

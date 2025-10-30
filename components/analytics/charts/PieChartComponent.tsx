@@ -29,9 +29,10 @@ export function PieChartComponent({
   nameKey = 'name',
   className,
 }: PieChartComponentProps) {
-  const renderLabel = ({ name, percent }: { name: string; percent: number }) => {
-    if (!showPercentage) return name
-    return `${name}: ${formatPercentage(percent * 100, 0)}`
+  const renderLabel = (props: { name?: string; percent?: number }) => {
+    const { name, percent } = props
+    if (!showPercentage || !name) return name || ''
+    return `${name}: ${formatPercentage((percent || 0) * 100, 0)}`
   }
 
   return (

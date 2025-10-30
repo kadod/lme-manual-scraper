@@ -32,7 +32,15 @@ export async function sendInvitationEmail(
 
   try {
     // Dynamic import of resend to avoid errors if not installed
-    const { Resend } = await import('resend')
+    let Resend: any
+    try {
+      const resendModule = await import('resend' as any)
+      Resend = resendModule.Resend
+    } catch (importError) {
+      console.warn('Resend package not installed. Email functionality is disabled.')
+      return { success: false, error: 'Email service not installed' }
+    }
+
     const resend = new Resend(resendApiKey)
 
     const emailHtml = generateInvitationEmailHtml({

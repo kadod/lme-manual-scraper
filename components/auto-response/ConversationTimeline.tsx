@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge'
 import { Card } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
 import { ConversationDetail, ConversationHistory, ScenarioStep } from '@/types/auto-response'
-import { ChatBubbleLeftIcon, ChatBubbleLeftRightIcon, ArrowRightIcon, CheckCircleIcon } from '@heroicons/react/24/outline'
+import { ChatBubbleLeftIcon, ChatBubbleLeftRightIcon, ArrowRightIcon, CheckCircleIcon, ClockIcon } from '@heroicons/react/24/outline'
 import { format } from 'date-fns'
 import { ja } from 'date-fns/locale'
 

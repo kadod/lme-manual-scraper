@@ -138,7 +138,7 @@ export function SegmentList() {
 
               {/* Created Date */}
               <div className="text-xs text-muted-foreground">
-                作成日: {format(new Date(segment.created_at), 'yyyy/MM/dd HH:mm', { locale: ja })}
+                作成日: {segment.created_at ? format(new Date(segment.created_at), 'yyyy/MM/dd HH:mm', { locale: ja }) : '-'}
               </div>
 
               {/* Actions */}
