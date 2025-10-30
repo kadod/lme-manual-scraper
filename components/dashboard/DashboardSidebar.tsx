@@ -110,10 +110,10 @@ const navigation = [
         href: '/dashboard/reservations',
         icon: CalendarIcon,
         subItems: [
-          { name: '予約一覧', href: '/dashboard/reservations' },
-          { name: 'カレンダー', href: '/dashboard/reservations/calendar' },
-          { name: '予約タイプ', href: '/dashboard/reservations/types' },
-          { name: '設定', href: '/dashboard/reservations/settings' },
+          { name: 'レッスン予約', href: '/dashboard/reservations/lessons' },
+          { name: 'サロン・面談予約', href: '/dashboard/reservations/salon' },
+          { name: 'イベント予約', href: '/dashboard/reservations/events' },
+          { name: 'リマインド配信', href: '/dashboard/reservations/reminders' },
         ]
       },
       {
