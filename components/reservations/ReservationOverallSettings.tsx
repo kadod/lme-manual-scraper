@@ -69,20 +69,21 @@ export function ReservationOverallSettings({
     icon?: React.ComponentType<{ className?: string }>
     highlighted?: boolean
     indent?: boolean
+    isHeader?: boolean
   }> = [
-    { id: 'messages', label: 'メッセージ・予約の各種設定', icon: ClockIcon },
+    { id: 'messages', label: 'メッセージ・予約の各種設定', icon: ClockIcon, isHeader: true },
     { id: 'booking-cancel', label: '予約・キャンセルのメッセージ・リクエストと締切', highlighted: true },
     { id: 'reminders', label: '予約前後に送るリマインドメッセージ' },
     { id: 'availability-notification', label: '空き枠通知受け取り設定' },
-    { id: 'booking-screen', label: '予約画面', icon: DocumentTextIcon },
+    { id: 'booking-screen', label: '予約画面', icon: DocumentTextIcon, isHeader: true },
     { id: 'customer-questions', label: 'お客様への質問項目' },
     { id: 'page-display', label: '予約ページの表示設定' },
     { id: 'top-screen', label: 'トップ画面設定' },
     { id: 'business-info', label: '店舗・ビジネス情報' },
     { id: 'terms', label: '利用規約' },
-    { id: 'integrations', label: '連携設定', icon: LinkIcon },
+    { id: 'integrations', label: '連携設定', icon: LinkIcon, isHeader: true },
     { id: 'google-sheets', label: 'Googleスプレッドシート連携', indent: true },
-    { id: 'other', label: 'その他', icon: DocumentTextIcon },
+    { id: 'other', label: 'その他', icon: DocumentTextIcon, isHeader: true },
     { id: 'delete-system', label: '予約システムの削除', indent: true },
   ]
 
@@ -720,6 +721,22 @@ export function ReservationOverallSettings({
             {menuItems.map((item) => {
               const isActive = activeMenu === item.id
 
+              // ヘッダー項目（アイコン付き）は見出しとして表示、クリック不可
+              if (item.isHeader) {
+                return (
+                  <div
+                    key={item.id}
+                    className="px-4 py-2.5 text-sm font-medium text-gray-900 flex items-center gap-2 bg-gray-50"
+                  >
+                    {item.icon && (
+                      <item.icon className="h-4 w-4 shrink-0 text-gray-600" />
+                    )}
+                    <span className="flex-1">{item.label}</span>
+                  </div>
+                )
+              }
+
+              // 通常のメニュー項目
               return (
                 <button
                   key={item.id}
@@ -735,11 +752,6 @@ export function ReservationOverallSettings({
                   {/* Green left border for active item */}
                   {isActive && (
                     <div className="absolute left-0 top-0 bottom-0 w-1 bg-green-600" />
-                  )}
-
-                  {/* Icon on the left - just a visual indicator */}
-                  {item.icon && (
-                    <item.icon className={cn("h-4 w-4 shrink-0", isActive ? "text-green-600" : "text-gray-500")} />
                   )}
 
                   <span className="flex-1">{item.label}</span>

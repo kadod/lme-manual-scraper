@@ -30,12 +30,9 @@ export default function DashboardHeader({ user }: DashboardHeaderProps) {
 
   return (
     <header className="h-16 bg-[#00B900] text-white flex items-center justify-between px-6 fixed top-0 left-0 right-0 z-50">
-      {/* 左側: ロゴ + プランバッジ */}
+      {/* 左側: ロゴ */}
       <div className="flex items-center gap-4">
-        <h1 className="text-2xl font-bold">L Message</h1>
-        <Badge className="bg-orange-500 text-white hover:bg-orange-600">
-          スタンダード
-        </Badge>
+        <h1 className="text-2xl font-bold">Kado Message</h1>
       </div>
 
       {/* 中央: ユーザー選択 */}
@@ -77,7 +74,7 @@ export default function DashboardHeader({ user }: DashboardHeaderProps) {
       <div className="flex items-center gap-6 text-sm">
         <div className="text-center">
           <div className="text-xs opacity-80">配信数</div>
-          <div className="font-bold">437/無制限 (スタンダード)</div>
+          <div className="font-bold">437/無制限</div>
         </div>
         <div className="text-center">
           <div className="text-xs opacity-80">LINE公式アカウント</div>

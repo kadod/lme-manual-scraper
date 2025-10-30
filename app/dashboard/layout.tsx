@@ -35,7 +35,7 @@ export default async function DashboardLayout({
         <DashboardSidebar />
 
         {/* メインコンテンツ */}
-        <main className="flex-1 ml-64">
+        <main className="flex-1 ml-80">
           {children}
         </main>
       </div>

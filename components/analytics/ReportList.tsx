@@ -14,7 +14,7 @@ import {
   PlusIcon
 } from '@heroicons/react/24/outline'
 import type { CustomReport } from '@/types/custom-reports'
-import { deleteReport, generateReport } from '@/app/actions/custom-reports'
+import { deleteCustomReport, executeReport } from '@/app/actions/custom-reports'
 import { toast } from 'sonner'
 import { formatDistanceToNow } from 'date-fns'
 import { ja } from 'date-fns/locale'
@@ -34,7 +34,7 @@ export function ReportList({ reports }: ReportListProps) {
 
     setDeletingId(id)
     try {
-      await deleteReport(id)
+      await deleteCustomReport(id)
       toast.success('レポートを削除しました')
     } catch (error) {
       toast.error('レポートの削除に失敗しました')
@@ -47,7 +47,7 @@ export function ReportList({ reports }: ReportListProps) {
   const handleGenerate = async (id: string) => {
     setGeneratingId(id)
     try {
-      await generateReport(id)
+      await executeReport(id)
       toast.success('レポートの生成を開始しました')
     } catch (error) {
       toast.error('レポートの生成に失敗しました')

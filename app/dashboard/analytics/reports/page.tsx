@@ -2,11 +2,11 @@ import Link from 'next/link'
 import { Suspense } from 'react'
 import { Button } from '@/components/ui/button'
 import { ReportList } from '@/components/analytics/ReportList'
-import { getReports } from '@/app/actions/custom-reports'
+import { getCustomReports } from '@/app/actions/custom-reports'
 import { PlusIcon } from '@heroicons/react/24/outline'
 
 async function ReportListWrapper() {
-  const reports = await getReports()
+  const reports = await getCustomReports()
 
   return <ReportList reports={reports} />
 }

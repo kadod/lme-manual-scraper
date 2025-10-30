@@ -49,7 +49,6 @@ const navigation = [
   {
     name: 'メインサービス',
     items: [
-      { name: 'ホーム', href: '/dashboard', icon: HomeIcon },
       {
         name: '1:1チャット',
         href: '/dashboard/chat',
@@ -121,10 +120,9 @@ const navigation = [
         href: '/dashboard/analytics',
         icon: ChartBarIcon,
         subItems: [
-          { name: '分析ダッシュボード', href: '/dashboard/analytics' },
-          { name: 'レポート', href: '/dashboard/analytics/reports' },
           { name: 'クロス分析', href: '/dashboard/analytics/cross-analysis' },
-          { name: 'URL計測', href: '/dashboard/analytics/url-tracking' },
+          { name: 'レポート', href: '/dashboard/analytics/reports' },
+          { name: 'URL分析', href: '/dashboard/analytics/url-analysis' },
         ]
       },
     ] as NavigationItem[],
@@ -133,13 +131,11 @@ const navigation = [
     name: 'システム管理関連',
     items: [
       {
-        name: 'エルメシステム設定',
+        name: 'アカウント設定',
         href: '/dashboard/settings',
         icon: CogIcon,
         subItems: [
-          { name: 'プロフィール', href: '/dashboard/settings/profile' },
-          { name: '組織設定', href: '/dashboard/settings/organization' },
-          { name: 'システム設定', href: '/dashboard/settings/system' },
+          { name: 'アカウント設定', href: '/dashboard/settings' },
           { name: '請求設定', href: '/dashboard/settings/billing' },
         ]
       },
@@ -169,7 +165,7 @@ export default function DashboardSidebar() {
   }
 
   return (
-    <aside className="w-64 bg-gray-100 border-r border-gray-200 fixed left-0 top-16 bottom-0 overflow-y-auto overflow-x-visible z-40">
+    <aside className="w-80 border-r border-gray-200 fixed left-0 top-16 bottom-0 overflow-y-auto overflow-x-visible z-40" style={{ backgroundColor: '#f4fbf3' }}>
       <nav className="p-4 space-y-6 relative">
         {navigation.map((section) => (
           <div key={section.name}>
@@ -189,30 +185,47 @@ export default function DashboardSidebar() {
                     onMouseEnter={() => handleMouseEnter(item.name)}
                     onMouseLeave={handleMouseLeave}
                   >
-                    <Link
-                      href={item.href}
-                      className={cn(
-                        'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors',
-                        isActive
-                          ? 'bg-green-100 text-green-700'
-                          : 'text-gray-700 hover:bg-gray-200'
-                      )}
-                    >
-                      <item.icon className="h-5 w-5 shrink-0" />
-                      <span className="flex-1">{item.name}</span>
-                      {item.badge && (
-                        <Badge className="bg-red-500 text-white text-xs">
-                          {item.badge}
-                        </Badge>
-                      )}
-                      {hasSubItems && (
+                    {hasSubItems ? (
+                      <div
+                        className={cn(
+                          'flex items-center gap-3 px-3 py-3 rounded-lg text-base font-bold transition-colors cursor-pointer',
+                          isActive
+                            ? 'bg-green-100 text-green-700'
+                            : 'text-gray-700 hover:bg-gray-200'
+                        )}
+                      >
+                        <item.icon className="h-6 w-6 shrink-0" />
+                        <span className="flex-1">{item.name}</span>
+                        {item.badge && (
+                          <Badge className="bg-red-500 text-white text-xs">
+                            {item.badge}
+                          </Badge>
+                        )}
                         <ChevronRightIcon className="h-4 w-4 shrink-0" />
-                      )}
-                    </Link>
+                      </div>
+                    ) : (
+                      <Link
+                        href={item.href}
+                        className={cn(
+                          'flex items-center gap-3 px-3 py-3 rounded-lg text-base font-bold transition-colors',
+                          isActive
+                            ? 'bg-green-100 text-green-700'
+                            : 'text-gray-700 hover:bg-gray-200'
+                        )}
+                      >
+                        <item.icon className="h-6 w-6 shrink-0" />
+                        <span className="flex-1">{item.name}</span>
+                        {item.badge && (
+                          <Badge className="bg-red-500 text-white text-xs">
+                            {item.badge}
+                          </Badge>
+                        )}
+                      </Link>
+                    )}
 
                     {hasSubItems && hoveredItem === item.name && (
                       <div
-                        className="fixed left-64 w-56 bg-white rounded-lg shadow-xl border border-gray-200 py-2 z-[9999]"
+                        className="fixed left-80 w-56 bg-white rounded-lg shadow-xl border border-gray-200 py-2 z-[9999]"
                         style={{
                           top: `${(typeof window !== 'undefined' && document.querySelector(`[data-menu-item="${item.name}"]`)
                             ? document.querySelector(`[data-menu-item="${item.name}"]`)!.getBoundingClientRect().top
@@ -229,9 +242,9 @@ export default function DashboardSidebar() {
                               key={subItem.href}
                               href={subItem.href}
                               className={cn(
-                                'block px-4 py-2.5 text-sm transition-colors',
+                                'block px-4 py-2.5 text-base font-semibold transition-colors',
                                 isSubActive
-                                  ? 'bg-green-50 text-green-700 font-medium'
+                                  ? 'bg-green-50 text-green-700'
                                   : 'text-gray-700 hover:bg-gray-50'
                               )}
                             >
