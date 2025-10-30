@@ -3,22 +3,25 @@
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import type { KeywordRule, AutoResponseStats } from '@/types/auto-response'
+import { getCurrentUserOrganizationId } from '@/lib/utils/organization'
 
 export type AutoResponseRuleType = 'keyword' | 'scenario' | 'ai'
 export type AutoResponseRuleStatus = 'active' | 'inactive'
 
+// Updated to match actual Supabase database schema
 export interface AutoResponseRule {
   id: string
-  user_id: string
+  organization_id: string // Changed from user_id
   name: string
   description: string | null
-  rule_type: AutoResponseRuleType
-  is_active: boolean
+  trigger_type: string // Maps to rule_type concept
+  trigger_keywords: string[] | null
+  trigger_config: any | null
+  response_type: string
+  response_content: any
+  match_type: string | null
   priority: number
-  conditions: any
-  actions: any
-  valid_from: string | null
-  valid_until: string | null
+  is_active: boolean
   created_at: string
   updated_at: string
 }
@@ -29,40 +32,27 @@ export interface AutoResponseFilters {
   search?: string
 }
 
-async function getCurrentUserId(): Promise<string | null> {
-  const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-  return user?.id || null
-}
-
 export async function getAutoResponseRules(filters?: AutoResponseFilters) {
-  const userId = await getCurrentUserId()
-  if (!userId) {
-    throw new Error('User not authenticated')
+  const organizationId = await getCurrentUserOrganizationId()
+  if (!organizationId) {
+    throw new Error('Organization not found')
   }
 
   const supabase = await createClient()
   let query = supabase
     .from('auto_response_rules')
     .select('*')
-    .eq('user_id', userId)
+    .eq('organization_id', organizationId)
     .order('priority', { ascending: false })
     .order('created_at', { ascending: false })
 
   if (filters?.type && filters.type !== 'all') {
-    query = query.eq('rule_type', filters.type)
+    query = query.eq('trigger_type', filters.type)
   }
 
-  if (filters?.status) {
-    if (filters.status === 'expired') {
-      const now = new Date().toISOString()
-      query = query.not('valid_until', 'is', null).lt('valid_until', now)
-    } else if (filters.status !== 'all') {
-      const isActive = filters.status === 'active'
-      query = query.eq('is_active', isActive)
-    }
+  if (filters?.status && filters.status !== 'all') {
+    const isActive = filters.status === 'active'
+    query = query.eq('is_active', isActive)
   }
 
   if (filters?.search) {
@@ -80,9 +70,9 @@ export async function getAutoResponseRules(filters?: AutoResponseFilters) {
 }
 
 export async function getAutoResponseRule(ruleId: string) {
-  const userId = await getCurrentUserId()
-  if (!userId) {
-    throw new Error('User not authenticated')
+  const organizationId = await getCurrentUserOrganizationId()
+  if (!organizationId) {
+    throw new Error('Organization not found')
   }
 
   const supabase = await createClient()
@@ -91,7 +81,7 @@ export async function getAutoResponseRule(ruleId: string) {
     .from('auto_response_rules')
     .select('*')
     .eq('id', ruleId)
-    .eq('user_id', userId)
+    .eq('organization_id', organizationId)
     .single()
 
   if (error) {
@@ -103,9 +93,9 @@ export async function getAutoResponseRule(ruleId: string) {
 }
 
 export async function createAutoResponseRule(rule: Partial<AutoResponseRule>) {
-  const userId = await getCurrentUserId()
-  if (!userId) {
-    throw new Error('User not authenticated')
+  const organizationId = await getCurrentUserOrganizationId()
+  if (!organizationId) {
+    throw new Error('Organization not found')
   }
 
   const supabase = await createClient()
@@ -113,17 +103,18 @@ export async function createAutoResponseRule(rule: Partial<AutoResponseRule>) {
   const { data, error } = await supabase
     .from('auto_response_rules')
     .insert({
-      user_id: userId,
-      name: rule.name,
+      organization_id: organizationId,
+      name: rule.name!,
       description: rule.description,
-      rule_type: rule.rule_type,
+      trigger_type: rule.trigger_type || 'keyword',
+      trigger_keywords: rule.trigger_keywords,
+      trigger_config: rule.trigger_config,
+      response_type: rule.response_type || 'text',
+      response_content: rule.response_content,
+      match_type: rule.match_type,
       is_active: rule.is_active !== undefined ? rule.is_active : true,
       priority: rule.priority || 0,
-      conditions: rule.conditions || {},
-      actions: rule.actions || {},
-      valid_from: rule.valid_from,
-      valid_until: rule.valid_until,
-    })
+    } as any)
     .select()
     .single()
 
@@ -140,18 +131,18 @@ export async function updateAutoResponseRule(
   ruleId: string,
   updates: Partial<AutoResponseRule>
 ) {
-  const userId = await getCurrentUserId()
-  if (!userId) {
-    throw new Error('User not authenticated')
+  const organizationId = await getCurrentUserOrganizationId()
+  if (!organizationId) {
+    throw new Error('Organization not found')
   }
 
   const supabase = await createClient()
 
   const { data: rule } = await supabase
     .from('auto_response_rules')
-    .select('id, user_id')
+    .select('id, organization_id')
     .eq('id', ruleId)
-    .eq('user_id', userId)
+    .eq('organization_id', organizationId)
     .single()
 
   if (!rule) {
@@ -175,18 +166,18 @@ export async function updateAutoResponseRule(
 }
 
 export async function deleteAutoResponseRule(ruleId: string) {
-  const userId = await getCurrentUserId()
-  if (!userId) {
-    throw new Error('User not authenticated')
+  const organizationId = await getCurrentUserOrganizationId()
+  if (!organizationId) {
+    throw new Error('Organization not found')
   }
 
   const supabase = await createClient()
 
   const { data: rule } = await supabase
     .from('auto_response_rules')
-    .select('id, user_id')
+    .select('id, organization_id')
     .eq('id', ruleId)
-    .eq('user_id', userId)
+    .eq('organization_id', organizationId)
     .single()
 
   if (!rule) {
@@ -208,9 +199,9 @@ export async function deleteAutoResponseRule(ruleId: string) {
 }
 
 export async function duplicateAutoResponseRule(ruleId: string) {
-  const userId = await getCurrentUserId()
-  if (!userId) {
-    throw new Error('User not authenticated')
+  const organizationId = await getCurrentUserOrganizationId()
+  if (!organizationId) {
+    throw new Error('Organization not found')
   }
 
   const supabase = await createClient()
@@ -219,7 +210,7 @@ export async function duplicateAutoResponseRule(ruleId: string) {
     .from('auto_response_rules')
     .select('*')
     .eq('id', ruleId)
-    .eq('user_id', userId)
+    .eq('organization_id', organizationId)
     .single()
 
   if (fetchError || !original) {
@@ -229,17 +220,18 @@ export async function duplicateAutoResponseRule(ruleId: string) {
   const { data: duplicate, error: insertError } = await supabase
     .from('auto_response_rules')
     .insert({
-      user_id: original.user_id,
+      organization_id: original.organization_id,
       name: `${original.name} (コピー)`,
       description: original.description,
-      rule_type: original.rule_type,
+      trigger_type: original.trigger_type,
+      trigger_keywords: original.trigger_keywords,
+      trigger_config: original.trigger_config,
+      response_type: original.response_type,
+      response_content: original.response_content,
+      match_type: original.match_type,
       is_active: false,
       priority: original.priority,
-      conditions: original.conditions,
-      actions: original.actions,
-      valid_from: original.valid_from,
-      valid_until: original.valid_until,
-    })
+    } as any)
     .select()
     .single()
 
@@ -253,18 +245,18 @@ export async function duplicateAutoResponseRule(ruleId: string) {
 }
 
 export async function toggleAutoResponseRuleStatus(ruleId: string) {
-  const userId = await getCurrentUserId()
-  if (!userId) {
-    throw new Error('User not authenticated')
+  const organizationId = await getCurrentUserOrganizationId()
+  if (!organizationId) {
+    throw new Error('Organization not found')
   }
 
   const supabase = await createClient()
 
   const { data: rule } = await supabase
     .from('auto_response_rules')
-    .select('id, user_id, is_active')
+    .select('id, organization_id, is_active')
     .eq('id', ruleId)
-    .eq('user_id', userId)
+    .eq('organization_id', organizationId)
     .single()
 
   if (!rule) {
@@ -288,18 +280,18 @@ export async function toggleAutoResponseRuleStatus(ruleId: string) {
 }
 
 export async function updateRulePriority(ruleId: string, priority: number) {
-  const userId = await getCurrentUserId()
-  if (!userId) {
-    throw new Error('User not authenticated')
+  const organizationId = await getCurrentUserOrganizationId()
+  if (!organizationId) {
+    throw new Error('Organization not found')
   }
 
   const supabase = await createClient()
 
   const { data: rule } = await supabase
     .from('auto_response_rules')
-    .select('id, user_id')
+    .select('id, organization_id')
     .eq('id', ruleId)
-    .eq('user_id', userId)
+    .eq('organization_id', organizationId)
     .single()
 
   if (!rule) {
@@ -323,9 +315,9 @@ export async function updateRulePriority(ruleId: string, priority: number) {
 }
 
 export async function getAutoResponseStats() {
-  const userId = await getCurrentUserId()
-  if (!userId) {
-    throw new Error('User not authenticated')
+  const organizationId = await getCurrentUserOrganizationId()
+  if (!organizationId) {
+    throw new Error('Organization not found')
   }
 
   const supabase = await createClient()
@@ -333,7 +325,7 @@ export async function getAutoResponseStats() {
   const { data: rules, error: rulesError } = await supabase
     .from('auto_response_rules')
     .select('id, is_active')
-    .eq('user_id', userId)
+    .eq('organization_id', organizationId)
 
   if (rulesError) {
     console.error('Error fetching rules for stats:', rulesError)
@@ -343,33 +335,12 @@ export async function getAutoResponseStats() {
   const totalRules = rules?.length || 0
   const activeRules = rules?.filter(r => r.is_active).length || 0
 
-  const today = new Date()
-  today.setHours(0, 0, 0, 0)
-
-  // Query logs using created_at and filter by rule_id to avoid user_id column issue
-  const { data: todayLogs, error: logsError } = await supabase
-    .from('auto_response_logs')
-    .select('id, response_sent, success, rule_id')
-    .gte('created_at', today.toISOString())
-    .in(
-      'rule_id',
-      rules && rules.length > 0 ? rules.map(r => r.id) : ['00000000-0000-0000-0000-000000000000']
-    )
-
-  if (logsError) {
-    console.error('Error fetching logs for stats:', logsError)
-  }
-
-  const todayTriggers = todayLogs?.length || 0
-  // Check both response_sent and success fields for compatibility
-  const todaySuccess = todayLogs?.filter(log => log.response_sent === true || log.success === true).length || 0
-
-  const successRate = todayTriggers > 0 ? (todaySuccess / todayTriggers) * 100 : 0
-
+  // Note: auto_response_logs table does not exist in schema
+  // Returning basic stats based on rules only
   const stats: AutoResponseStats = {
-    totalResponses: todayTriggers,
+    totalResponses: 0,
     totalResponsesChange: 0,
-    successRate: Math.round(successRate * 10) / 10,
+    successRate: 0,
     successRateChange: 0,
     activeRules,
     avgResponseTime: 0,
@@ -400,20 +371,19 @@ export async function createKeywordRule(data: Partial<KeywordRule>) {
   return createAutoResponseRule({
     name: data.name!,
     description: data.description,
-    rule_type: 'keyword',
-    is_active: data.isActive !== false,
-    priority: data.priority || 0,
-    conditions: {
+    trigger_type: 'keyword',
+    trigger_keywords: data.keywords?.map(k => k.text) || [],
+    trigger_config: {
       keywords: data.keywords,
       timeConditions: data.timeConditions || [],
       friendConditions: data.friendConditions || {},
       limitConditions: data.limitConditions || {},
     },
-    actions: {
-      response: data.response,
-      actions: data.actions || [],
-    },
-    valid_until: data.validUntil || null,
+    response_type: data.response?.type || 'text',
+    response_content: data.response,
+    match_type: data.keywords?.[0]?.matchType || 'partial',
+    is_active: data.isActive !== false,
+    priority: data.priority || 0,
   })
 }
 
@@ -426,7 +396,7 @@ export async function updateKeywordRule(
 ) {
   const existing = await getAutoResponseRule(ruleId)
 
-  if (existing.rule_type !== 'keyword') {
+  if (existing.trigger_type !== 'keyword') {
     throw new Error('Rule is not a keyword rule')
   }
 
@@ -436,7 +406,11 @@ export async function updateKeywordRule(
   if (data.description !== undefined) updates.description = data.description
   if (data.priority !== undefined) updates.priority = data.priority
   if (data.isActive !== undefined) updates.is_active = data.isActive
-  if (data.validUntil !== undefined) updates.valid_until = data.validUntil
+
+  if (data.keywords) {
+    updates.trigger_keywords = data.keywords.map(k => k.text)
+    updates.match_type = data.keywords[0]?.matchType || 'partial'
+  }
 
   if (
     data.keywords ||
@@ -444,8 +418,9 @@ export async function updateKeywordRule(
     data.friendConditions ||
     data.limitConditions
   ) {
-    updates.conditions = {
-      ...existing.conditions,
+    const existingConfig = existing.trigger_config || {}
+    updates.trigger_config = {
+      ...existingConfig,
       ...(data.keywords && { keywords: data.keywords }),
       ...(data.timeConditions && { timeConditions: data.timeConditions }),
       ...(data.friendConditions && { friendConditions: data.friendConditions }),
@@ -453,12 +428,9 @@ export async function updateKeywordRule(
     }
   }
 
-  if (data.response || data.actions) {
-    updates.actions = {
-      ...existing.actions,
-      ...(data.response && { response: data.response }),
-      ...(data.actions && { actions: data.actions }),
-    }
+  if (data.response) {
+    updates.response_type = data.response.type
+    updates.response_content = data.response
   }
 
   return updateAutoResponseRule(ruleId, updates)
@@ -523,15 +495,16 @@ export async function createScenario(data: {
   return createAutoResponseRule({
     name: data.name,
     description: data.description,
-    rule_type: 'scenario',
-    is_active: true,
-    priority: data.priority || 0,
-    conditions: {
+    trigger_type: 'scenario',
+    trigger_config: {
       timeoutMinutes: data.timeoutMinutes || 30,
     },
-    actions: {
+    response_type: 'scenario',
+    response_content: {
       steps: data.steps,
     },
+    is_active: true,
+    priority: data.priority || 0,
   })
 }
 
@@ -550,7 +523,7 @@ export async function updateScenario(
 ) {
   const existing = await getAutoResponseRule(scenarioId)
 
-  if (existing.rule_type !== 'scenario') {
+  if (existing.trigger_type !== 'scenario') {
     throw new Error('Rule is not a scenario')
   }
 
@@ -561,14 +534,14 @@ export async function updateScenario(
   if (data.priority !== undefined) updates.priority = data.priority
 
   if (data.timeoutMinutes) {
-    updates.conditions = {
-      ...existing.conditions,
+    updates.trigger_config = {
+      ...existing.trigger_config,
       timeoutMinutes: data.timeoutMinutes,
     }
   }
 
   if (data.steps) {
-    updates.actions = { steps: data.steps }
+    updates.response_content = { steps: data.steps }
   }
 
   return updateAutoResponseRule(scenarioId, updates)
@@ -588,16 +561,16 @@ export async function createScenarioStep(
 ) {
   const rule = await getAutoResponseRule(scenarioId)
 
-  if (rule.rule_type !== 'scenario') {
+  if (rule.trigger_type !== 'scenario') {
     throw new Error('Rule is not a scenario')
   }
 
-  const steps = rule.actions?.steps || []
+  const steps = rule.response_content?.steps || []
   steps.push(data)
   steps.sort((a: any, b: any) => a.stepNumber - b.stepNumber)
 
   return updateAutoResponseRule(scenarioId, {
-    actions: { steps },
+    response_content: { steps },
   })
 }
 
@@ -615,11 +588,11 @@ export async function updateScenarioStep(
 ) {
   const rule = await getAutoResponseRule(scenarioId)
 
-  if (rule.rule_type !== 'scenario') {
+  if (rule.trigger_type !== 'scenario') {
     throw new Error('Rule is not a scenario')
   }
 
-  const steps = rule.actions?.steps || []
+  const steps = rule.response_content?.steps || []
   const stepIndex = steps.findIndex((s: any) => s.stepNumber === stepNumber)
 
   if (stepIndex === -1) {
@@ -629,7 +602,7 @@ export async function updateScenarioStep(
   steps[stepIndex] = { ...steps[stepIndex], ...data }
 
   return updateAutoResponseRule(scenarioId, {
-    actions: { steps },
+    response_content: { steps },
   })
 }
 
@@ -639,16 +612,16 @@ export async function updateScenarioStep(
 export async function deleteScenarioStep(scenarioId: string, stepNumber: number) {
   const rule = await getAutoResponseRule(scenarioId)
 
-  if (rule.rule_type !== 'scenario') {
+  if (rule.trigger_type !== 'scenario') {
     throw new Error('Rule is not a scenario')
   }
 
-  const steps = (rule.actions?.steps || []).filter(
+  const steps = (rule.response_content?.steps || []).filter(
     (s: any) => s.stepNumber !== stepNumber
   )
 
   return updateAutoResponseRule(scenarioId, {
-    actions: { steps },
+    response_content: { steps },
   })
 }
 
@@ -661,11 +634,11 @@ export async function reorderScenarioSteps(
 ) {
   const rule = await getAutoResponseRule(scenarioId)
 
-  if (rule.rule_type !== 'scenario') {
+  if (rule.trigger_type !== 'scenario') {
     throw new Error('Rule is not a scenario')
   }
 
-  const steps = rule.actions?.steps || []
+  const steps = rule.response_content?.steps || []
 
   stepOrdering.forEach(({ oldNumber, newNumber }) => {
     const step = steps.find((s: any) => s.stepNumber === oldNumber)
@@ -677,7 +650,7 @@ export async function reorderScenarioSteps(
   steps.sort((a: any, b: any) => a.stepNumber - b.stepNumber)
 
   return updateAutoResponseRule(scenarioId, {
-    actions: { steps },
+    response_content: { steps },
   })
 }
 
@@ -687,31 +660,23 @@ export async function reorderScenarioSteps(
 
 /**
  * Get AI response configuration
+ * Note: ai_response_config table does not exist in current schema
+ * This function returns null for now
  */
 export async function getAIConfig() {
-  const userId = await getCurrentUserId()
-  if (!userId) {
-    throw new Error('User not authenticated')
+  const organizationId = await getCurrentUserOrganizationId()
+  if (!organizationId) {
+    throw new Error('Organization not found')
   }
 
-  const supabase = await createClient()
-
-  const { data, error } = await supabase
-    .from('ai_response_config')
-    .select('*')
-    .eq('user_id', userId)
-    .single()
-
-  if (error && error.code !== 'PGRST116') {
-    console.error('Error fetching AI config:', error)
-    throw error
-  }
-
-  return data || null
+  // Return null since ai_response_config table doesn't exist
+  return null
 }
 
 /**
  * Update AI response configuration
+ * Note: ai_response_config table does not exist in current schema
+ * This function throws an error for now
  */
 export async function updateAIConfig(data: {
   enabled?: boolean
@@ -723,88 +688,27 @@ export async function updateAIConfig(data: {
   fallbackToHuman?: boolean
   confidenceThreshold?: number
 }) {
-  const userId = await getCurrentUserId()
-  if (!userId) {
-    throw new Error('User not authenticated')
+  const organizationId = await getCurrentUserOrganizationId()
+  if (!organizationId) {
+    throw new Error('Organization not found')
   }
 
-  const supabase = await createClient()
-
-  const { data: existing } = await supabase
-    .from('ai_response_config')
-    .select('id')
-    .eq('user_id', userId)
-    .single()
-
-  let result
-  if (existing) {
-    const { data: updated, error } = await supabase
-      .from('ai_response_config')
-      .update({
-        ...data,
-        updated_at: new Date().toISOString(),
-      })
-      .eq('user_id', userId)
-      .select()
-      .single()
-
-    if (error) {
-      console.error('Error updating AI config:', error)
-      throw error
-    }
-    result = updated
-  } else {
-    const { data: created, error } = await supabase
-      .from('ai_response_config')
-      .insert({
-        user_id: userId,
-        ...data,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      })
-      .select()
-      .single()
-
-    if (error) {
-      console.error('Error creating AI config:', error)
-      throw error
-    }
-    result = created
-  }
-
-  revalidatePath('/dashboard/auto-response/settings')
-  return result
+  // Throw error since ai_response_config table doesn't exist
+  throw new Error('AI response configuration is not yet implemented')
 }
 
 /**
  * Test AI response with a sample message
+ * Note: AI response feature is not yet implemented
  */
 export async function testAIResponse(
   message: string,
   context?: Record<string, any>
 ): Promise<{ response: string; confidence: number; error?: string }> {
-  try {
-    const config = await getAIConfig()
-    if (!config || !config.enabled) {
-      return {
-        response: '',
-        confidence: 0,
-        error: 'AI responses are not enabled',
-      }
-    }
-
-    // In production, integrate with OpenAI or other AI service
-    // For now, return mock response
-    return {
-      response: `AI response to: "${message}"`,
-      confidence: 0.85,
-    }
-  } catch (error) {
-    return {
-      response: '',
-      confidence: 0,
-      error: error instanceof Error ? error.message : 'Unknown error',
-    }
+  return {
+    response: '',
+    confidence: 0,
+    error: 'AI responses are not yet implemented',
   }
 }
 
@@ -814,6 +718,8 @@ export async function testAIResponse(
 
 /**
  * Get response logs with filters
+ * Note: auto_response_logs table does not exist in current schema
+ * This function returns empty data for now
  */
 export async function getResponseLogs(
   filters?: ResponseLogFilters & {
@@ -821,301 +727,75 @@ export async function getResponseLogs(
     limit?: number
   }
 ) {
-  const userId = await getCurrentUserId()
-  if (!userId) {
-    throw new Error('User not authenticated')
+  const organizationId = await getCurrentUserOrganizationId()
+  if (!organizationId) {
+    throw new Error('Organization not found')
   }
 
-  const supabase = await createClient()
   const page = filters?.page || 1
   const limit = filters?.limit || 50
-  const from = (page - 1) * limit
-  const to = from + limit - 1
 
-  // Get user's rule IDs first to filter logs
-  const { data: userRules } = await supabase
-    .from('auto_response_rules')
-    .select('id')
-    .eq('user_id', userId)
-
-  const ruleIds = userRules?.map(r => r.id) || []
-
-  let query = supabase
-    .from('auto_response_logs')
-    .select(
-      `
-      *,
-      friend:friends (
-        id,
-        display_name
-      ),
-      rule:auto_response_rules!inner (
-        id,
-        name,
-        rule_type,
-        user_id
-      )
-    `,
-      { count: 'exact' }
-    )
-    .in('rule_id', ruleIds.length > 0 ? ruleIds : ['00000000-0000-0000-0000-000000000000'])
-    .eq('rule.user_id', userId)
-
-  if (filters?.dateFrom) {
-    query = query.gte('created_at', filters.dateFrom)
-  }
-
-  if (filters?.dateTo) {
-    query = query.lte('created_at', filters.dateTo)
-  }
-
-  if (filters?.ruleTypes && filters.ruleTypes.length > 0) {
-    query = query.in('rule.rule_type', filters.ruleTypes)
-  }
-
-  if (filters?.keyword) {
-    query = query.or(
-      `incoming_message.ilike.%${filters.keyword}%,trigger_message.ilike.%${filters.keyword}%`
-    )
-  }
-
-  query = query.order('created_at', { ascending: false }).range(from, to)
-
-  const { data, error, count } = await query
-
-  if (error) {
-    console.error('Error fetching response logs:', error)
-    throw error
-  }
-
+  // Return empty data since auto_response_logs table doesn't exist
   return {
-    data: (data || []) as ResponseLog[],
-    total: count || 0,
+    data: [] as ResponseLog[],
+    total: 0,
     page,
     limit,
-    totalPages: Math.ceil((count || 0) / limit),
+    totalPages: 0,
   }
 }
 
 /**
  * Get conversation history for a specific friend
+ * Note: auto_response_logs table does not exist in current schema
+ * This function returns empty data for now
  */
 export async function getConversationHistory(
   friendId: string,
   limit: number = 50
 ) {
-  const userId = await getCurrentUserId()
-  if (!userId) {
-    throw new Error('User not authenticated')
+  const organizationId = await getCurrentUserOrganizationId()
+  if (!organizationId) {
+    throw new Error('Organization not found')
   }
 
-  const supabase = await createClient()
-
-  const { data, error } = await supabase
-    .from('auto_response_logs')
-    .select(
-      `
-      *,
-      rule:auto_response_rules!inner (
-        id,
-        name,
-        rule_type,
-        user_id
-      )
-    `
-    )
-    .eq('rule.user_id', userId)
-    .eq('friend_id', friendId)
-    .order('created_at', { ascending: false })
-    .limit(limit)
-
-  if (error) {
-    console.error('Error fetching conversation history:', error)
-    throw error
-  }
-
-  return data || []
+  // Return empty data since auto_response_logs table doesn't exist
+  return []
 }
 
 /**
  * Get response trend data over time
+ * Note: auto_response_logs table does not exist in current schema
+ * This function returns empty data for now
  */
 export async function getResponseTrendData(
   startDate?: string,
   endDate?: string
 ): Promise<ResponseTrendData[]> {
-  const userId = await getCurrentUserId()
-  if (!userId) {
-    throw new Error('User not authenticated')
+  const organizationId = await getCurrentUserOrganizationId()
+  if (!organizationId) {
+    throw new Error('Organization not found')
   }
 
-  const supabase = await createClient()
-
-  // Get user's rule IDs first
-  const { data: userRules } = await supabase
-    .from('auto_response_rules')
-    .select('id, rule_type')
-    .eq('user_id', userId)
-
-  const ruleIds = userRules?.map(r => r.id) || []
-
-  if (ruleIds.length === 0) {
-    return []
-  }
-
-  let query = supabase
-    .from('auto_response_logs')
-    .select('*, rule:auto_response_rules!inner(rule_type)')
-    .in('rule_id', ruleIds)
-
-  if (startDate) {
-    query = query.gte('created_at', startDate)
-  }
-
-  if (endDate) {
-    query = query.lte('created_at', endDate)
-  }
-
-  const { data, error } = await query
-
-  if (error) {
-    console.error('Error fetching response trend data:', error)
-    throw error
-  }
-
-  const groupedData: Record<string, ResponseTrendData> = {}
-
-  data?.forEach((log: any) => {
-    const date = (log.created_at || log.sent_at).split('T')[0]
-
-    if (!groupedData[date]) {
-      groupedData[date] = {
-        date,
-        total_responses: 0,
-        successful: 0,
-        failed: 0,
-        keyword_responses: 0,
-        regex_responses: 0,
-        ai_responses: 0,
-        scenario_responses: 0,
-      }
-    }
-
-    groupedData[date].total_responses++
-
-    // Check multiple success indicators
-    if (log.response_sent === true || log.success === true) {
-      groupedData[date].successful++
-    } else {
-      groupedData[date].failed++
-    }
-
-    const ruleType = log.rule?.rule_type || log.match_type || 'keyword'
-    if (ruleType === 'keyword') {
-      groupedData[date].keyword_responses++
-    } else if (ruleType === 'regex') {
-      groupedData[date].regex_responses++
-    } else if (ruleType === 'ai') {
-      groupedData[date].ai_responses++
-    } else if (ruleType === 'scenario') {
-      groupedData[date].scenario_responses++
-    }
-  })
-
-  return Object.values(groupedData).sort((a, b) => a.date.localeCompare(b.date))
+  // Return empty data since auto_response_logs table doesn't exist
+  return []
 }
 
 /**
  * Get rule performance statistics
+ * Note: auto_response_logs table does not exist in current schema
+ * This function returns empty data for now
  */
 export async function getRulePerformanceData(
   limit: number = 10
 ): Promise<RulePerformanceData[]> {
-  const userId = await getCurrentUserId()
-  if (!userId) {
-    throw new Error('User not authenticated')
+  const organizationId = await getCurrentUserOrganizationId()
+  if (!organizationId) {
+    throw new Error('Organization not found')
   }
 
-  const supabase = await createClient()
-
-  // Get user's rule IDs first
-  const { data: userRules } = await supabase
-    .from('auto_response_rules')
-    .select('id')
-    .eq('user_id', userId)
-
-  const ruleIds = userRules?.map(r => r.id) || []
-
-  if (ruleIds.length === 0) {
-    return []
-  }
-
-  const { data: logs } = await supabase
-    .from('auto_response_logs')
-    .select(
-      `
-      rule_id,
-      match_type,
-      response_sent,
-      success,
-      rule:auto_response_rules!inner (
-        name,
-        rule_type
-      )
-    `
-    )
-    .in('rule_id', ruleIds)
-    .not('rule_id', 'is', null)
-
-  if (!logs) {
-    return []
-  }
-
-  const groupedData: Record<
-    string,
-    {
-      rule_id: string
-      rule_name: string
-      rule_type: string
-      responses: Array<{ success: boolean }>
-    }
-  > = {}
-
-  logs.forEach((log: any) => {
-    if (!groupedData[log.rule_id]) {
-      groupedData[log.rule_id] = {
-        rule_id: log.rule_id,
-        rule_name: log.rule?.name || 'Unknown',
-        rule_type: log.rule?.rule_type || log.match_type || 'keyword',
-        responses: [],
-      }
-    }
-
-    groupedData[log.rule_id].responses.push({
-      success: log.response_sent === true || log.success === true,
-    })
-  })
-
-  const performanceData: RulePerformanceData[] = Object.values(groupedData).map(
-    (rule) => {
-      const totalResponses = rule.responses.length
-      const successfulResponses = rule.responses.filter((r) => r.success).length
-
-      return {
-        rule_id: rule.rule_id,
-        rule_name: rule.rule_name,
-        rule_type: rule.rule_type as any,
-        response_count: totalResponses,
-        success_rate:
-          totalResponses > 0 ? (successfulResponses / totalResponses) * 100 : 0,
-        avg_response_time: 0,
-      }
-    }
-  )
-
-  return performanceData
-    .sort((a, b) => b.response_count - a.response_count)
-    .slice(0, limit)
+  // Return empty data since auto_response_logs table doesn't exist
+  return []
 }
 
 // ============================================================================

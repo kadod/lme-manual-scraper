@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { ReportPreview } from '@/components/analytics/ReportPreview'
 import { ReportHistory } from '@/components/analytics/ReportHistory'
-import { getReport, getReportHistory, generateReport } from '@/app/actions/custom-reports'
+import { getCustomReport, getReportHistory, executeReport } from '@/app/actions/custom-reports'
 import {
   PencilIcon,
   PlayIcon,
@@ -26,7 +26,7 @@ interface ReportPageProps {
 async function ReportDetailWrapper({ id }: { id: string }) {
   try {
     const [report, history] = await Promise.all([
-      getReport(id),
+      getCustomReport(id),
       getReportHistory(id),
     ])
 
@@ -70,7 +70,7 @@ async function ReportDetailWrapper({ id }: { id: string }) {
                 <form
                   action={async () => {
                     'use server'
-                    await generateReport(id)
+                    await executeReport(id)
                   }}
                 >
                   <Button size="sm" type="submit">

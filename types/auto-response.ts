@@ -4,7 +4,7 @@ export type ResponseRuleType = 'keyword' | 'regex' | 'ai' | 'scenario'
 
 export type ResponseStatus = 'success' | 'failed' | 'processing'
 
-export type ConversationStatus = 'active' | 'completed' | 'expired' | 'abandoned'
+export type ConversationStatus = 'active' | 'completed' | 'timeout' | 'cancelled'
 
 // Dashboard Stats
 export type AutoResponseStats = {

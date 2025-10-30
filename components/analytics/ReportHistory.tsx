@@ -11,7 +11,7 @@ import {
   ClockIcon,
 } from '@heroicons/react/24/outline'
 import type { ReportHistory as ReportHistoryType } from '@/types/custom-reports'
-import { generateReport, downloadReport } from '@/app/actions/custom-reports'
+import { executeReport, downloadReport } from '@/app/actions/custom-reports'
 import { toast } from 'sonner'
 import { formatDistanceToNow } from 'date-fns'
 import { ja } from 'date-fns/locale'
@@ -30,7 +30,7 @@ export function ReportHistory({ history, reportId }: ReportHistoryProps) {
 
     setRegeneratingId(reportId)
     try {
-      await generateReport(reportId)
+      await executeReport(reportId)
       toast.success('レポートの再生成を開始しました')
     } catch (error) {
       toast.error('レポートの再生成に失敗しました')

@@ -1,7 +1,7 @@
 import { Suspense } from 'react'
 import { notFound } from 'next/navigation'
 import { ReportBuilder } from '@/components/analytics/ReportBuilder'
-import { getReport } from '@/app/actions/custom-reports'
+import { getCustomReport } from '@/app/actions/custom-reports'
 
 interface EditReportPageProps {
   params: Promise<{
@@ -11,7 +11,7 @@ interface EditReportPageProps {
 
 async function ReportBuilderWrapper({ id }: { id: string }) {
   try {
-    const report = await getReport(id)
+    const report = await getCustomReport(id)
     return <ReportBuilder report={report} mode="edit" />
   } catch (error) {
     notFound()

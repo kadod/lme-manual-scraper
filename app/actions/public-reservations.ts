@@ -6,10 +6,10 @@ import { revalidatePath } from 'next/cache'
 import { startOfDay, endOfDay, format } from 'date-fns'
 
 export type ReservationType = Tables<'reservation_types'>
-export type AvailableSlot = Tables<'available_slots'>
+export type ScheduleSlot = Tables<'schedule_slots'>
 export type Reservation = Tables<'reservations'>
 
-export interface SlotWithAvailability extends AvailableSlot {
+export interface SlotWithAvailability extends ScheduleSlot {
   is_available: boolean
   remaining_capacity: number
 }
@@ -25,6 +25,7 @@ export async function getPublicReservationType(typeId: string) {
     .select('*')
     .eq('id', typeId)
     .eq('status', 'active')
+    .eq('is_active', true)
     .single()
 
   if (error) {
@@ -39,7 +40,7 @@ export async function getPublicReservationType(typeId: string) {
  * Get available slots for a specific date (no auth required)
  */
 export async function getAvailableSlotsByDate(
-  typeId: string,
+  scheduleId: string,
   date: Date
 ): Promise<SlotWithAvailability[]> {
   const supabase = await createClient()
@@ -47,9 +48,9 @@ export async function getAvailableSlotsByDate(
   const dateStr = format(date, 'yyyy-MM-dd')
 
   const { data, error } = await supabase
-    .from('available_slots')
+    .from('schedule_slots')
     .select('*')
-    .eq('reservation_type_id', typeId)
+    .eq('schedule_id', scheduleId)
     .eq('status', 'available')
     .gte('start_time', startOfDay(date).toISOString())
     .lte('start_time', endOfDay(date).toISOString())
@@ -63,8 +64,8 @@ export async function getAvailableSlotsByDate(
   // Add availability information
   return data.map(slot => ({
     ...slot,
-    is_available: slot.booked_count < slot.capacity,
-    remaining_capacity: slot.capacity - slot.booked_count
+    is_available: (slot.booked_count || 0) < (slot.capacity || 1),
+    remaining_capacity: (slot.capacity || 1) - (slot.booked_count || 0)
   }))
 }
 
@@ -73,20 +74,22 @@ export async function getAvailableSlotsByDate(
  */
 export async function createReservation(data: {
   reservation_type_id: string
-  slot_id: string
+  schedule_id: string
+  schedule_slot_id: string
   customer_name: string
   customer_email: string
   customer_phone?: string
-  customer_memo?: string
+  notes?: string
   line_user_id?: string
+  organization_id: string
 }): Promise<{ success: boolean; data?: Reservation; error?: string }> {
   const supabase = await createClient()
 
   // First check if slot is still available
   const { data: slot, error: slotError } = await supabase
-    .from('available_slots')
+    .from('schedule_slots')
     .select('*')
-    .eq('id', data.slot_id)
+    .eq('id', data.schedule_slot_id)
     .single()
 
   if (slotError || !slot) {
@@ -96,7 +99,10 @@ export async function createReservation(data: {
     }
   }
 
-  if (slot.booked_count >= slot.capacity) {
+  const bookedCount = slot.booked_count || 0
+  const capacity = slot.capacity || 1
+
+  if (bookedCount >= capacity) {
     return {
       success: false,
       error: 'この時間枠は既に満席です'
@@ -111,28 +117,30 @@ export async function createReservation(data: {
   }
 
   // Try to find existing friend if LINE user ID is provided
-  let friendId: string | null = null
+  let lineFriendId: string | null = null
   if (data.line_user_id) {
     const { data: friend } = await supabase
-      .from('friends')
+      .from('line_friends')
       .select('id')
       .eq('line_user_id', data.line_user_id)
       .single()
 
-    friendId = friend?.id || null
+    lineFriendId = friend?.id || null
   }
 
   // Create reservation
   const reservationData: TablesInsert<'reservations'> = {
     reservation_type_id: data.reservation_type_id,
-    slot_id: data.slot_id,
+    schedule_id: data.schedule_id,
+    schedule_slot_id: data.schedule_slot_id,
     customer_name: data.customer_name,
-    customer_email: data.customer_email,
+    customer_email: data.customer_email || null,
     customer_phone: data.customer_phone || null,
-    customer_memo: data.customer_memo || null,
-    line_user_id: data.line_user_id || null,
-    friend_id: friendId,
-    status: 'confirmed'
+    notes: data.notes || null,
+    line_friend_id: lineFriendId,
+    organization_id: data.organization_id,
+    status: 'confirmed',
+    confirmed_at: new Date().toISOString()
   }
 
   const { data: reservation, error: reservationError } = await supabase

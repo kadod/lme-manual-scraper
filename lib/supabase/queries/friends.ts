@@ -2,9 +2,9 @@ import { SupabaseClient } from '@supabase/supabase-js'
 import { Database, TablesInsert, TablesUpdate } from '@/types/supabase'
 import { DatabaseError, DatabaseResult, handleDatabaseError } from '@/lib/errors/database'
 
-type Friend = Database['public']['Tables']['friends']['Row']
-type FriendInsert = TablesInsert<'friends'>
-type FriendUpdate = TablesUpdate<'friends'>
+type Friend = Database['public']['Tables']['line_friends']['Row']
+type FriendInsert = TablesInsert<'line_friends'>
+type FriendUpdate = TablesUpdate<'line_friends'>
 
 export interface FriendWithTags extends Friend {
   tags: Array<{
@@ -17,7 +17,7 @@ export interface FriendWithTags extends Friend {
 export interface FriendFilters {
   searchQuery?: string
   tagIds?: string[]
-  isBlocked?: boolean
+  followStatus?: string
   limit?: number
   offset?: number
 }
@@ -26,12 +26,12 @@ export class FriendsQueries {
   constructor(private supabase: SupabaseClient<Database>) {}
 
   async getFriends(
-    userId: string,
+    organizationId: string,
     filters?: FriendFilters
   ): Promise<DatabaseResult<FriendWithTags[]>> {
     try {
       let query = this.supabase
-        .from('friends')
+        .from('line_friends')
         .select(
           `
           *,
@@ -44,15 +44,15 @@ export class FriendsQueries {
           )
         `
         )
-        .eq('user_id', userId)
+        .eq('organization_id', organizationId)
         .order('created_at', { ascending: false })
 
       if (filters?.searchQuery) {
         query = query.ilike('display_name', `%${filters.searchQuery}%`)
       }
 
-      if (filters?.isBlocked !== undefined) {
-        query = query.eq('is_blocked', filters.isBlocked)
+      if (filters?.followStatus !== undefined) {
+        query = query.eq('follow_status', filters.followStatus)
       }
 
       if (filters?.limit) {
@@ -89,11 +89,11 @@ export class FriendsQueries {
 
   async getFriendById(
     friendId: string,
-    userId: string
+    organizationId: string
   ): Promise<DatabaseResult<FriendWithTags>> {
     try {
       const { data, error } = await this.supabase
-        .from('friends')
+        .from('line_friends')
         .select(
           `
           *,
@@ -107,7 +107,7 @@ export class FriendsQueries {
         `
         )
         .eq('id', friendId)
-        .eq('user_id', userId)
+        .eq('organization_id', organizationId)
         .single()
 
       if (error) throw error
@@ -129,7 +129,7 @@ export class FriendsQueries {
   ): Promise<DatabaseResult<Friend>> {
     try {
       const { data, error } = await this.supabase
-        .from('friends')
+        .from('line_friends')
         .insert(friend)
         .select()
         .single()
@@ -145,15 +145,15 @@ export class FriendsQueries {
 
   async updateFriend(
     friendId: string,
-    userId: string,
+    organizationId: string,
     updates: FriendUpdate
   ): Promise<DatabaseResult<Friend>> {
     try {
       const { data, error } = await this.supabase
-        .from('friends')
+        .from('line_friends')
         .update({ ...updates, updated_at: new Date().toISOString() })
         .eq('id', friendId)
-        .eq('user_id', userId)
+        .eq('organization_id', organizationId)
         .select()
         .single()
 
@@ -168,14 +168,14 @@ export class FriendsQueries {
 
   async deleteFriend(
     friendId: string,
-    userId: string
+    organizationId: string
   ): Promise<DatabaseResult<void>> {
     try {
       const { error } = await this.supabase
-        .from('friends')
+        .from('line_friends')
         .delete()
         .eq('id', friendId)
-        .eq('user_id', userId)
+        .eq('organization_id', organizationId)
 
       if (error) throw error
 
@@ -185,21 +185,13 @@ export class FriendsQueries {
     }
   }
 
-  async blockFriend(
-    friendId: string,
-    userId: string,
-    isBlocked: boolean = true
-  ): Promise<DatabaseResult<Friend>> {
-    return this.updateFriend(friendId, userId, { is_blocked: isBlocked })
-  }
-
-  async getFriendCount(userId: string): Promise<DatabaseResult<number>> {
+  async getFriendCount(organizationId: string): Promise<DatabaseResult<number>> {
     try {
       const { count, error } = await this.supabase
-        .from('friends')
+        .from('line_friends')
         .select('*', { count: 'exact', head: true })
-        .eq('user_id', userId)
-        .eq('is_blocked', false)
+        .eq('organization_id', organizationId)
+        .eq('follow_status', 'following')
 
       if (error) throw error
 

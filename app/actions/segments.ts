@@ -9,17 +9,26 @@ import { revalidatePath } from 'next/cache'
 type SegmentInsert = TablesInsert<'segments'>
 type SegmentUpdate = TablesUpdate<'segments'>
 
-async function getCurrentUserId(): Promise<string | null> {
+async function getCurrentUserOrganizationId(): Promise<string | null> {
   const supabase = await createClient()
   const {
     data: { user },
   } = await supabase.auth.getUser()
-  return user?.id || null
+
+  if (!user) return null
+
+  const { data: userData } = await supabase
+    .from('users')
+    .select('organization_id')
+    .eq('id', user.id)
+    .single()
+
+  return userData?.organization_id || null
 }
 
 export async function getSegments(): Promise<DatabaseResult<SegmentWithCount[]>> {
-  const userId = await getCurrentUserId()
-  if (!userId) {
+  const organizationId = await getCurrentUserOrganizationId()
+  if (!organizationId) {
     return {
       success: false,
       error: {
@@ -32,14 +41,14 @@ export async function getSegments(): Promise<DatabaseResult<SegmentWithCount[]>>
 
   const supabase = await createClient()
   const queries = new SegmentsQueries(supabase)
-  return queries.getSegments(userId)
+  return queries.getSegments(organizationId)
 }
 
 export async function getSegmentById(
   segmentId: string
 ): Promise<DatabaseResult<SegmentWithCount>> {
-  const userId = await getCurrentUserId()
-  if (!userId) {
+  const organizationId = await getCurrentUserOrganizationId()
+  if (!organizationId) {
     return {
       success: false,
       error: {
@@ -52,14 +61,14 @@ export async function getSegmentById(
 
   const supabase = await createClient()
   const queries = new SegmentsQueries(supabase)
-  return queries.getSegmentById(segmentId, userId)
+  return queries.getSegmentById(segmentId, organizationId)
 }
 
 export async function createSegment(
-  segment: Omit<SegmentInsert, 'user_id'>
+  segment: Omit<SegmentInsert, 'organization_id'>
 ): Promise<DatabaseResult<any>> {
-  const userId = await getCurrentUserId()
-  if (!userId) {
+  const organizationId = await getCurrentUserOrganizationId()
+  if (!organizationId) {
     return {
       success: false,
       error: {
@@ -72,7 +81,7 @@ export async function createSegment(
 
   const supabase = await createClient()
   const queries = new SegmentsQueries(supabase)
-  const result = await queries.createSegment({ ...segment, user_id: userId })
+  const result = await queries.createSegment({ ...segment, organization_id: organizationId })
 
   if (result.success) {
     revalidatePath('/dashboard/friends/segments')
@@ -85,8 +94,8 @@ export async function updateSegment(
   segmentId: string,
   updates: SegmentUpdate
 ): Promise<DatabaseResult<any>> {
-  const userId = await getCurrentUserId()
-  if (!userId) {
+  const organizationId = await getCurrentUserOrganizationId()
+  if (!organizationId) {
     return {
       success: false,
       error: {
@@ -99,7 +108,7 @@ export async function updateSegment(
 
   const supabase = await createClient()
   const queries = new SegmentsQueries(supabase)
-  const result = await queries.updateSegment(segmentId, userId, updates)
+  const result = await queries.updateSegment(segmentId, organizationId, updates)
 
   if (result.success) {
     revalidatePath('/dashboard/friends/segments')
@@ -109,8 +118,8 @@ export async function updateSegment(
 }
 
 export async function deleteSegment(segmentId: string): Promise<DatabaseResult<void>> {
-  const userId = await getCurrentUserId()
-  if (!userId) {
+  const organizationId = await getCurrentUserOrganizationId()
+  if (!organizationId) {
     return {
       success: false,
       error: {
@@ -123,7 +132,7 @@ export async function deleteSegment(segmentId: string): Promise<DatabaseResult<v
 
   const supabase = await createClient()
   const queries = new SegmentsQueries(supabase)
-  const result = await queries.deleteSegment(segmentId, userId)
+  const result = await queries.deleteSegment(segmentId, organizationId)
 
   if (result.success) {
     revalidatePath('/dashboard/friends/segments')
@@ -135,8 +144,8 @@ export async function deleteSegment(segmentId: string): Promise<DatabaseResult<v
 export async function previewSegment(
   conditions: SegmentCondition[]
 ): Promise<DatabaseResult<number>> {
-  const userId = await getCurrentUserId()
-  if (!userId) {
+  const organizationId = await getCurrentUserOrganizationId()
+  if (!organizationId) {
     return {
       success: false,
       error: {
@@ -149,7 +158,7 @@ export async function previewSegment(
 
   const supabase = await createClient()
   const queries = new SegmentsQueries(supabase)
-  return queries.previewSegment(conditions, userId)
+  return queries.previewSegment(conditions, organizationId)
 }
 
 export async function getFriendsBySegment(
@@ -157,8 +166,8 @@ export async function getFriendsBySegment(
   page: number = 1,
   limit: number = 50
 ): Promise<DatabaseResult<any[]>> {
-  const userId = await getCurrentUserId()
-  if (!userId) {
+  const organizationId = await getCurrentUserOrganizationId()
+  if (!organizationId) {
     return {
       success: false,
       error: {
@@ -171,5 +180,5 @@ export async function getFriendsBySegment(
 
   const supabase = await createClient()
   const queries = new SegmentsQueries(supabase)
-  return queries.getFriendsBySegment(segmentId, userId, page, limit)
+  return queries.getFriendsBySegment(segmentId, organizationId, page, limit)
 }

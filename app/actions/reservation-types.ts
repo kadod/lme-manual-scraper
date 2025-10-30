@@ -1,41 +1,24 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
-import { TablesInsert, TablesUpdate } from '@/types/supabase'
+import { TablesInsert, TablesUpdate, Tables } from '@/types/supabase'
 import { revalidatePath } from 'next/cache'
+import { getCurrentUserOrganizationId } from '@/lib/utils/organization'
 
-export type ReservationType = {
-  id: string
-  user_id: string
-  name: string
-  description: string | null
-  duration_minutes: number
-  buffer_minutes: number
-  status: 'active' | 'inactive'
-  settings: any
-  created_at: string
-  updated_at: string
-}
-
-async function getCurrentUserId(): Promise<string | null> {
-  const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-  return user?.id || null
-}
+export type ReservationType = Tables<'reservation_types'>
 
 export async function getReservationTypes() {
-  const userId = await getCurrentUserId()
-  if (!userId) {
-    throw new Error('User not authenticated')
+  const organizationId = await getCurrentUserOrganizationId()
+  if (!organizationId) {
+    throw new Error('Organization not found')
   }
 
   const supabase = await createClient()
   const { data, error } = await supabase
     .from('reservation_types')
     .select('*')
-    .eq('user_id', userId)
+    .eq('organization_id', organizationId)
+    .order('display_order', { ascending: true })
     .order('created_at', { ascending: false })
 
   if (error) {
@@ -47,9 +30,9 @@ export async function getReservationTypes() {
 }
 
 export async function getReservationType(id: string) {
-  const userId = await getCurrentUserId()
-  if (!userId) {
-    throw new Error('User not authenticated')
+  const organizationId = await getCurrentUserOrganizationId()
+  if (!organizationId) {
+    throw new Error('Organization not found')
   }
 
   const supabase = await createClient()
@@ -57,7 +40,7 @@ export async function getReservationType(id: string) {
     .from('reservation_types')
     .select('*')
     .eq('id', id)
-    .eq('user_id', userId)
+    .eq('organization_id', organizationId)
     .single()
 
   if (error) {
@@ -71,9 +54,9 @@ export async function getReservationType(id: string) {
 export async function createReservationType(
   data: TablesInsert<'reservation_types'>
 ) {
-  const userId = await getCurrentUserId()
-  if (!userId) {
-    throw new Error('User not authenticated')
+  const organizationId = await getCurrentUserOrganizationId()
+  if (!organizationId) {
+    throw new Error('Organization not found')
   }
 
   const supabase = await createClient()
@@ -81,7 +64,7 @@ export async function createReservationType(
     .from('reservation_types')
     .insert({
       ...data,
-      user_id: userId,
+      organization_id: organizationId,
     })
     .select()
     .single()
@@ -99,9 +82,9 @@ export async function updateReservationType(
   id: string,
   data: TablesUpdate<'reservation_types'>
 ) {
-  const userId = await getCurrentUserId()
-  if (!userId) {
-    throw new Error('User not authenticated')
+  const organizationId = await getCurrentUserOrganizationId()
+  if (!organizationId) {
+    throw new Error('Organization not found')
   }
 
   const supabase = await createClient()
@@ -110,7 +93,7 @@ export async function updateReservationType(
     .from('reservation_types')
     .select('id')
     .eq('id', id)
-    .eq('user_id', userId)
+    .eq('organization_id', organizationId)
     .single()
 
   if (!existing) {
@@ -137,9 +120,9 @@ export async function updateReservationType(
 }
 
 export async function deleteReservationType(id: string) {
-  const userId = await getCurrentUserId()
-  if (!userId) {
-    throw new Error('User not authenticated')
+  const organizationId = await getCurrentUserOrganizationId()
+  if (!organizationId) {
+    throw new Error('Organization not found')
   }
 
   const supabase = await createClient()
@@ -148,7 +131,7 @@ export async function deleteReservationType(id: string) {
     .from('reservation_types')
     .select('id')
     .eq('id', id)
-    .eq('user_id', userId)
+    .eq('organization_id', organizationId)
     .single()
 
   if (!existing) {
@@ -159,7 +142,7 @@ export async function deleteReservationType(id: string) {
     .from('reservations')
     .select('*', { count: 'exact', head: true })
     .eq('reservation_type_id', id)
-    .in('status', ['pending', 'confirmed'])
+    .in('status', ['confirmed'])
 
   if (count && count > 0) {
     throw new Error('Cannot delete reservation type with active reservations')
@@ -180,9 +163,9 @@ export async function deleteReservationType(id: string) {
 }
 
 export async function duplicateReservationType(id: string) {
-  const userId = await getCurrentUserId()
-  if (!userId) {
-    throw new Error('User not authenticated')
+  const organizationId = await getCurrentUserOrganizationId()
+  if (!organizationId) {
+    throw new Error('Organization not found')
   }
 
   const supabase = await createClient()
@@ -191,7 +174,7 @@ export async function duplicateReservationType(id: string) {
     .from('reservation_types')
     .select('*')
     .eq('id', id)
-    .eq('user_id', userId)
+    .eq('organization_id', organizationId)
     .single()
 
   if (fetchError || !original) {
@@ -201,13 +184,13 @@ export async function duplicateReservationType(id: string) {
   const { data: duplicate, error: insertError } = await supabase
     .from('reservation_types')
     .insert({
-      user_id: original.user_id,
+      organization_id: original.organization_id,
       name: `${original.name} (コピー)`,
       description: original.description,
       duration_minutes: original.duration_minutes,
-      buffer_minutes: original.buffer_minutes,
-      settings: original.settings,
+      color: original.color,
       status: 'inactive',
+      is_active: false,
     })
     .select()
     .single()
@@ -222,28 +205,32 @@ export async function duplicateReservationType(id: string) {
 }
 
 export async function toggleReservationTypeStatus(id: string) {
-  const userId = await getCurrentUserId()
-  if (!userId) {
-    throw new Error('User not authenticated')
+  const organizationId = await getCurrentUserOrganizationId()
+  if (!organizationId) {
+    throw new Error('Organization not found')
   }
 
   const supabase = await createClient()
 
   const { data: type } = await supabase
     .from('reservation_types')
-    .select('id, user_id, status')
+    .select('id, organization_id, status, is_active')
     .eq('id', id)
-    .eq('user_id', userId)
+    .eq('organization_id', organizationId)
     .single()
 
   if (!type) {
     throw new Error('Reservation type not found')
   }
 
+  const newStatus = type.status === 'active' ? 'inactive' : 'active'
+  const newIsActive = !type.is_active
+
   const { error } = await supabase
     .from('reservation_types')
     .update({
-      status: type.status === 'active' ? 'inactive' : 'active',
+      status: newStatus,
+      is_active: newIsActive,
       updated_at: new Date().toISOString(),
     })
     .eq('id', id)

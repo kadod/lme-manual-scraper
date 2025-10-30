@@ -7,19 +7,23 @@ import { getCurrentUserOrganizationId } from '@/lib/utils/organization'
 
 export type Reservation = {
   id: string
-  reservation_type_id: string
-  slot_id: string
-  friend_id: string | null
+  reservation_type_id: string | null
+  schedule_id: string
+  schedule_slot_id: string
+  line_friend_id: string | null
   customer_name: string
-  customer_email: string
+  customer_email: string | null
   customer_phone: string | null
-  customer_memo: string | null
-  status: 'confirmed' | 'cancelled' | 'completed' | 'no_show'
-  line_user_id: string | null
-  created_at: string
-  updated_at: string
+  notes: string | null
+  status: 'confirmed' | 'cancelled'
+  organization_id: string
+  created_at: string | null
+  updated_at: string | null
   cancelled_at: string | null
-  completed_at: string | null
+  confirmed_at: string | null
+  cancellation_reason: string | null
+  custom_data: any
+  reminder_sent_at: string | null
   reservation_type?: {
     id: string
     name: string
@@ -30,12 +34,12 @@ export type Reservation = {
     id: string
     start_time: string
     end_time: string
-    capacity: number
-    booked_count: number
+    capacity: number | null
+    booked_count: number | null
   }
   friend?: {
     id: string
-    display_name: string
+    display_name: string | null
     picture_url: string | null
     line_user_id: string
   }
@@ -153,7 +157,6 @@ export async function getReservation(id: string) {
         name,
         description,
         duration_minutes,
-        settings,
         organization_id
       ),
       slot:schedule_slots (
@@ -185,7 +188,8 @@ export async function getReservation(id: string) {
 
 export async function updateReservationStatus(
   id: string,
-  status: 'confirmed' | 'cancelled' | 'completed' | 'no_show'
+  status: 'confirmed' | 'cancelled',
+  cancellationReason?: string
 ) {
   const organizationId = await getCurrentUserOrganizationId()
   if (!organizationId) {
@@ -196,15 +200,9 @@ export async function updateReservationStatus(
 
   const { data: existing } = await supabase
     .from('reservations')
-    .select(`
-      id,
-      status,
-      reservation_type:reservation_types!inner (
-        organization_id
-      )
-    `)
+    .select('id, organization_id, status')
     .eq('id', id)
-    .eq('reservation_type.organization_id', organizationId)
+    .eq('organization_id', organizationId)
     .single()
 
   if (!existing) {
@@ -218,10 +216,13 @@ export async function updateReservationStatus(
 
   if (status === 'cancelled') {
     updateData.cancelled_at = new Date().toISOString()
+    if (cancellationReason) {
+      updateData.cancellation_reason = cancellationReason
+    }
   }
 
-  if (status === 'completed') {
-    updateData.completed_at = new Date().toISOString()
+  if (status === 'confirmed') {
+    updateData.confirmed_at = new Date().toISOString()
   }
 
   const { data, error } = await supabase
@@ -261,8 +262,8 @@ export async function updateReservationStatus(
   return data as Reservation
 }
 
-export async function cancelReservation(id: string) {
-  return updateReservationStatus(id, 'cancelled')
+export async function cancelReservation(id: string, cancellationReason?: string) {
+  return updateReservationStatus(id, 'cancelled', cancellationReason)
 }
 
 export async function exportReservationsToCSV(filters?: ReservationFilters) {
@@ -298,8 +299,8 @@ export async function exportReservationsToCSV(filters?: ReservationFilters) {
         reservation.slot?.start_time ? new Date(reservation.slot.start_time).toLocaleString() : '',
         reservation.slot?.end_time ? new Date(reservation.slot.end_time).toLocaleString() : '',
         reservation.status,
-        reservation.customer_memo || '',
-        new Date(reservation.created_at).toLocaleString(),
+        reservation.notes || '',
+        reservation.created_at ? new Date(reservation.created_at).toLocaleString() : '',
       ]
     })
 

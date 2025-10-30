@@ -224,7 +224,7 @@ export async function getStaffList(): Promise<StaffMember[]> {
       created_at,
       users (
         email,
-        full_name,
+        display_name,
         avatar_url,
         last_login_at
       )
@@ -240,10 +240,10 @@ export async function getStaffList(): Promise<StaffMember[]> {
   const staffList: StaffMember[] = members.map((member: any) => ({
     id: member.user_id,
     email: member.users?.email || '',
-    full_name: member.users?.full_name,
+    full_name: member.users?.display_name,
     avatar_url: member.users?.avatar_url,
     role: member.role,
-    status: 'active',
+    status: member.users?.status || 'active',
     last_login_at: member.users?.last_login_at,
     created_at: member.created_at,
   }))
@@ -285,6 +285,12 @@ export async function inviteStaff(data: {
     throw new Error('User is already a member of this organization')
   }
 
+  // TODO: Implement invitations table in database schema
+  // For now, return error indicating feature not implemented
+  throw new Error('Staff invitation feature requires database schema migration. Please create the invitations table first.')
+
+  // The following code will be uncommented once the invitations table is created:
+  /*
   // Check if invitation already exists and is pending
   const { data: existingInvitation } = await supabase
     .from('invitations')
@@ -333,7 +339,7 @@ export async function inviteStaff(data: {
   // Get inviter details
   const { data: inviterUser } = await supabase
     .from('users')
-    .select('full_name, email')
+    .select('display_name, email')
     .eq('id', user.id)
     .single()
 
@@ -342,7 +348,7 @@ export async function inviteStaff(data: {
 
   await sendInvitationEmail({
     to: data.email,
-    inviterName: inviterUser?.full_name || inviterUser?.email || 'Admin',
+    inviterName: inviterUser?.display_name || inviterUser?.email || 'Admin',
     organizationName: organization?.name || 'Organization',
     role: data.role,
     inviteUrl,
@@ -350,6 +356,7 @@ export async function inviteStaff(data: {
 
   revalidatePath('/dashboard/settings/organization')
   return { success: true, message: 'Invitation sent successfully' }
+  */
 }
 
 /**
@@ -365,62 +372,8 @@ export async function resendInvitation(invitationId: string) {
     throw new Error('Permission denied: Admin or owner role required')
   }
 
-  // Get invitation details
-  const { data: invitation, error } = await supabase
-    .from('invitations')
-    .select('*')
-    .eq('id', invitationId)
-    .eq('organization_id', userOrg.organization_id)
-    .single()
-
-  if (error || !invitation) {
-    throw new Error('Invitation not found')
-  }
-
-  if (invitation.status !== 'pending') {
-    throw new Error('Can only resend pending invitations')
-  }
-
-  // Check if expired and update expiration
-  const newExpiresAt = new Date()
-  newExpiresAt.setDate(newExpiresAt.getDate() + 7)
-
-  await supabase
-    .from('invitations')
-    .update({
-      expires_at: newExpiresAt.toISOString(),
-      status: 'pending',
-      updated_at: new Date().toISOString(),
-    })
-    .eq('id', invitationId)
-
-  // Get organization details
-  const { data: organization } = await supabase
-    .from('organizations')
-    .select('name')
-    .eq('id', userOrg.organization_id)
-    .single()
-
-  // Get inviter details
-  const { data: inviterUser } = await supabase
-    .from('users')
-    .select('full_name, email')
-    .eq('id', user.id)
-    .single()
-
-  // Resend invitation email
-  const inviteUrl = `${process.env.NEXT_PUBLIC_APP_URL}/invite/${invitation.token}`
-
-  await sendInvitationEmail({
-    to: invitation.email,
-    inviterName: inviterUser?.full_name || inviterUser?.email || 'Admin',
-    organizationName: organization?.name || 'Organization',
-    role: invitation.role,
-    inviteUrl,
-  })
-
-  revalidatePath('/dashboard/settings/organization')
-  return { success: true, message: 'Invitation resent successfully' }
+  // TODO: Implement invitations table in database schema
+  throw new Error('Staff invitation feature requires database schema migration. Please create the invitations table first.')
 }
 
 /**
@@ -436,22 +389,8 @@ export async function cancelInvitation(invitationId: string) {
     throw new Error('Permission denied: Admin or owner role required')
   }
 
-  const { error } = await supabase
-    .from('invitations')
-    .update({
-      status: 'cancelled',
-      updated_at: new Date().toISOString(),
-    })
-    .eq('id', invitationId)
-    .eq('organization_id', userOrg.organization_id)
-    .eq('status', 'pending')
-
-  if (error) {
-    throw new Error(`Failed to cancel invitation: ${error.message}`)
-  }
-
-  revalidatePath('/dashboard/settings/organization')
-  return { success: true, message: 'Invitation cancelled successfully' }
+  // TODO: Implement invitations table in database schema
+  throw new Error('Staff invitation feature requires database schema migration. Please create the invitations table first.')
 }
 
 /**

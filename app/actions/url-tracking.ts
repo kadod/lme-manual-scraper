@@ -23,13 +23,13 @@ async function getOrganizationId(): Promise<string | null> {
   if (!userId) return null
 
   const supabase = await createClient()
-  const { data: profile } = await supabase
-    .from('profiles')
+  const { data: userData } = await supabase
+    .from('users')
     .select('organization_id')
-    .eq('user_id', userId)
+    .eq('id', userId)
     .single()
 
-  return profile?.organization_id || null
+  return userData?.organization_id || null
 }
 
 /**
@@ -66,17 +66,13 @@ export async function getUrlTrackingList(filters?: {
   const supabase = await createClient()
 
   let query = supabase
-    .from('url_tracking')
+    .from('url_mappings')
     .select('*')
     .eq('organization_id', orgId)
     .order('created_at', { ascending: false })
 
   if (filters?.search) {
-    query = query.or(`original_url.ilike.%${filters.search}%,custom_slug.ilike.%${filters.search}%`)
-  }
-
-  if (filters?.campaignName) {
-    query = query.eq('campaign_name', filters.campaignName)
+    query = query.or(`original_url.ilike.%${filters.search}%,short_code.ilike.%${filters.search}%`)
   }
 
   if (filters?.dateFrom) {
@@ -123,7 +119,7 @@ export async function createShortUrl(data: {
 
   // Check if slug already exists
   const { data: existing } = await supabase
-    .from('url_tracking')
+    .from('url_mappings')
     .select('id')
     .eq('organization_id', orgId)
     .eq('short_code', shortCode)
@@ -141,16 +137,14 @@ export async function createShortUrl(data: {
   }
 
   const { data: result, error } = await supabase
-    .from('url_tracking')
+    .from('url_mappings')
     .insert({
       organization_id: orgId,
       original_url: data.originalUrl,
       short_code: shortCode,
-      custom_slug: data.customSlug || null,
-      campaign_name: data.campaignName || null,
       expires_at: data.expiresAt || null,
-      total_clicks: 0,
-      unique_clicks: 0,
+      click_count: 0,
+      unique_click_count: 0,
     })
     .select()
     .single()
@@ -188,7 +182,7 @@ export async function updateShortUrl(
 
   // Verify ownership
   const { data: existing } = await supabase
-    .from('url_tracking')
+    .from('url_mappings')
     .select('id')
     .eq('id', id)
     .eq('organization_id', orgId)
@@ -199,9 +193,8 @@ export async function updateShortUrl(
   }
 
   const { data: result, error } = await supabase
-    .from('url_tracking')
+    .from('url_mappings')
     .update({
-      campaign_name: data.campaignName,
       expires_at: data.expiresAt,
       updated_at: new Date().toISOString(),
     })
@@ -236,7 +229,7 @@ export async function deleteShortUrl(id: string) {
 
   // Verify ownership
   const { data: existing } = await supabase
-    .from('url_tracking')
+    .from('url_mappings')
     .select('id')
     .eq('id', id)
     .eq('organization_id', orgId)
@@ -247,7 +240,7 @@ export async function deleteShortUrl(id: string) {
   }
 
   const { error } = await supabase
-    .from('url_tracking')
+    .from('url_mappings')
     .delete()
     .eq('id', id)
 
@@ -277,14 +270,14 @@ export async function getUrlStats(shortCode: string, dateRange?: TimeRange) {
   const supabase = await createClient()
 
   // Get URL tracking record
-  const { data: urlTracking, error: urlError } = await supabase
-    .from('url_tracking')
+  const { data: urlMapping, error: urlError } = await supabase
+    .from('url_mappings')
     .select('*')
     .eq('organization_id', orgId)
     .eq('short_code', shortCode)
     .single()
 
-  if (urlError || !urlTracking) {
+  if (urlError || !urlMapping) {
     throw new Error('URL not found')
   }
 
@@ -303,7 +296,7 @@ export async function getUrlStats(shortCode: string, dateRange?: TimeRange) {
   let clickQuery = supabase
     .from('url_clicks')
     .select('*')
-    .eq('url_tracking_id', urlTracking.id)
+    .eq('url_mapping_id', urlMapping.id)
     .order('clicked_at', { ascending: false })
 
   if (dateFrom) {
@@ -322,15 +315,16 @@ export async function getUrlStats(shortCode: string, dateRange?: TimeRange) {
   const uniqueUsers = new Set<string>()
 
   clicks?.forEach((click) => {
-    const date = new Date(click.clicked_at).toISOString().split('T')[0]
+    const date = new Date(click.clicked_at!).toISOString().split('T')[0]
     if (!clicksByDate[date]) {
       clicksByDate[date] = { clicks: 0, unique_clicks: 0 }
     }
     clicksByDate[date].clicks += 1
 
-    if (click.friend_id && !uniqueUsers.has(click.friend_id)) {
+    const friendId = click.line_friend_id
+    if (friendId && !uniqueUsers.has(friendId)) {
       clicksByDate[date].unique_clicks += 1
-      uniqueUsers.add(click.friend_id)
+      uniqueUsers.add(friendId)
     }
   })
 
@@ -377,17 +371,17 @@ export async function getUrlStats(shortCode: string, dateRange?: TimeRange) {
   }))
 
   const stats: URLTrackingStats = {
-    id: urlTracking.id,
+    id: urlMapping.id,
     user_id: userId,
-    original_url: urlTracking.original_url,
-    short_code: urlTracking.short_code,
-    short_url: `${process.env.NEXT_PUBLIC_APP_URL}/s/${urlTracking.short_code}`,
-    custom_slug: urlTracking.custom_slug,
-    campaign_name: urlTracking.campaign_name,
-    total_clicks: urlTracking.total_clicks || 0,
-    unique_clicks: urlTracking.unique_clicks || 0,
-    created_at: urlTracking.created_at,
-    last_clicked_at: urlTracking.last_clicked_at,
+    original_url: urlMapping.original_url,
+    short_code: urlMapping.short_code,
+    short_url: `${process.env.NEXT_PUBLIC_APP_URL}/s/${urlMapping.short_code}`,
+    custom_slug: null,
+    campaign_name: null,
+    total_clicks: urlMapping.click_count || 0,
+    unique_clicks: urlMapping.unique_click_count || 0,
+    created_at: urlMapping.created_at!,
+    last_clicked_at: clicks && clicks.length > 0 ? clicks[0].clicked_at! : null,
     click_data: clickTrend,
     referrer_data: referrerData,
     device_data: deviceData,
@@ -413,14 +407,14 @@ export async function getUrlClickDetails(shortCode: string, dateRange?: TimeRang
   const supabase = await createClient()
 
   // Get URL tracking record
-  const { data: urlTracking, error: urlError } = await supabase
-    .from('url_tracking')
+  const { data: urlMapping, error: urlError } = await supabase
+    .from('url_mappings')
     .select('id')
     .eq('organization_id', orgId)
     .eq('short_code', shortCode)
     .single()
 
-  if (urlError || !urlTracking) {
+  if (urlError || !urlMapping) {
     throw new Error('URL not found')
   }
 
@@ -440,13 +434,13 @@ export async function getUrlClickDetails(shortCode: string, dateRange?: TimeRang
     .from('url_clicks')
     .select(`
       *,
-      friend:friends (
+      friend:line_friends!line_friend_id (
         id,
         display_name,
         picture_url
       )
     `)
-    .eq('url_tracking_id', urlTracking.id)
+    .eq('url_mapping_id', urlMapping.id)
     .order('clicked_at', { ascending: false })
 
   if (dateFrom) {
@@ -480,14 +474,14 @@ export async function generateQRCode(shortCode: string): Promise<string> {
   const supabase = await createClient()
 
   // Verify URL exists
-  const { data: urlTracking } = await supabase
-    .from('url_tracking')
+  const { data: urlMapping } = await supabase
+    .from('url_mappings')
     .select('short_code')
     .eq('organization_id', orgId)
     .eq('short_code', shortCode)
     .single()
 
-  if (!urlTracking) {
+  if (!urlMapping) {
     throw new Error('URL not found')
   }
 

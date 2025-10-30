@@ -5,8 +5,8 @@ import { FriendsQueries, FriendFilters, FriendWithTags } from '@/lib/supabase/qu
 import { TablesInsert, TablesUpdate } from '@/types/supabase'
 import { DatabaseResult } from '@/lib/errors/database'
 
-type FriendInsert = TablesInsert<'friends'>
-type FriendUpdate = TablesUpdate<'friends'>
+type FriendInsert = TablesInsert<'line_friends'>
+type FriendUpdate = TablesUpdate<'line_friends'>
 
 async function getCurrentUserId(): Promise<string | null> {
   const supabase = await createClient()
@@ -57,7 +57,7 @@ export async function getFriendById(
 }
 
 export async function createFriend(
-  friend: Omit<FriendInsert, 'user_id'>
+  friend: Omit<FriendInsert, 'organization_id'>
 ): Promise<DatabaseResult<any>> {
   const userId = await getCurrentUserId()
   if (!userId) {
@@ -73,7 +73,7 @@ export async function createFriend(
 
   const supabase = await createClient()
   const queries = new FriendsQueries(supabase)
-  return queries.createFriend({ ...friend, user_id: userId })
+  return queries.createFriend({ ...friend, organization_id: userId })
 }
 
 export async function updateFriend(
@@ -119,7 +119,7 @@ export async function deleteFriend(
 
 export async function blockFriend(
   friendId: string,
-  isBlocked: boolean = true
+  followStatus: 'following' | 'blocked' = 'blocked'
 ): Promise<DatabaseResult<any>> {
   const userId = await getCurrentUserId()
   if (!userId) {
@@ -135,7 +135,7 @@ export async function blockFriend(
 
   const supabase = await createClient()
   const queries = new FriendsQueries(supabase)
-  return queries.blockFriend(friendId, userId, isBlocked)
+  return queries.updateFriend(friendId, userId, { follow_status: followStatus })
 }
 
 export async function getFriendCount(): Promise<DatabaseResult<number>> {
@@ -159,13 +159,13 @@ export async function getFriendCount(): Promise<DatabaseResult<number>> {
 // Additional actions for friend detail page
 export async function updateFriendStatus(
   friendId: string,
-  isBlocked: boolean
+  followStatus: string
 ): Promise<void> {
   const supabase = await createClient()
 
   const { error } = await supabase
-    .from('friends')
-    .update({ is_blocked: isBlocked })
+    .from('line_friends')
+    .update({ follow_status: followStatus })
     .eq('id', friendId)
 
   if (error) throw error
@@ -178,8 +178,8 @@ export async function updateCustomFields(
   const supabase = await createClient()
 
   const { error } = await supabase
-    .from('friends')
-    .update({ metadata: customFields as any })
+    .from('line_friends')
+    .update({ custom_fields: customFields as any })
     .eq('id', friendId)
 
   if (error) throw error
@@ -193,7 +193,7 @@ export async function addTagToFriend(
 
   const { error } = await supabase
     .from('friend_tags')
-    .insert({ friend_id: friendId, tag_id: tagId })
+    .insert({ line_friend_id: friendId, tag_id: tagId })
 
   if (error) throw error
 }
@@ -207,7 +207,7 @@ export async function removeTagFromFriend(
   const { error } = await supabase
     .from('friend_tags')
     .delete()
-    .eq('friend_id', friendId)
+    .eq('line_friend_id', friendId)
     .eq('tag_id', tagId)
 
   if (error) throw error

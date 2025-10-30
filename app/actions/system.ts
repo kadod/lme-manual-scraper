@@ -60,13 +60,13 @@ async function getOrganizationId(): Promise<string | null> {
   if (!userId) return null
 
   const supabase = await createClient()
-  const { data: profile } = await supabase
-    .from('profiles')
+  const { data: userData } = await supabase
+    .from('users')
     .select('organization_id')
-    .eq('user_id', userId)
+    .eq('id', userId)
     .single()
 
-  return profile?.organization_id || null
+  return userData?.organization_id || null
 }
 
 /**
@@ -220,12 +220,8 @@ async function fetchExportData(
 ): Promise<any[]> {
   let query = supabase.from(getTableName(dataType)).select('*')
 
-  // Add organization filter if applicable
-  if (hasOrgFilter(dataType)) {
-    query = query.eq('organization_id', orgId)
-  } else {
-    query = query.eq('user_id', (await getCurrentUserId())!)
-  }
+  // Add organization filter - all tables use organization_id
+  query = query.eq('organization_id', orgId)
 
   // Add date range filter if applicable
   if (startDate && endDate && hasDateFilter(dataType)) {
@@ -268,7 +264,7 @@ function generateCSV(dataType: string, data: any[]): string {
  */
 function getTableName(dataType: string): string {
   const tableMap: Record<string, string> = {
-    friends: 'friends',
+    friends: 'line_friends',
     tags: 'tags',
     segments: 'segments',
     messages: 'messages',
@@ -283,7 +279,8 @@ function getTableName(dataType: string): string {
  * Check if data type has organization filter
  */
 function hasOrgFilter(dataType: string): boolean {
-  return ['analytics'].includes(dataType)
+  // All data types now use organization_id
+  return true
 }
 
 /**
@@ -439,9 +436,9 @@ async function importRow(
   if (dataType === 'friends') {
     // Check for duplicate
     const { data: existing } = await supabase
-      .from('friends')
+      .from('line_friends')
       .select('id')
-      .eq('user_id', userId)
+      .eq('organization_id', orgId)
       .eq('line_user_id', data.line_user_id)
       .single()
 
@@ -452,7 +449,7 @@ async function importRow(
         throw new Error('Duplicate LINE User ID')
       } else if (onDuplicate === 'update') {
         const { error } = await supabase
-          .from('friends')
+          .from('line_friends')
           .update({
             display_name: data.display_name,
             status_message: data.status_message,
@@ -465,9 +462,21 @@ async function importRow(
       }
     }
 
-    // Insert new friend
-    const { error } = await supabase.from('friends').insert({
-      user_id: userId,
+    // Insert new friend - need line_channel_id
+    // This is a simplified implementation - in production, get actual line_channel_id
+    const { data: channel } = await supabase
+      .from('line_channels')
+      .select('id')
+      .eq('organization_id', orgId)
+      .single()
+
+    if (!channel) {
+      throw new Error('No LINE channel found for organization')
+    }
+
+    const { error } = await supabase.from('line_friends').insert({
+      organization_id: orgId,
+      line_channel_id: channel.id,
       line_user_id: data.line_user_id,
       display_name: data.display_name,
       status_message: data.status_message,
@@ -480,7 +489,7 @@ async function importRow(
     const { data: existing } = await supabase
       .from('tags')
       .select('id')
-      .eq('user_id', userId)
+      .eq('organization_id', orgId)
       .eq('name', data.name)
       .single()
 
@@ -506,7 +515,7 @@ async function importRow(
 
     // Insert new tag
     const { error } = await supabase.from('tags').insert({
-      user_id: userId,
+      organization_id: orgId,
       name: data.name,
       color: data.color,
       description: data.description,
@@ -527,32 +536,9 @@ async function importRow(
  * Get all API keys for organization
  */
 export async function getAPIKeys(): Promise<APIKey[]> {
-  const userId = await getCurrentUserId()
-  if (!userId) {
-    throw new Error('User not authenticated')
-  }
-
-  const orgId = await getOrganizationId()
-  if (!orgId) {
-    throw new Error('Organization not found')
-  }
-
-  const hasPermission = await checkUserRole(['owner', 'admin'])
-  if (!hasPermission) {
-    throw new Error('Permission denied')
-  }
-
-  const supabase = await createClient()
-
-  const { data, error } = await supabase
-    .from('api_keys')
-    .select('*')
-    .eq('organization_id', orgId)
-    .order('created_at', { ascending: false })
-
-  if (error) throw error
-
-  return data || []
+  // TODO: Implement api_keys table in database schema
+  // For now, return empty array
+  return []
 }
 
 /**
@@ -561,61 +547,8 @@ export async function getAPIKeys(): Promise<APIKey[]> {
 export async function createAPIKey(
   keyData: APIKeyCreateData
 ): Promise<APIKeyWithSecret> {
-  const userId = await getCurrentUserId()
-  if (!userId) {
-    throw new Error('User not authenticated')
-  }
-
-  const orgId = await getOrganizationId()
-  if (!orgId) {
-    throw new Error('Organization not found')
-  }
-
-  const hasPermission = await checkUserRole(['owner', 'admin'])
-  if (!hasPermission) {
-    throw new Error('Permission denied')
-  }
-
-  const supabase = await createClient()
-
-  // Generate API key
-  const apiKey = generateAPIKey()
-  const keyHash = hashAPIKey(apiKey)
-  const keyPrefix = getKeyPrefix(apiKey)
-
-  // Insert into database
-  const { data, error } = await supabase
-    .from('api_keys')
-    .insert({
-      organization_id: orgId,
-      name: keyData.name,
-      key_prefix: keyPrefix,
-      key_hash: keyHash,
-      permissions: keyData.permissions,
-      rate_limit: keyData.rate_limit || 1000,
-      allowed_ips: keyData.allowed_ips || [],
-      expires_at: keyData.expires_at || null,
-      created_by: userId,
-      is_active: true,
-    })
-    .select()
-    .single()
-
-  if (error) throw error
-
-  // Log audit event
-  await logAudit(supabase, orgId, userId, 'api_key.created', 'api_key', data.id, {
-    name: keyData.name,
-    permissions: keyData.permissions,
-  })
-
-  revalidatePath('/dashboard/settings/system')
-
-  // Return API key with secret (only shown once)
-  return {
-    ...data,
-    key: apiKey,
-  }
+  // TODO: Implement api_keys table in database schema
+  throw new Error('API key management requires database schema migration. Please create the api_keys table first.')
 }
 
 /**
@@ -625,140 +558,24 @@ export async function updateAPIKey(
   keyId: string,
   updates: APIKeyUpdateData
 ): Promise<APIKey> {
-  const userId = await getCurrentUserId()
-  if (!userId) {
-    throw new Error('User not authenticated')
-  }
-
-  const orgId = await getOrganizationId()
-  if (!orgId) {
-    throw new Error('Organization not found')
-  }
-
-  const hasPermission = await checkUserRole(['owner', 'admin'])
-  if (!hasPermission) {
-    throw new Error('Permission denied')
-  }
-
-  const supabase = await createClient()
-
-  const { data, error } = await supabase
-    .from('api_keys')
-    .update({
-      ...updates,
-      updated_at: new Date().toISOString(),
-    })
-    .eq('id', keyId)
-    .eq('organization_id', orgId)
-    .select()
-    .single()
-
-  if (error) throw error
-
-  // Log audit event
-  await logAudit(
-    supabase,
-    orgId,
-    userId,
-    'api_key.updated',
-    'api_key',
-    keyId,
-    updates
-  )
-
-  revalidatePath('/dashboard/settings/system')
-
-  return data
+  // TODO: Implement api_keys table in database schema
+  throw new Error('API key management requires database schema migration. Please create the api_keys table first.')
 }
 
 /**
  * Delete API key
  */
 export async function deleteAPIKey(keyId: string): Promise<{ success: boolean }> {
-  const userId = await getCurrentUserId()
-  if (!userId) {
-    throw new Error('User not authenticated')
-  }
-
-  const orgId = await getOrganizationId()
-  if (!orgId) {
-    throw new Error('Organization not found')
-  }
-
-  const hasPermission = await checkUserRole(['owner', 'admin'])
-  if (!hasPermission) {
-    throw new Error('Permission denied')
-  }
-
-  const supabase = await createClient()
-
-  const { error } = await supabase
-    .from('api_keys')
-    .delete()
-    .eq('id', keyId)
-    .eq('organization_id', orgId)
-
-  if (error) throw error
-
-  // Log audit event
-  await logAudit(
-    supabase,
-    orgId,
-    userId,
-    'api_key.deleted',
-    'api_key',
-    keyId,
-    {}
-  )
-
-  revalidatePath('/dashboard/settings/system')
-
-  return { success: true }
+  // TODO: Implement api_keys table in database schema
+  throw new Error('API key management requires database schema migration. Please create the api_keys table first.')
 }
 
 /**
  * Toggle API key active status
  */
 export async function toggleAPIKey(keyId: string, isActive: boolean): Promise<{ success: boolean }> {
-  const userId = await getCurrentUserId()
-  if (!userId) {
-    throw new Error('User not authenticated')
-  }
-
-  const orgId = await getOrganizationId()
-  if (!orgId) {
-    throw new Error('Organization not found')
-  }
-
-  const hasPermission = await checkUserRole(['owner', 'admin'])
-  if (!hasPermission) {
-    throw new Error('Permission denied')
-  }
-
-  const supabase = await createClient()
-
-  const { error } = await supabase
-    .from('api_keys')
-    .update({ is_active: isActive })
-    .eq('id', keyId)
-    .eq('organization_id', orgId)
-
-  if (error) throw error
-
-  // Log audit event
-  await logAudit(
-    supabase,
-    orgId,
-    userId,
-    isActive ? 'api_key.activated' : 'api_key.deactivated',
-    'api_key',
-    keyId,
-    { is_active: isActive }
-  )
-
-  revalidatePath('/dashboard/settings/system')
-
-  return { success: true }
+  // TODO: Implement api_keys table in database schema
+  throw new Error('API key management requires database schema migration. Please create the api_keys table first.')
 }
 
 // ============================================================
@@ -821,6 +638,7 @@ export async function getAuditLogs(
   const logs = (data || []).map((log: any) => ({
     ...log,
     user_email: log.users?.email,
+    details: log.changes || {},
   })) as AuditLog[]
 
   return {
@@ -851,7 +669,7 @@ export async function exportAuditLogs(
     const supabase = await createClient()
 
     // Fetch all matching logs (no pagination for export)
-    const { logs } = await getAuditLogs({ ...filters, limit: 10000 })
+    const { logs } = await getAuditLogs({ ...filters, page: 1, limit: 10000 })
 
     // Convert to CSV
     const csvData = logs.map((log) => ({
@@ -860,8 +678,8 @@ export async function exportAuditLogs(
       Action: log.action,
       Resource_Type: log.resource_type,
       Resource_ID: log.resource_id || '',
-      IP_Address: log.ip_address || '',
-      Details: JSON.stringify(log.details),
+      IP_Address: log.ip_address ? String(log.ip_address) : '',
+      Details: JSON.stringify(log.details || {}),
     }))
 
     const content = arrayToCSV(csvData)
@@ -914,7 +732,7 @@ async function logAudit(
     action,
     resource_type: resourceType,
     resource_id: resourceId,
-    details,
+    changes: details,
     created_at: new Date().toISOString(),
   })
 }

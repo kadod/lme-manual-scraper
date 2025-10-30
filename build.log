@@ -1,0 +1,30 @@
+
+> lme-saas@0.1.0 build
+> next build
+
+ ⚠ Warning: Next.js inferred your workspace root, but it may not be correct.
+ We detected multiple lockfiles and selected the directory of /Users/kadotani/package-lock.json as the root directory.
+ To silence this warning, set `turbopack.root` in your Next.js config, or consider removing one of the lockfiles if it's not needed.
+   See https://nextjs.org/docs/app/api-reference/config/next-config-js/turbopack#root-directory for more information.
+ Detected additional lockfiles: 
+   * /Users/kadotani/Documents/dev-projects/GitHub/lme-manual-scraper/package-lock.json
+
+   ▲ Next.js 16.0.1 (Turbopack)
+   - Environments: .env.local
+
+   Creating an optimized production build ...
+ ✓ Compiled successfully in 6.1s
+   Running TypeScript ...
+Failed to compile.
+
+./app/actions/analytics.ts:38:20
+Type error: Property 'organization_id' does not exist on type 'SelectQueryError<"column 'organization_id' does not exist on 'users'.">'.
+
+[0m [90m 36 |[39m     [33m.[39msingle()
+ [90m 37 |[39m
+[31m[1m>[22m[39m[90m 38 |[39m   [36mreturn[39m userData[33m?[39m[33m.[39morganization_id [33m||[39m [36mnull[39m
+ [90m    |[39m                    [31m[1m^[22m[39m
+ [90m 39 |[39m }
+ [90m 40 |[39m
+ [90m 41 |[39m [90m/**[39m[0m
+Next.js build worker exited with code: 1 and signal: null

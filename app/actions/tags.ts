@@ -9,17 +9,26 @@ type Tag = Database['public']['Tables']['tags']['Row']
 type TagInsert = TablesInsert<'tags'>
 type TagUpdate = TablesUpdate<'tags'>
 
-async function getCurrentUserId(): Promise<string | null> {
+async function getCurrentUserOrganizationId(): Promise<string | null> {
   const supabase = await createClient()
   const {
     data: { user },
   } = await supabase.auth.getUser()
-  return user?.id || null
+
+  if (!user) return null
+
+  const { data: userData } = await supabase
+    .from('users')
+    .select('organization_id')
+    .eq('id', user.id)
+    .single()
+
+  return userData?.organization_id || null
 }
 
 export async function getTags(): Promise<DatabaseResult<TagWithCount[]>> {
-  const userId = await getCurrentUserId()
-  if (!userId) {
+  const organizationId = await getCurrentUserOrganizationId()
+  if (!organizationId) {
     return {
       success: false,
       error: {
@@ -32,12 +41,12 @@ export async function getTags(): Promise<DatabaseResult<TagWithCount[]>> {
 
   const supabase = await createClient()
   const queries = new TagsQueries(supabase)
-  return queries.getTags(userId)
+  return queries.getTags(organizationId)
 }
 
 export async function getTagById(tagId: string): Promise<DatabaseResult<Tag>> {
-  const userId = await getCurrentUserId()
-  if (!userId) {
+  const organizationId = await getCurrentUserOrganizationId()
+  if (!organizationId) {
     return {
       success: false,
       error: {
@@ -50,14 +59,14 @@ export async function getTagById(tagId: string): Promise<DatabaseResult<Tag>> {
 
   const supabase = await createClient()
   const queries = new TagsQueries(supabase)
-  return queries.getTagById(tagId, userId)
+  return queries.getTagById(tagId, organizationId)
 }
 
 export async function createTag(
-  tag: Omit<TagInsert, 'user_id'>
+  tag: Omit<TagInsert, 'organization_id'>
 ): Promise<DatabaseResult<Tag>> {
-  const userId = await getCurrentUserId()
-  if (!userId) {
+  const organizationId = await getCurrentUserOrganizationId()
+  if (!organizationId) {
     return {
       success: false,
       error: {
@@ -70,15 +79,15 @@ export async function createTag(
 
   const supabase = await createClient()
   const queries = new TagsQueries(supabase)
-  return queries.createTag({ ...tag, user_id: userId })
+  return queries.createTag({ ...tag, organization_id: organizationId })
 }
 
 export async function updateTag(
   tagId: string,
   updates: TagUpdate
 ): Promise<DatabaseResult<Tag>> {
-  const userId = await getCurrentUserId()
-  if (!userId) {
+  const organizationId = await getCurrentUserOrganizationId()
+  if (!organizationId) {
     return {
       success: false,
       error: {
@@ -91,12 +100,12 @@ export async function updateTag(
 
   const supabase = await createClient()
   const queries = new TagsQueries(supabase)
-  return queries.updateTag(tagId, userId, updates)
+  return queries.updateTag(tagId, organizationId, updates)
 }
 
 export async function deleteTag(tagId: string): Promise<DatabaseResult<void>> {
-  const userId = await getCurrentUserId()
-  if (!userId) {
+  const organizationId = await getCurrentUserOrganizationId()
+  if (!organizationId) {
     return {
       success: false,
       error: {
@@ -109,15 +118,15 @@ export async function deleteTag(tagId: string): Promise<DatabaseResult<void>> {
 
   const supabase = await createClient()
   const queries = new TagsQueries(supabase)
-  return queries.deleteTag(tagId, userId)
+  return queries.deleteTag(tagId, organizationId)
 }
 
 export async function addTagToFriend(
   friendId: string,
   tagId: string
 ): Promise<DatabaseResult<any>> {
-  const userId = await getCurrentUserId()
-  if (!userId) {
+  const organizationId = await getCurrentUserOrganizationId()
+  if (!organizationId) {
     return {
       success: false,
       error: {
@@ -137,8 +146,8 @@ export async function removeTagFromFriend(
   friendId: string,
   tagId: string
 ): Promise<DatabaseResult<void>> {
-  const userId = await getCurrentUserId()
-  if (!userId) {
+  const organizationId = await getCurrentUserOrganizationId()
+  if (!organizationId) {
     return {
       success: false,
       error: {
@@ -157,8 +166,8 @@ export async function removeTagFromFriend(
 export async function getFriendTags(
   friendId: string
 ): Promise<DatabaseResult<Tag[]>> {
-  const userId = await getCurrentUserId()
-  if (!userId) {
+  const organizationId = await getCurrentUserOrganizationId()
+  if (!organizationId) {
     return {
       success: false,
       error: {

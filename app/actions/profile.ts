@@ -42,10 +42,7 @@ export async function updateProfile(
     const { error } = await supabase
       .from('users')
       .update({
-        full_name: data.full_name,
-        phone_number: data.phone_number || null,
-        timezone: data.timezone,
-        locale: data.locale,
+        display_name: data.full_name,
         updated_at: new Date().toISOString(),
       })
       .eq('id', user.id)
@@ -375,7 +372,7 @@ export async function getActiveSessions(): Promise<Session[]> {
     // For now, return current session info
     const { data: userData } = await supabase
       .from('users')
-      .select('last_login_at, last_login_ip')
+      .select('last_login_at')
       .eq('id', user.id)
       .single()
 
@@ -388,7 +385,7 @@ export async function getActiveSessions(): Promise<Session[]> {
       {
         id: 'current',
         user_id: user.id,
-        ip_address: userData.last_login_ip || null,
+        ip_address: null,
         user_agent: null,
         created_at: userData.last_login_at || new Date().toISOString(),
         last_active_at: new Date().toISOString(),

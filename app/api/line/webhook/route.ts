@@ -242,12 +242,13 @@ async function handleMessageEvent(
   await supabase
     .from('chat_messages')
     .insert({
+      organization_id: lineChannel.organization_id,
       conversation_id: conversationId,
-      line_message_id: message.id,
       sender_type: 'user',
       message_type: message.type,
-      content: message.text || null,
+      content: message.text || `[${message.type}]`,
       metadata: {
+        lineMessageId: message.id,
         stickerId: message.stickerId,
         packageId: message.packageId,
         contentProvider: message.contentProvider

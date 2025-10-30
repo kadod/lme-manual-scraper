@@ -26,8 +26,8 @@ export type FormFilters = {
 export interface FormResponse {
   id: string
   form_id: string
-  friend_id: string
-  answers: Record<string, any>
+  line_friend_id: string
+  responses: Record<string, any>
   submitted_at: string
   created_at: string
   friend?: {
@@ -164,13 +164,9 @@ export async function duplicateForm(formId: string) {
       created_by: userId,
       title: `${original.title} (コピー)`,
       description: original.description,
-      questions: original.questions,
       settings: original.settings,
       status: 'draft',
       total_responses: 0,
-      response_rate: 0,
-      published_at: null,
-      closed_at: null,
     })
     .select()
     .single()
@@ -206,17 +202,9 @@ export async function updateFormStatus(
     throw new Error('Form not found')
   }
 
-  const updateData: any = { status }
-
-  if (status === 'published') {
-    updateData.published_at = new Date().toISOString()
-  } else if (status === 'closed') {
-    updateData.closed_at = new Date().toISOString()
-  }
-
   const { error } = await supabase
     .from('forms')
-    .update(updateData)
+    .update({ status })
     .eq('id', formId)
 
   if (error) {
@@ -263,7 +251,7 @@ export async function getFormResponses(formId: string, filters?: {
       .from('form_responses')
       .select(`
         *,
-        friend:friends (
+        friend:line_friends (
           id,
           display_name,
           picture_url,
@@ -294,8 +282,8 @@ export async function getFormResponses(formId: string, filters?: {
       const searchLower = filters.searchTerm.toLowerCase()
       filteredData = filteredData.filter((response: any) => {
         const friendName = response.friend?.display_name?.toLowerCase() || ''
-        const answersString = JSON.stringify(response.answers).toLowerCase()
-        return friendName.includes(searchLower) || answersString.includes(searchLower)
+        const responsesString = JSON.stringify(response.responses).toLowerCase()
+        return friendName.includes(searchLower) || responsesString.includes(searchLower)
       })
     }
 
@@ -319,7 +307,7 @@ export async function getFormResponseById(responseId: string) {
       .from('form_responses')
       .select(`
         *,
-        friend:friends (
+        friend:line_friends (
           id,
           display_name,
           picture_url,
@@ -329,7 +317,6 @@ export async function getFormResponseById(responseId: string) {
         form:forms (
           id,
           title,
-          questions,
           organization_id
         )
       `)
@@ -365,7 +352,7 @@ export async function getFormStats(formId: string) {
     // Verify form ownership
     const { data: form, error: formError } = await supabase
       .from('forms')
-      .select('total_responses, response_rate')
+      .select('id, total_responses')
       .eq('id', formId)
       .eq('organization_id', organizationId)
       .single()
@@ -386,7 +373,7 @@ export async function getFormStats(formId: string) {
 
     const stats: FormStats = {
       totalResponses: count || 0,
-      responseRate: form.response_rate || 0,
+      responseRate: 0, // Calculate based on total_responses if needed
     }
 
     return { success: true, data: stats }
@@ -405,10 +392,10 @@ export async function exportResponsesToCSV(formId: string) {
 
     const supabase = await createClient()
 
-    // Get form with questions
+    // Get form
     const { data: form, error: formError } = await supabase
       .from('forms')
-      .select('title, questions')
+      .select('title')
       .eq('id', formId)
       .eq('organization_id', organizationId)
       .single()
@@ -422,7 +409,7 @@ export async function exportResponsesToCSV(formId: string) {
       .from('form_responses')
       .select(`
         *,
-        friend:friends (
+        friend:line_friends (
           display_name,
           line_user_id
         )
@@ -434,29 +421,35 @@ export async function exportResponsesToCSV(formId: string) {
       return { success: false, error: responsesError.message }
     }
 
+    // Collect all unique field keys from responses
+    const allFieldKeys = new Set<string>()
+    responses?.forEach((response: any) => {
+      Object.keys(response.responses || {}).forEach(key => allFieldKeys.add(key))
+    })
+    const fieldKeys = Array.from(allFieldKeys).sort()
+
     // Build CSV
-    const questions = form.questions as any[]
     const headers = [
       'Response ID',
       'Friend Name',
       'LINE User ID',
       'Submitted At',
-      ...questions.map((q: any) => q.title || q.label || 'Question')
+      ...fieldKeys
     ]
 
     const rows = (responses || []).map((response: any) => {
-      const answers = response.answers || {}
+      const responseData = response.responses || {}
       return [
         response.id,
         response.friend?.display_name || 'Unknown',
         response.friend?.line_user_id || '',
         new Date(response.submitted_at).toLocaleString(),
-        ...questions.map((q: any) => {
-          const answer = answers[q.id]
-          if (Array.isArray(answer)) {
-            return answer.join(', ')
+        ...fieldKeys.map((key: string) => {
+          const value = responseData[key]
+          if (Array.isArray(value)) {
+            return value.join(', ')
           }
-          return answer || ''
+          return value || ''
         })
       ]
     })
@@ -487,7 +480,8 @@ export async function deleteFormResponse(responseId: string) {
       .from('form_responses')
       .select(`
         id,
-        form:forms (
+        form_id,
+        forms!inner (
           organization_id
         )
       `)
@@ -498,7 +492,9 @@ export async function deleteFormResponse(responseId: string) {
       return { success: false, error: 'Response not found' }
     }
 
-    if (response.form?.organization_id !== organizationId) {
+    // Access the forms property properly (it's an array due to the join)
+    const formData = Array.isArray(response.forms) ? response.forms[0] : response.forms
+    if (formData?.organization_id !== organizationId) {
       return { success: false, error: 'Unauthorized' }
     }
 
@@ -526,7 +522,7 @@ export async function getPublicForm(formId: string) {
     .from('forms')
     .select('*')
     .eq('id', formId)
-    .eq('status', 'published')
+    .eq('status', 'active')
     .single()
 
   if (error) {
@@ -554,7 +550,7 @@ export async function submitPublicForm(formId: string, submission: FormSubmissio
       .from('forms')
       .select('*')
       .eq('id', formId)
-      .eq('status', 'published')
+      .eq('status', 'active')
       .single()
 
     if (formError || !form) {
@@ -564,89 +560,15 @@ export async function submitPublicForm(formId: string, submission: FormSubmissio
       }
     }
 
-    const questions = form.questions as any[]
-    const errors: FormValidationError[] = []
-
-    for (const question of questions) {
-      if (question.required && !submission[question.id]) {
-        errors.push({
-          fieldId: question.id,
-          message: `${question.title || question.label}は必須項目です`
-        })
-      }
-
-      const value = submission[question.id]
-      if (!value) continue
-
-      switch (question.type) {
-        case 'email':
-          const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-          if (!emailRegex.test(value)) {
-            errors.push({
-              fieldId: question.id,
-              message: '有効なメールアドレスを入力してください'
-            })
-          }
-          break
-
-        case 'url':
-          try {
-            new URL(value)
-          } catch {
-            errors.push({
-              fieldId: question.id,
-              message: '有効なURLを入力してください'
-            })
-          }
-          break
-
-        case 'tel':
-          const telRegex = /^[0-9-+()]*$/
-          if (!telRegex.test(value)) {
-            errors.push({
-              fieldId: question.id,
-              message: '有効な電話番号を入力してください'
-            })
-          }
-          break
-
-        case 'number':
-          const numValue = Number(value)
-          if (isNaN(numValue)) {
-            errors.push({
-              fieldId: question.id,
-              message: '有効な数値を入力してください'
-            })
-          }
-          if (question.validation?.min !== undefined && numValue < question.validation.min) {
-            errors.push({
-              fieldId: question.id,
-              message: `${question.validation.min}以上の値を入力してください`
-            })
-          }
-          if (question.validation?.max !== undefined && numValue > question.validation.max) {
-            errors.push({
-              fieldId: question.id,
-              message: `${question.validation.max}以下の値を入力してください`
-            })
-          }
-          break
-      }
-    }
-
-    if (errors.length > 0) {
-      return {
-        success: false,
-        errors
-      }
-    }
+    // Basic validation could be added here if form settings contain validation rules
+    // For now, we'll just accept the submission
 
     const { error: insertError } = await supabase
       .from('form_responses')
       .insert({
         form_id: formId,
-        friend_id: lineUserId || null,
-        answers: submission
+        line_friend_id: lineUserId || null,
+        responses: submission
       })
 
     if (insertError) {
@@ -724,7 +646,7 @@ export async function getFormAnalyticsAction(formId: string, days: number = 30) 
 
   const supabase = await createClient()
 
-  // Get form with questions
+  // Get form
   const { data: form, error: formError } = await supabase
     .from('forms')
     .select('*')
@@ -750,42 +672,55 @@ export async function getFormAnalyticsAction(formId: string, days: number = 30) 
     throw new Error('Failed to fetch responses')
   }
 
-  // Calculate analytics
-  const questions = form.questions as any[]
+  // Collect all unique field keys from responses
+  const allFieldKeys = new Set<string>()
+  responses?.forEach((response: any) => {
+    Object.keys(response.responses || {}).forEach(key => allFieldKeys.add(key))
+  })
+  const fieldKeys = Array.from(allFieldKeys).sort()
+
+  // Calculate analytics for each field
   const fieldAnalytics: Record<string, any> = {}
 
-  questions.forEach((question: any) => {
-    const fieldId = question.id
-    const values = responses?.map(r => r.answers[fieldId]).filter(v => v !== undefined && v !== null) || []
+  fieldKeys.forEach((fieldId: string) => {
+    const values = responses?.map(r => {
+      const responseData = r.responses as Record<string, any> | null
+      return responseData ? responseData[fieldId] : null
+    }).filter(v => v !== undefined && v !== null) || []
 
-    if (question.type === 'radio' || question.type === 'select' || question.type === 'checkbox') {
-      // Count option frequencies
+    // Determine field type by analyzing values
+    const hasArrayValues = values.some(v => Array.isArray(v))
+    const hasNumericValues = values.some(v => typeof v === 'number' || !isNaN(Number(v)))
+
+    if (hasArrayValues || values.length < values.filter(v => typeof v === 'string').length) {
+      // Likely a multi-select or single-select field
       const frequencies: Record<string, number> = {}
       values.forEach(val => {
         if (Array.isArray(val)) {
           val.forEach(v => {
-            frequencies[v] = (frequencies[v] || 0) + 1
+            frequencies[String(v)] = (frequencies[String(v)] || 0) + 1
           })
         } else {
-          frequencies[val] = (frequencies[val] || 0) + 1
+          frequencies[String(val)] = (frequencies[String(val)] || 0) + 1
         }
       })
 
       fieldAnalytics[fieldId] = {
-        type: question.type,
-        title: question.title || question.label,
+        type: 'select',
+        title: fieldId,
         frequencies,
         totalResponses: values.length,
       }
-    } else if (question.type === 'rating') {
+    } else if (hasNumericValues) {
+      // Likely a numeric or rating field
       const numericValues = values.map(v => Number(v)).filter(v => !isNaN(v))
-      const average = numericValues.length > 0 
-        ? numericValues.reduce((a, b) => a + b, 0) / numericValues.length 
+      const average = numericValues.length > 0
+        ? numericValues.reduce((a, b) => a + b, 0) / numericValues.length
         : 0
 
       fieldAnalytics[fieldId] = {
-        type: question.type,
-        title: question.title || question.label,
+        type: 'number',
+        title: fieldId,
         average: Math.round(average * 10) / 10,
         totalResponses: numericValues.length,
         distribution: numericValues.reduce((acc, val) => {
@@ -799,10 +734,10 @@ export async function getFormAnalyticsAction(formId: string, days: number = 30) 
   return {
     form: {
       ...form,
-      fields: questions,
+      fields: fieldKeys,
     },
     totalResponses: responses?.length || 0,
-    responseRate: form.response_rate,
+    responseRate: 0,
     fieldAnalytics,
   }
 }
@@ -834,7 +769,7 @@ export async function getTextFieldWordsAction(
   // Get all responses for this field
   const { data: responses } = await supabase
     .from('form_responses')
-    .select('answers')
+    .select('responses')
     .eq('form_id', formId)
 
   if (!responses) {
@@ -844,7 +779,8 @@ export async function getTextFieldWordsAction(
   // Extract and count words
   const wordCounts: Record<string, number> = {}
   responses.forEach(response => {
-    const text = response.answers[fieldId]
+    const responseData = response.responses as Record<string, any> | null
+    const text = responseData ? responseData[fieldId] : null
     if (typeof text === 'string') {
       // Simple word extraction (split by spaces and punctuation)
       const words = text

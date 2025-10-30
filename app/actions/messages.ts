@@ -6,10 +6,9 @@ import { revalidatePath } from 'next/cache'
 export type Message = {
   id: string
   organization_id: string
-  title: string
   type: 'text' | 'image' | 'video' | 'flex' | 'template'
   target_type: 'all' | 'segment' | 'tags'
-  target_value: string | null
+  target_ids: string[] | null
   status: 'draft' | 'scheduled' | 'sending' | 'sent' | 'failed' | 'cancelled'
   content: any
   scheduled_at: string | null
@@ -72,7 +71,8 @@ export async function getMessages(filters?: MessageFilters) {
   }
 
   if (filters?.search) {
-    query = query.ilike('title', `%${filters.search}%`)
+    // Search in content JSON field instead of title
+    query = query.or(`content->>text.ilike.%${filters.search}%`)
   }
 
   if (filters?.dateFrom) {
@@ -204,10 +204,10 @@ export async function duplicateMessage(messageId: string) {
     .from('messages')
     .insert({
       organization_id: original.organization_id,
-      title: `${original.title} (コピー)`,
+      line_channel_id: original.line_channel_id,
       type: original.type,
       target_type: original.target_type,
-      target_value: original.target_value,
+      target_ids: original.target_ids,
       content: original.content,
       status: 'draft',
       scheduled_at: null,

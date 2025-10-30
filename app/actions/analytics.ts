@@ -29,13 +29,13 @@ async function getOrganizationId(): Promise<string | null> {
   if (!userId) return null
 
   const supabase = await createClient()
-  const { data: profile } = await supabase
-    .from('profiles')
+  const { data: userData } = await supabase
+    .from('users')
     .select('organization_id')
-    .eq('user_id', userId)
+    .eq('id', userId)
     .single()
 
-  return profile?.organization_id || null
+  return userData?.organization_id || null
 }
 
 /**
@@ -107,13 +107,28 @@ export async function getAnalyticsOverview(
   const supabase = await createClient()
   const { start, end } = getDateRange(dateRange)
 
-  // Get current period stats from analytics_daily_stats
-  const { data: currentStats } = await supabase
-    .from('analytics_daily_stats')
-    .select('*')
+  // TODO: Implement analytics_daily_stats table or calculate from analytics_events
+  // For now, calculate from existing tables
+  const { data: friends } = await supabase
+    .from('line_friends')
+    .select('id, created_at, follow_status')
     .eq('organization_id', orgId)
-    .gte('date', start.toISOString().split('T')[0])
-    .lte('date', end.toISOString().split('T')[0])
+
+  const { data: messages } = await supabase
+    .from('messages')
+    .select('id, sent_count, delivered_count, read_count, click_count, created_at')
+    .eq('organization_id', orgId)
+    .gte('created_at', start.toISOString())
+    .lte('created_at', end.toISOString())
+
+  // Calculate current period metrics from actual data
+  const current = {
+    friends: (friends || []).filter(f => f.follow_status === 'following').length,
+    messages: (messages || []).reduce((sum, m) => sum + (m.sent_count || 0), 0),
+    delivered: (messages || []).reduce((sum, m) => sum + (m.delivered_count || 0), 0),
+    read: (messages || []).reduce((sum, m) => sum + (m.read_count || 0), 0),
+    clicked: (messages || []).reduce((sum, m) => sum + (m.click_count || 0), 0),
+  }
 
   // Calculate previous period for comparison
   const daysInPeriod = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24))
@@ -122,36 +137,21 @@ export async function getAnalyticsOverview(
   const prevEnd = new Date(start)
   prevEnd.setDate(prevEnd.getDate() - 1)
 
-  const { data: prevStats } = await supabase
-    .from('analytics_daily_stats')
-    .select('*')
+  const { data: prevMessages } = await supabase
+    .from('messages')
+    .select('id, sent_count, delivered_count, read_count, click_count, created_at')
     .eq('organization_id', orgId)
-    .gte('date', prevStart.toISOString().split('T')[0])
-    .lte('date', prevEnd.toISOString().split('T')[0])
-
-  // Aggregate current period metrics
-  const current = (currentStats || []).reduce(
-    (acc, stat) => ({
-      friends: acc.friends + (stat.new_friends || 0) - (stat.blocked_friends || 0),
-      messages: acc.messages + (stat.messages_sent || 0),
-      delivered: acc.delivered + (stat.messages_delivered || 0),
-      read: acc.read + (stat.messages_read || 0),
-      clicked: acc.clicked + (stat.messages_clicked || 0),
-    }),
-    { friends: 0, messages: 0, delivered: 0, read: 0, clicked: 0 }
-  )
+    .gte('created_at', prevStart.toISOString())
+    .lte('created_at', prevEnd.toISOString())
 
   // Aggregate previous period metrics
-  const previous = (prevStats || []).reduce(
-    (acc, stat) => ({
-      friends: acc.friends + (stat.new_friends || 0) - (stat.blocked_friends || 0),
-      messages: acc.messages + (stat.messages_sent || 0),
-      delivered: acc.delivered + (stat.messages_delivered || 0),
-      read: acc.read + (stat.messages_read || 0),
-      clicked: acc.clicked + (stat.messages_clicked || 0),
-    }),
-    { friends: 0, messages: 0, delivered: 0, read: 0, clicked: 0 }
-  )
+  const previous = {
+    friends: 0, // TODO: Calculate historical friend count
+    messages: (prevMessages || []).reduce((sum, m) => sum + (m.sent_count || 0), 0),
+    delivered: (prevMessages || []).reduce((sum, m) => sum + (m.delivered_count || 0), 0),
+    read: (prevMessages || []).reduce((sum, m) => sum + (m.read_count || 0), 0),
+    clicked: (prevMessages || []).reduce((sum, m) => sum + (m.click_count || 0), 0),
+  }
 
   // Calculate rates
   const deliveryRate = current.messages > 0 ? (current.delivered / current.messages) * 100 : 0
@@ -207,24 +207,46 @@ export async function getFriendsTrend(
     end = range.end
   }
 
-  const { data: stats, error } = await supabase
-    .from('analytics_daily_stats')
-    .select('date, new_friends, blocked_friends, total_friends')
+  // TODO: Implement analytics_daily_stats table for efficient querying
+  // For now, calculate from line_friends table
+  const { data: friends, error } = await supabase
+    .from('line_friends')
+    .select('created_at, follow_status')
     .eq('organization_id', orgId)
-    .gte('date', start.toISOString().split('T')[0])
-    .lte('date', end.toISOString().split('T')[0])
-    .order('date', { ascending: true })
+    .gte('created_at', start.toISOString())
+    .lte('created_at', end.toISOString())
+    .order('created_at', { ascending: true })
 
   if (error) {
     console.error('Error fetching friends trend:', error)
     throw error
   }
 
-  return (stats || []).map((stat) => ({
-    date: stat.date,
-    total: stat.total_friends || 0,
-    new_friends: stat.new_friends || 0,
-    blocked: stat.blocked_friends || 0,
+  // Group by date
+  const dateMap = new Map<string, { new: number; blocked: number }>()
+  let runningTotal = 0
+
+  for (const friend of friends || []) {
+    if (!friend.created_at) continue
+    const date = new Date(friend.created_at).toISOString().split('T')[0]
+    const current = dateMap.get(date) || { new: 0, blocked: 0 }
+
+    if (friend.follow_status === 'following') {
+      current.new += 1
+      runningTotal += 1
+    } else if (friend.follow_status === 'blocked' || friend.follow_status === 'unfollowed') {
+      current.blocked += 1
+      runningTotal -= 1
+    }
+
+    dateMap.set(date, current)
+  }
+
+  return Array.from(dateMap.entries()).map(([date, data]) => ({
+    date,
+    total: runningTotal,
+    new_friends: data.new,
+    blocked: data.blocked,
   }))
 }
 
@@ -247,32 +269,42 @@ export async function getMessagePerformance(
   const supabase = await createClient()
   const { start, end } = getDateRange(dateRange)
 
-  const { data: stats, error } = await supabase
-    .from('analytics_daily_stats')
-    .select('*')
+  // TODO: Implement analytics_daily_stats table for efficient querying
+  // For now, calculate from messages table
+  const { data: messages, error } = await supabase
+    .from('messages')
+    .select('type, sent_count, delivered_count, read_count, click_count')
     .eq('organization_id', orgId)
-    .gte('date', start.toISOString().split('T')[0])
-    .lte('date', end.toISOString().split('T')[0])
+    .gte('created_at', start.toISOString())
+    .lte('created_at', end.toISOString())
 
   if (error) {
     console.error('Error fetching message performance:', error)
     throw error
   }
 
-  // Aggregate totals
-  const totals = (stats || []).reduce(
-    (acc, stat) => ({
-      sent: acc.sent + (stat.messages_sent || 0),
-      delivered: acc.delivered + (stat.messages_delivered || 0),
-      read: acc.read + (stat.messages_read || 0),
-      clicked: acc.clicked + (stat.messages_clicked || 0),
-      text: acc.text + (stat.text_messages || 0),
-      image: acc.image + (stat.image_messages || 0),
-      video: acc.video + (stat.video_messages || 0),
-      audio: acc.audio + (stat.audio_messages || 0),
-      flex: acc.flex + (stat.flex_messages || 0),
-      template: acc.template + (stat.template_messages || 0),
-    }),
+  // Aggregate totals from messages
+  const totals = (messages || []).reduce(
+    (acc, msg) => {
+      const sent = msg.sent_count || 0
+      const delivered = msg.delivered_count || 0
+      const read = msg.read_count || 0
+      const clicked = msg.click_count || 0
+
+      // Count by type
+      const typeKey = msg.type as 'text' | 'image' | 'video' | 'audio' | 'flex' | 'template'
+      if (typeKey && acc[typeKey] !== undefined) {
+        acc[typeKey] += sent
+      }
+
+      return {
+        ...acc,
+        sent: acc.sent + sent,
+        delivered: acc.delivered + delivered,
+        read: acc.read + read,
+        clicked: acc.clicked + clicked,
+      }
+    },
     { sent: 0, delivered: 0, read: 0, clicked: 0, text: 0, image: 0, video: 0, audio: 0, flex: 0, template: 0 }
   )
 
@@ -289,14 +321,14 @@ export async function getMessagePerformance(
     delivery_rate: Math.round(deliveryRate * 100) / 100,
     read_rate: Math.round(readRate * 100) / 100,
     click_rate: Math.round(clickRate * 100) / 100,
-    by_type: [
-      { type: 'text', count: totals.text, delivered: 0, read: 0, clicked: 0 },
-      { type: 'image', count: totals.image, delivered: 0, read: 0, clicked: 0 },
-      { type: 'video', count: totals.video, delivered: 0, read: 0, clicked: 0 },
-      { type: 'audio', count: totals.audio, delivered: 0, read: 0, clicked: 0 },
-      { type: 'flex', count: totals.flex, delivered: 0, read: 0, clicked: 0 },
-      { type: 'template', count: totals.template, delivered: 0, read: 0, clicked: 0 },
-    ].filter(t => t.count > 0),
+    by_type: ([
+      { type: 'text' as const, count: totals.text, delivered: 0, read: 0, clicked: 0 },
+      { type: 'image' as const, count: totals.image, delivered: 0, read: 0, clicked: 0 },
+      { type: 'video' as const, count: totals.video, delivered: 0, read: 0, clicked: 0 },
+      { type: 'audio' as const, count: totals.audio, delivered: 0, read: 0, clicked: 0 },
+      { type: 'flex' as const, count: totals.flex, delivered: 0, read: 0, clicked: 0 },
+      { type: 'template' as const, count: totals.template, delivered: 0, read: 0, clicked: 0 },
+    ] as const).filter(t => t.count > 0) as Array<{type: 'text' | 'image' | 'video' | 'audio' | 'flex' | 'template', count: number, delivered: number, read: number, clicked: number}>,
   }
 }
 
@@ -319,28 +351,45 @@ export async function getEngagementTrend(
   const supabase = await createClient()
   const { start, end } = getDateRange(dateRange)
 
-  const { data: stats, error } = await supabase
-    .from('analytics_daily_stats')
-    .select('date, messages_sent, messages_delivered, messages_read, messages_clicked')
+  // TODO: Implement analytics_daily_stats table for efficient daily querying
+  // For now, calculate from messages table
+  const { data: messages, error } = await supabase
+    .from('messages')
+    .select('created_at, sent_count, delivered_count, read_count, click_count')
     .eq('organization_id', orgId)
-    .gte('date', start.toISOString().split('T')[0])
-    .lte('date', end.toISOString().split('T')[0])
-    .order('date', { ascending: true })
+    .gte('created_at', start.toISOString())
+    .lte('created_at', end.toISOString())
+    .order('created_at', { ascending: true })
 
   if (error) {
     console.error('Error fetching engagement trend:', error)
     throw error
   }
 
-  const byDay = (stats || []).map((stat) => {
-    const delivered = stat.messages_delivered || 0
-    const interactions = (stat.messages_read || 0) + (stat.messages_clicked || 0)
-    const rate = delivered > 0 ? (interactions / delivered) * 100 : 0
+  // Group by date
+  const dateMap = new Map<string, { sent: number; delivered: number; read: number; clicked: number }>()
+
+  for (const msg of messages || []) {
+    if (!msg.created_at) continue
+    const date = new Date(msg.created_at).toISOString().split('T')[0]
+    const current = dateMap.get(date) || { sent: 0, delivered: 0, read: 0, clicked: 0 }
+
+    current.sent += msg.sent_count || 0
+    current.delivered += msg.delivered_count || 0
+    current.read += msg.read_count || 0
+    current.clicked += msg.click_count || 0
+
+    dateMap.set(date, current)
+  }
+
+  const byDay = Array.from(dateMap.entries()).map(([date, data]) => {
+    const interactions = data.read + data.clicked
+    const rate = data.delivered > 0 ? (interactions / data.delivered) * 100 : 0
 
     return {
-      date: stat.date,
+      date,
       rate: Math.round(rate * 100) / 100,
-      messages_sent: stat.messages_sent || 0,
+      messages_sent: data.sent,
       interactions,
     }
   })
@@ -440,20 +489,18 @@ export async function getTopUrls(limit: number = 10) {
 
   const supabase = await createClient()
 
-  const { data: urls, error } = await supabase
-    .from('url_tracking')
+  const { data: urls, error} = await supabase
+    .from('url_mappings')
     .select(`
       id,
       original_url,
       short_code,
-      custom_slug,
-      campaign_name,
-      total_clicks,
-      unique_clicks,
+      click_count,
+      unique_click_count,
       created_at
     `)
     .eq('organization_id', orgId)
-    .order('total_clicks', { ascending: false })
+    .order('click_count', { ascending: false })
     .limit(limit)
 
   if (error) {
@@ -461,7 +508,16 @@ export async function getTopUrls(limit: number = 10) {
     throw error
   }
 
-  return urls || []
+  return (urls || []).map(url => ({
+    id: url.id,
+    original_url: url.original_url,
+    short_code: url.short_code,
+    custom_slug: null, // url_mappings doesn't have custom_slug
+    campaign_name: null, // url_mappings doesn't have campaign_name
+    total_clicks: url.click_count || 0,
+    unique_clicks: url.unique_click_count || 0,
+    created_at: url.created_at,
+  }))
 }
 
 /**
@@ -592,10 +648,10 @@ export async function getDeviceBreakdown(startDate: string, endDate: string) {
 
   const supabase = await createClient()
 
-  // Get device information from friends
+  // Get device information from LINE friends
   const { data: friends, error } = await supabase
-    .from('friends')
-    .select('metadata')
+    .from('line_friends')
+    .select('custom_fields')
     .eq('organization_id', orgId)
 
   if (error) {
@@ -603,11 +659,11 @@ export async function getDeviceBreakdown(startDate: string, endDate: string) {
     return []
   }
 
-  // Extract device types from metadata
+  // Extract device types from custom_fields
   const deviceMap = new Map<string, number>()
 
   for (const friend of friends || []) {
-    const deviceType = (friend.metadata as any)?.device_type || 'unknown'
+    const deviceType = (friend.custom_fields as any)?.device_type || 'unknown'
     deviceMap.set(deviceType, (deviceMap.get(deviceType) || 0) + 1)
   }
 

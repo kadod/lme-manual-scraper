@@ -7,6 +7,24 @@ import type { RichMenuData } from '@/lib/line/rich-menu-types';
 const LINE_API_BASE = 'https://api.line.me/v2/bot';
 
 /**
+ * Helper to get user's organization ID
+ */
+async function getUserOrganizationId(): Promise<string | null> {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+
+  if (!user) return null;
+
+  const { data: userData } = await supabase
+    .from('users')
+    .select('organization_id')
+    .eq('id', user.id)
+    .single();
+
+  return userData?.organization_id || null;
+}
+
+/**
  * Upload rich menu image to LINE
  */
 export async function uploadRichMenuImage(
@@ -22,12 +40,17 @@ export async function uploadRichMenuImage(
     return { success: false, error: 'Unauthorized' };
   }
 
+  const organizationId = await getUserOrganizationId();
+  if (!organizationId) {
+    return { success: false, error: 'Organization not found' };
+  }
+
   try {
     // Get LINE channel access token
     const { data: channel } = await supabase
       .from('line_channels')
-      .select('access_token')
-      .eq('user_id', user.id)
+      .select('channel_access_token')
+      .eq('organization_id', organizationId)
       .single();
 
     if (!channel) {
@@ -48,7 +71,7 @@ export async function uploadRichMenuImage(
         method: 'POST',
         headers: {
           'Content-Type': 'image/png',
-          Authorization: `Bearer ${channel.access_token}`,
+          Authorization: `Bearer ${channel.channel_access_token}`,
         },
         body: imageBuffer,
       }
@@ -85,12 +108,17 @@ export async function createRichMenu(richMenuData: RichMenuData) {
     return { success: false, error: 'Unauthorized' };
   }
 
+  const organizationId = await getUserOrganizationId();
+  if (!organizationId) {
+    return { success: false, error: 'Organization not found' };
+  }
+
   try {
     // Get LINE channel access token
     const { data: channel } = await supabase
       .from('line_channels')
-      .select('access_token')
-      .eq('user_id', user.id)
+      .select('id, channel_access_token')
+      .eq('organization_id', organizationId)
       .single();
 
     if (!channel) {
@@ -102,7 +130,7 @@ export async function createRichMenu(richMenuData: RichMenuData) {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `Bearer ${channel.access_token}`,
+        Authorization: `Bearer ${channel.channel_access_token}`,
       },
       body: JSON.stringify(richMenuData),
     });
@@ -120,13 +148,14 @@ export async function createRichMenu(richMenuData: RichMenuData) {
 
     // Save to database
     const { error: dbError } = await supabase.from('rich_menus').insert({
-      user_id: user.id,
+      organization_id: organizationId,
+      line_channel_id: channel.id,
       rich_menu_id: richMenuId,
       name: richMenuData.name,
       chat_bar_text: richMenuData.chatBarText,
-      size: richMenuData.size,
-      selected: richMenuData.selected,
-      areas: richMenuData.areas,
+      size_height: richMenuData.size.height,
+      size_width: richMenuData.size.width,
+      image_url: '',
       created_at: new Date().toISOString(),
     });
 
@@ -162,12 +191,17 @@ export async function updateRichMenu(
     return { success: false, error: 'Unauthorized' };
   }
 
+  const organizationId = await getUserOrganizationId();
+  if (!organizationId) {
+    return { success: false, error: 'Organization not found' };
+  }
+
   try {
     // Get LINE channel access token
     const { data: channel } = await supabase
       .from('line_channels')
-      .select('access_token')
-      .eq('user_id', user.id)
+      .select('channel_access_token')
+      .eq('organization_id', organizationId)
       .single();
 
     if (!channel) {
@@ -178,7 +212,7 @@ export async function updateRichMenu(
     await fetch(`${LINE_API_BASE}/richmenu/${richMenuId}`, {
       method: 'DELETE',
       headers: {
-        Authorization: `Bearer ${channel.access_token}`,
+        Authorization: `Bearer ${channel.channel_access_token}`,
       },
     });
 
@@ -187,7 +221,7 @@ export async function updateRichMenu(
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `Bearer ${channel.access_token}`,
+        Authorization: `Bearer ${channel.channel_access_token}`,
       },
       body: JSON.stringify(richMenuData),
     });
@@ -210,9 +244,8 @@ export async function updateRichMenu(
         rich_menu_id: newRichMenuId,
         name: richMenuData.name,
         chat_bar_text: richMenuData.chatBarText,
-        size: richMenuData.size,
-        selected: richMenuData.selected,
-        areas: richMenuData.areas,
+        size_height: richMenuData.size.height,
+        size_width: richMenuData.size.width,
         updated_at: new Date().toISOString(),
       })
       .eq('rich_menu_id', richMenuId);
@@ -246,12 +279,17 @@ export async function deleteRichMenu(richMenuId: string) {
     return { success: false, error: 'Unauthorized' };
   }
 
+  const organizationId = await getUserOrganizationId();
+  if (!organizationId) {
+    return { success: false, error: 'Organization not found' };
+  }
+
   try {
     // Get LINE channel access token
     const { data: channel } = await supabase
       .from('line_channels')
-      .select('access_token')
-      .eq('user_id', user.id)
+      .select('channel_access_token')
+      .eq('organization_id', organizationId)
       .single();
 
     if (!channel) {
@@ -262,7 +300,7 @@ export async function deleteRichMenu(richMenuId: string) {
     const response = await fetch(`${LINE_API_BASE}/richmenu/${richMenuId}`, {
       method: 'DELETE',
       headers: {
-        Authorization: `Bearer ${channel.access_token}`,
+        Authorization: `Bearer ${channel.channel_access_token}`,
       },
     });
 
@@ -309,10 +347,15 @@ export async function getRichMenus() {
     throw new Error('Unauthorized');
   }
 
+  const organizationId = await getUserOrganizationId();
+  if (!organizationId) {
+    throw new Error('Organization not found');
+  }
+
   const { data, error } = await supabase
     .from('rich_menus')
     .select('*')
-    .eq('user_id', user.id)
+    .eq('organization_id', organizationId)
     .order('created_at', { ascending: false });
 
   if (error) {
@@ -336,13 +379,18 @@ export async function duplicateRichMenu(richMenuId: string) {
     return { success: false, error: 'Unauthorized' };
   }
 
+  const organizationId = await getUserOrganizationId();
+  if (!organizationId) {
+    return { success: false, error: 'Organization not found' };
+  }
+
   try {
     // Get original rich menu
     const { data: original } = await supabase
       .from('rich_menus')
       .select('*')
       .eq('rich_menu_id', richMenuId)
-      .eq('user_id', user.id)
+      .eq('organization_id', organizationId)
       .single();
 
     if (!original) {
@@ -352,8 +400,8 @@ export async function duplicateRichMenu(richMenuId: string) {
     // Get LINE channel access token
     const { data: channel } = await supabase
       .from('line_channels')
-      .select('access_token')
-      .eq('user_id', user.id)
+      .select('id, channel_access_token')
+      .eq('organization_id', organizationId)
       .single();
 
     if (!channel) {
@@ -364,16 +412,19 @@ export async function duplicateRichMenu(richMenuId: string) {
     const richMenuData: RichMenuData = {
       name: `${original.name} (コピー)`,
       chatBarText: original.chat_bar_text,
-      size: original.size,
-      selected: original.selected,
-      areas: original.areas,
+      size: {
+        width: original.size_width as 2500,
+        height: original.size_height as 1686 | 843,
+      },
+      selected: false,
+      areas: [],
     };
 
     const response = await fetch(`${LINE_API_BASE}/richmenu`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `Bearer ${channel.access_token}`,
+        Authorization: `Bearer ${channel.channel_access_token}`,
       },
       body: JSON.stringify(richMenuData),
     });
@@ -391,13 +442,14 @@ export async function duplicateRichMenu(richMenuId: string) {
 
     // Save to database
     const { error: dbError } = await supabase.from('rich_menus').insert({
-      user_id: user.id,
+      organization_id: organizationId,
+      line_channel_id: channel.id,
       rich_menu_id: newRichMenuId,
       name: richMenuData.name,
       chat_bar_text: richMenuData.chatBarText,
-      size: richMenuData.size,
-      selected: richMenuData.selected,
-      areas: richMenuData.areas,
+      size_height: richMenuData.size.height,
+      size_width: richMenuData.size.width,
+      image_url: original.image_url || '',
       is_default: false,
       status: 'draft',
       created_at: new Date().toISOString(),
@@ -433,12 +485,17 @@ export async function setDefaultRichMenu(richMenuId: string) {
     return { success: false, error: 'Unauthorized' };
   }
 
+  const organizationId = await getUserOrganizationId();
+  if (!organizationId) {
+    return { success: false, error: 'Organization not found' };
+  }
+
   try {
     // Get LINE channel access token
     const { data: channel } = await supabase
       .from('line_channels')
-      .select('access_token')
-      .eq('user_id', user.id)
+      .select('channel_access_token')
+      .eq('organization_id', organizationId)
       .single();
 
     if (!channel) {
@@ -449,7 +506,7 @@ export async function setDefaultRichMenu(richMenuId: string) {
     const response = await fetch(`${LINE_API_BASE}/user/all/richmenu/${richMenuId}`, {
       method: 'POST',
       headers: {
-        Authorization: `Bearer ${channel.access_token}`,
+        Authorization: `Bearer ${channel.channel_access_token}`,
       },
     });
 
@@ -465,7 +522,7 @@ export async function setDefaultRichMenu(richMenuId: string) {
     await supabase
       .from('rich_menus')
       .update({ is_default: false })
-      .eq('user_id', user.id);
+      .eq('organization_id', organizationId);
 
     // Set this menu as default
     const { error: dbError } = await supabase
@@ -502,12 +559,17 @@ export async function publishRichMenu(richMenuId: string) {
     return { success: false, error: 'Unauthorized' };
   }
 
+  const organizationId = await getUserOrganizationId();
+  if (!organizationId) {
+    return { success: false, error: 'Organization not found' };
+  }
+
   try {
     const { error: dbError } = await supabase
       .from('rich_menus')
       .update({ status: 'published' })
       .eq('rich_menu_id', richMenuId)
-      .eq('user_id', user.id);
+      .eq('organization_id', organizationId);
 
     if (dbError) {
       console.error('Database error:', dbError);
@@ -539,12 +601,17 @@ export async function unpublishRichMenu(richMenuId: string) {
     return { success: false, error: 'Unauthorized' };
   }
 
+  const organizationId = await getUserOrganizationId();
+  if (!organizationId) {
+    return { success: false, error: 'Organization not found' };
+  }
+
   try {
     const { error: dbError } = await supabase
       .from('rich_menus')
       .update({ status: 'unpublished' })
       .eq('rich_menu_id', richMenuId)
-      .eq('user_id', user.id);
+      .eq('organization_id', organizationId);
 
     if (dbError) {
       console.error('Database error:', dbError);
@@ -652,13 +719,18 @@ export async function setAsDefault(richMenuId: string): Promise<DeployResult> {
     return { success: false, error: 'Unauthorized' };
   }
 
+  const organizationId = await getUserOrganizationId();
+  if (!organizationId) {
+    return { success: false, error: 'Organization not found' };
+  }
+
   try {
     // Get rich menu to verify it's deployed
     const { data: richMenu } = await supabase
       .from('rich_menus')
       .select('*')
       .eq('rich_menu_id', richMenuId)
-      .eq('user_id', user.id)
+      .eq('organization_id', organizationId)
       .single();
 
     if (!richMenu) {
@@ -678,8 +750,8 @@ export async function setAsDefault(richMenuId: string): Promise<DeployResult> {
     // Get LINE channel access token
     const { data: channel } = await supabase
       .from('line_channels')
-      .select('access_token')
-      .eq('user_id', user.id)
+      .select('channel_access_token')
+      .eq('organization_id', organizationId)
       .single();
 
     if (!channel) {
@@ -692,7 +764,7 @@ export async function setAsDefault(richMenuId: string): Promise<DeployResult> {
       {
         method: 'POST',
         headers: {
-          Authorization: `Bearer ${channel.access_token}`,
+          Authorization: `Bearer ${channel.channel_access_token}`,
         },
       }
     );
@@ -709,7 +781,7 @@ export async function setAsDefault(richMenuId: string): Promise<DeployResult> {
     await supabase
       .from('rich_menus')
       .update({ is_default: false })
-      .eq('user_id', user.id);
+      .eq('organization_id', organizationId);
 
     // Set this menu as default
     await supabase
@@ -744,13 +816,18 @@ export async function undeployRichMenu(richMenuId: string): Promise<DeployResult
     return { success: false, error: 'Unauthorized' };
   }
 
+  const organizationId = await getUserOrganizationId();
+  if (!organizationId) {
+    return { success: false, error: 'Organization not found' };
+  }
+
   try {
     // Get rich menu
     const { data: richMenu } = await supabase
       .from('rich_menus')
       .select('*')
       .eq('rich_menu_id', richMenuId)
-      .eq('user_id', user.id)
+      .eq('organization_id', organizationId)
       .single();
 
     if (!richMenu) {
@@ -770,8 +847,8 @@ export async function undeployRichMenu(richMenuId: string): Promise<DeployResult
     // Get LINE channel access token
     const { data: channel } = await supabase
       .from('line_channels')
-      .select('access_token')
-      .eq('user_id', user.id)
+      .select('channel_access_token')
+      .eq('organization_id', organizationId)
       .single();
 
     if (!channel) {
@@ -784,7 +861,7 @@ export async function undeployRichMenu(richMenuId: string): Promise<DeployResult
       {
         method: 'DELETE',
         headers: {
-          Authorization: `Bearer ${channel.access_token}`,
+          Authorization: `Bearer ${channel.channel_access_token}`,
         },
       }
     );
@@ -806,7 +883,7 @@ export async function undeployRichMenu(richMenuId: string): Promise<DeployResult
         updated_at: new Date().toISOString(),
       })
       .eq('rich_menu_id', richMenuId)
-      .eq('user_id', user.id);
+      .eq('organization_id', organizationId);
 
     revalidatePath('/dashboard/rich-menus');
 
@@ -837,13 +914,18 @@ export async function linkRichMenuToUser(
     return { success: false, error: 'Unauthorized' };
   }
 
+  const organizationId = await getUserOrganizationId();
+  if (!organizationId) {
+    return { success: false, error: 'Organization not found' };
+  }
+
   try {
     // Get rich menu
     const { data: richMenu } = await supabase
       .from('rich_menus')
       .select('*')
       .eq('rich_menu_id', richMenuId)
-      .eq('user_id', user.id)
+      .eq('organization_id', organizationId)
       .single();
 
     if (!richMenu) {
@@ -863,8 +945,8 @@ export async function linkRichMenuToUser(
     // Get LINE channel access token
     const { data: channel } = await supabase
       .from('line_channels')
-      .select('access_token')
-      .eq('user_id', user.id)
+      .select('channel_access_token')
+      .eq('organization_id', organizationId)
       .single();
 
     if (!channel) {
@@ -877,7 +959,7 @@ export async function linkRichMenuToUser(
       {
         method: 'POST',
         headers: {
-          Authorization: `Bearer ${channel.access_token}`,
+          Authorization: `Bearer ${channel.channel_access_token}`,
         },
       }
     );
@@ -917,12 +999,17 @@ export async function unlinkRichMenuFromUser(
     return { success: false, error: 'Unauthorized' };
   }
 
+  const organizationId = await getUserOrganizationId();
+  if (!organizationId) {
+    return { success: false, error: 'Organization not found' };
+  }
+
   try {
     // Get LINE channel access token
     const { data: channel } = await supabase
       .from('line_channels')
-      .select('access_token')
-      .eq('user_id', user.id)
+      .select('channel_access_token')
+      .eq('organization_id', organizationId)
       .single();
 
     if (!channel) {
@@ -933,7 +1020,7 @@ export async function unlinkRichMenuFromUser(
     const response = await fetch(`${LINE_API_BASE}/user/${lineUserId}/richmenu`, {
       method: 'DELETE',
       headers: {
-        Authorization: `Bearer ${channel.access_token}`,
+        Authorization: `Bearer ${channel.channel_access_token}`,
       },
     });
 

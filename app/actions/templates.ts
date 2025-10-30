@@ -5,8 +5,10 @@ import { TemplatesQueries, TemplateFilters } from '@/lib/supabase/queries/templa
 import { TablesInsert, TablesUpdate } from '@/types/supabase'
 import { DatabaseResult } from '@/lib/errors/database'
 
-type MessageTemplate = TablesInsert<'message_templates'>
-type MessageTemplateUpdate = TablesUpdate<'message_templates'>
+// TODO: Implement message_templates table in database schema
+// Temporarily stub out types and functions
+type MessageTemplate = any
+type MessageTemplateUpdate = any
 
 async function getCurrentUserId(): Promise<string | null> {
   const supabase = await createClient()
@@ -19,21 +21,11 @@ async function getCurrentUserId(): Promise<string | null> {
 export async function getTemplates(
   filters?: TemplateFilters
 ): Promise<DatabaseResult<any[]>> {
-  const userId = await getCurrentUserId()
-  if (!userId) {
-    return {
-      success: false,
-      error: {
-        name: 'DatabaseError',
-        message: 'User not authenticated',
-        code: 'UNAUTHORIZED',
-      } as any,
-    }
+  // TODO: Implement message_templates table
+  return {
+    success: true,
+    data: [],
   }
-
-  const supabase = await createClient()
-  const queries = new TemplatesQueries(supabase)
-  return queries.getTemplates(userId, filters)
 }
 
 export async function getTemplateById(
@@ -51,9 +43,8 @@ export async function getTemplateById(
     }
   }
 
-  const supabase = await createClient()
-  const queries = new TemplatesQueries(supabase)
-  return queries.getTemplateById(templateId, userId)
+  // TODO: Implement message_templates table
+  throw new Error('Message templates feature requires database schema migration. Please create the message_templates table first.')
 }
 
 export async function createTemplate(
@@ -71,9 +62,8 @@ export async function createTemplate(
     }
   }
 
-  const supabase = await createClient()
-  const queries = new TemplatesQueries(supabase)
-  return queries.createTemplate({ ...template, user_id: userId })
+  // TODO: Implement message_templates table
+  throw new Error('Message templates feature requires database schema migration. Please create the message_templates table first.')
 }
 
 export async function updateTemplate(
@@ -92,9 +82,8 @@ export async function updateTemplate(
     }
   }
 
-  const supabase = await createClient()
-  const queries = new TemplatesQueries(supabase)
-  return queries.updateTemplate(templateId, userId, updates)
+  // TODO: Implement message_templates table
+  throw new Error('Message templates feature requires database schema migration. Please create the message_templates table first.')
 }
 
 export async function deleteTemplate(
@@ -112,9 +101,8 @@ export async function deleteTemplate(
     }
   }
 
-  const supabase = await createClient()
-  const queries = new TemplatesQueries(supabase)
-  return queries.deleteTemplate(templateId, userId)
+  // TODO: Implement message_templates table
+  throw new Error('Message templates feature requires database schema migration. Please create the message_templates table first.')
 }
 
 export async function getCategories(): Promise<DatabaseResult<string[]>> {
@@ -130,9 +118,8 @@ export async function getCategories(): Promise<DatabaseResult<string[]>> {
     }
   }
 
-  const supabase = await createClient()
-  const queries = new TemplatesQueries(supabase)
-  return queries.getCategories(userId)
+  // TODO: Implement message_templates table
+  throw new Error('Message templates feature requires database schema migration. Please create the message_templates table first.')
 }
 
 export async function getTemplateCount(): Promise<DatabaseResult<number>> {
@@ -148,9 +135,8 @@ export async function getTemplateCount(): Promise<DatabaseResult<number>> {
     }
   }
 
-  const supabase = await createClient()
-  const queries = new TemplatesQueries(supabase)
-  return queries.getTemplateCount(userId)
+  // TODO: Implement message_templates table
+  throw new Error('Message templates feature requires database schema migration. Please create the message_templates table first.')
 }
 
 export interface ApplyTemplateOptions {

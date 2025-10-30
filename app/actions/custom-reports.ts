@@ -23,13 +23,13 @@ async function getOrganizationId(): Promise<string | null> {
   if (!userId) return null
 
   const supabase = await createClient()
-  const { data: profile } = await supabase
-    .from('profiles')
+  const { data: userData } = await supabase
+    .from('users')
     .select('organization_id')
-    .eq('user_id', userId)
+    .eq('id', userId)
     .single()
 
-  return profile?.organization_id || null
+  return userData?.organization_id || null
 }
 
 /**
@@ -56,18 +56,25 @@ export async function getCustomReports() {
 
   const supabase = await createClient()
 
-  const { data, error } = await supabase
-    .from('custom_reports')
-    .select('*')
-    .eq('organization_id', orgId)
-    .order('created_at', { ascending: false })
+  // TODO: Tables not yet created in database - return empty array for now
+  // Migration file exists at: supabase/migrations/20251030_create_custom_reports.sql
+  // Run migrations to create custom_reports and report_executions tables
 
-  if (error) {
-    console.error('Error fetching custom reports:', error)
-    throw error
-  }
+  return [] as CustomReport[]
 
-  return data as CustomReport[]
+  // Commented out until migrations are run:
+  // const { data, error } = await supabase
+  //   .from('custom_reports')
+  //   .select('*')
+  //   .eq('organization_id', orgId)
+  //   .order('created_at', { ascending: false })
+
+  // if (error) {
+  //   console.error('Error fetching custom reports:', error)
+  //   throw error
+  // }
+
+  // return data as CustomReport[]
 }
 
 /**
@@ -84,21 +91,24 @@ export async function getCustomReport(id: string) {
     throw new Error('Organization not found')
   }
 
-  const supabase = await createClient()
+  // TODO: Tables not yet created - throw error for now
+  throw new Error('Custom reports feature not yet available - database tables pending migration')
 
-  const { data, error } = await supabase
-    .from('custom_reports')
-    .select('*')
-    .eq('id', id)
-    .eq('organization_id', orgId)
-    .single()
+  // Commented out until migrations are run:
+  // const supabase = await createClient()
+  // const { data, error } = await supabase
+  //   .from('custom_reports')
+  //   .select('*')
+  //   .eq('id', id)
+  //   .eq('organization_id', orgId)
+  //   .single()
 
-  if (error) {
-    console.error('Error fetching custom report:', error)
-    throw error
-  }
+  // if (error) {
+  //   console.error('Error fetching custom report:', error)
+  //   throw error
+  // }
 
-  return data as CustomReport
+  // return data as CustomReport
 }
 
 /**
@@ -134,32 +144,35 @@ export async function createCustomReport(
     }
   }
 
-  const supabase = await createClient()
+  // TODO: Tables not yet created - throw error for now
+  throw new Error('Custom reports feature not yet available - database tables pending migration')
 
-  const { data: result, error } = await supabase
-    .from('custom_reports')
-    .insert({
-      organization_id: orgId,
-      name: data.name,
-      description: data.description,
-      status: data.status,
-      format: data.format,
-      date_range: data.dateRange,
-      metrics: data.metrics,
-      schedule: data.schedule,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-    })
-    .select()
-    .single()
+  // Commented out until migrations are run:
+  // const supabase = await createClient()
+  // const { data: result, error } = await supabase
+  //   .from('custom_reports')
+  //   .insert({
+  //     organization_id: orgId,
+  //     name: data.name,
+  //     description: data.description,
+  //     status: data.status,
+  //     format: data.format,
+  //     date_range: data.dateRange,
+  //     metrics: data.metrics,
+  //     schedule: data.schedule,
+  //     created_at: new Date().toISOString(),
+  //     updated_at: new Date().toISOString(),
+  //   })
+  //   .select()
+  //   .single()
 
-  if (error) {
-    console.error('Error creating custom report:', error)
-    throw error
-  }
+  // if (error) {
+  //   console.error('Error creating custom report:', error)
+  //   throw error
+  // }
 
-  revalidatePath('/dashboard/analytics/reports')
-  return result as CustomReport
+  // revalidatePath('/dashboard/analytics/reports')
+  // return result as CustomReport
 }
 
 /**
@@ -179,20 +192,6 @@ export async function updateCustomReport(
     throw new Error('Organization not found')
   }
 
-  const supabase = await createClient()
-
-  // Verify ownership
-  const { data: existing } = await supabase
-    .from('custom_reports')
-    .select('id')
-    .eq('id', id)
-    .eq('organization_id', orgId)
-    .single()
-
-  if (!existing) {
-    throw new Error('Report not found')
-  }
-
   // Validate cron expression if custom frequency
   if (data.schedule?.frequency === 'custom' && data.schedule.cronExpression) {
     if (!validateCronExpression(data.schedule.cronExpression)) {
@@ -210,24 +209,40 @@ export async function updateCustomReport(
     }
   }
 
-  const { data: result, error } = await supabase
-    .from('custom_reports')
-    .update({
-      ...data,
-      updated_at: new Date().toISOString(),
-    })
-    .eq('id', id)
-    .select()
-    .single()
+  // TODO: Tables not yet created - throw error for now
+  throw new Error('Custom reports feature not yet available - database tables pending migration')
 
-  if (error) {
-    console.error('Error updating custom report:', error)
-    throw error
-  }
+  // Commented out until migrations are run:
+  // const supabase = await createClient()
+  // const { data: existing } = await supabase
+  //   .from('custom_reports')
+  //   .select('id')
+  //   .eq('id', id)
+  //   .eq('organization_id', orgId)
+  //   .single()
 
-  revalidatePath('/dashboard/analytics/reports')
-  revalidatePath(`/dashboard/analytics/reports/${id}`)
-  return result as CustomReport
+  // if (!existing) {
+  //   throw new Error('Report not found')
+  // }
+
+  // const { data: result, error } = await supabase
+  //   .from('custom_reports')
+  //   .update({
+  //     ...data,
+  //     updated_at: new Date().toISOString(),
+  //   })
+  //   .eq('id', id)
+  //   .select()
+  //   .single()
+
+  // if (error) {
+  //   console.error('Error updating custom report:', error)
+  //   throw error
+  // }
+
+  // revalidatePath('/dashboard/analytics/reports')
+  // revalidatePath(`/dashboard/analytics/reports/${id}`)
+  // return result as CustomReport
 }
 
 /**
@@ -244,32 +259,34 @@ export async function deleteCustomReport(id: string) {
     throw new Error('Organization not found')
   }
 
-  const supabase = await createClient()
+  // TODO: Tables not yet created - throw error for now
+  throw new Error('Custom reports feature not yet available - database tables pending migration')
 
-  // Verify ownership
-  const { data: existing } = await supabase
-    .from('custom_reports')
-    .select('id')
-    .eq('id', id)
-    .eq('organization_id', orgId)
-    .single()
+  // Commented out until migrations are run:
+  // const supabase = await createClient()
+  // const { data: existing } = await supabase
+  //   .from('custom_reports')
+  //   .select('id')
+  //   .eq('id', id)
+  //   .eq('organization_id', orgId)
+  //   .single()
 
-  if (!existing) {
-    throw new Error('Report not found')
-  }
+  // if (!existing) {
+  //   throw new Error('Report not found')
+  // }
 
-  const { error } = await supabase
-    .from('custom_reports')
-    .delete()
-    .eq('id', id)
+  // const { error } = await supabase
+  //   .from('custom_reports')
+  //   .delete()
+  //   .eq('id', id)
 
-  if (error) {
-    console.error('Error deleting custom report:', error)
-    throw error
-  }
+  // if (error) {
+  //   console.error('Error deleting custom report:', error)
+  //   throw error
+  // }
 
-  revalidatePath('/dashboard/analytics/reports')
-  return { success: true }
+  // revalidatePath('/dashboard/analytics/reports')
+  // return { success: true }
 }
 
 /**
@@ -286,86 +303,78 @@ export async function executeReport(reportId: string) {
     throw new Error('Organization not found')
   }
 
-  const supabase = await createClient()
+  // TODO: Tables not yet created - throw error for now
+  throw new Error('Custom reports feature not yet available - database tables pending migration')
 
-  // Get report configuration
-  const { data: report, error: reportError } = await supabase
-    .from('custom_reports')
-    .select('*')
-    .eq('id', reportId)
-    .eq('organization_id', orgId)
-    .single()
+  // Commented out until migrations are run:
+  // const supabase = await createClient()
+  // const { data: report, error: reportError } = await supabase
+  //   .from('custom_reports')
+  //   .select('*')
+  //   .eq('id', reportId)
+  //   .eq('organization_id', orgId)
+  //   .single()
 
-  if (reportError || !report) {
-    throw new Error('Report not found')
-  }
+  // if (reportError || !report) {
+  //   throw new Error('Report not found')
+  // }
 
-  // Create execution record with 'generating' status
-  const { data: execution, error: executionError } = await supabase
-    .from('report_executions')
-    .insert({
-      report_id: reportId,
-      status: 'generating',
-      generated_at: new Date().toISOString(),
-    })
-    .select()
-    .single()
+  // const { data: execution, error: executionError } = await supabase
+  //   .from('report_executions')
+  //   .insert({
+  //     report_id: reportId,
+  //     status: 'generating',
+  //     generated_at: new Date().toISOString(),
+  //   })
+  //   .select()
+  //   .single()
 
-  if (executionError) {
-    console.error('Error creating report execution:', executionError)
-    throw executionError
-  }
+  // if (executionError) {
+  //   console.error('Error creating report execution:', executionError)
+  //   throw executionError
+  // }
 
-  // In production, this would trigger a background job
-  // For now, simulate the generation
-  try {
-    // Simulate report generation
-    await new Promise(resolve => setTimeout(resolve, 1000))
+  // try {
+  //   await new Promise(resolve => setTimeout(resolve, 1000))
+  //   const fileExtension = report.format === 'excel' ? 'xlsx' : report.format
+  //   const fileUrl = `/reports/${execution.id}.${fileExtension}`
+  //   const fileSize = Math.floor(Math.random() * 1000000) + 100000
 
-    // Generate file URL based on format
-    const fileExtension = report.format === 'excel' ? 'xlsx' : report.format
-    const fileUrl = `/reports/${execution.id}.${fileExtension}`
-    const fileSize = Math.floor(Math.random() * 1000000) + 100000
+  //   const { error: updateError } = await supabase
+  //     .from('report_executions')
+  //     .update({
+  //       status: 'completed',
+  //       file_url: fileUrl,
+  //       file_size: fileSize,
+  //     })
+  //     .eq('id', execution.id)
 
-    // Update execution record with completed status
-    const { error: updateError } = await supabase
-      .from('report_executions')
-      .update({
-        status: 'completed',
-        file_url: fileUrl,
-        file_size: fileSize,
-      })
-      .eq('id', execution.id)
+  //   if (updateError) {
+  //     throw updateError
+  //   }
 
-    if (updateError) {
-      throw updateError
-    }
+  //   await supabase
+  //     .from('custom_reports')
+  //     .update({
+  //       last_generated: new Date().toISOString(),
+  //     })
+  //     .eq('id', reportId)
 
-    // Update report last_generated timestamp
-    await supabase
-      .from('custom_reports')
-      .update({
-        last_generated: new Date().toISOString(),
-      })
-      .eq('id', reportId)
+  // } catch (error) {
+  //   await supabase
+  //     .from('report_executions')
+  //     .update({
+  //       status: 'failed',
+  //       error_message: error instanceof Error ? error.message : 'Unknown error',
+  //     })
+  //     .eq('id', execution.id)
 
-  } catch (error) {
-    // Update execution record with failed status
-    await supabase
-      .from('report_executions')
-      .update({
-        status: 'failed',
-        error_message: error instanceof Error ? error.message : 'Unknown error',
-      })
-      .eq('id', execution.id)
+  //   throw error
+  // }
 
-    throw error
-  }
-
-  revalidatePath('/dashboard/analytics/reports')
-  revalidatePath(`/dashboard/analytics/reports/${reportId}`)
-
-  return execution
+  // revalidatePath('/dashboard/analytics/reports')
+  // revalidatePath(`/dashboard/analytics/reports/${reportId}`)
+  // return execution
 }
 
 /**
@@ -382,33 +391,36 @@ export async function getReportHistory(reportId?: string) {
     throw new Error('Organization not found')
   }
 
-  const supabase = await createClient()
+  // TODO: Tables not yet created - return empty array for now
+  return [] as ReportHistory[]
 
-  let query = supabase
-    .from('report_executions')
-    .select(`
-      *,
-      report:custom_reports (
-        name,
-        format,
-        organization_id
-      )
-    `)
-    .eq('report.organization_id', orgId)
-    .order('generated_at', { ascending: false })
+  // Commented out until migrations are run:
+  // const supabase = await createClient()
+  // let query = supabase
+  //   .from('report_executions')
+  //   .select(`
+  //     *,
+  //     report:custom_reports (
+  //       name,
+  //       format,
+  //       organization_id
+  //     )
+  //   `)
+  //   .eq('report.organization_id', orgId)
+  //   .order('generated_at', { ascending: false })
 
-  if (reportId) {
-    query = query.eq('report_id', reportId)
-  }
+  // if (reportId) {
+  //   query = query.eq('report_id', reportId)
+  // }
 
-  const { data, error } = await query
+  // const { data, error } = await query
 
-  if (error) {
-    console.error('Error fetching report history:', error)
-    throw error
-  }
+  // if (error) {
+  //   console.error('Error fetching report history:', error)
+  //   throw error
+  // }
 
-  return (data || []) as ReportHistory[]
+  // return (data || []) as ReportHistory[]
 }
 
 /**
@@ -425,40 +437,40 @@ export async function downloadReport(executionId: string, format: ReportFormat) 
     throw new Error('Organization not found')
   }
 
-  const supabase = await createClient()
+  // TODO: Tables not yet created - throw error for now
+  throw new Error('Custom reports feature not yet available - database tables pending migration')
 
-  // Get execution details with ownership verification
-  const { data: execution, error: executionError } = await supabase
-    .from('report_executions')
-    .select(`
-      *,
-      report:custom_reports (
-        name,
-        organization_id
-      )
-    `)
-    .eq('id', executionId)
-    .single()
+  // Commented out until migrations are run:
+  // const supabase = await createClient()
+  // const { data: execution, error: executionError } = await supabase
+  //   .from('report_executions')
+  //   .select(`
+  //     *,
+  //     report:custom_reports (
+  //       name,
+  //       organization_id
+  //     )
+  //   `)
+  //   .eq('id', executionId)
+  //   .single()
 
-  if (executionError || !execution) {
-    throw new Error('Report execution not found')
-  }
+  // if (executionError || !execution) {
+  //   throw new Error('Report execution not found')
+  // }
 
-  // Verify organization ownership
-  if (execution.report?.organization_id !== orgId) {
-    throw new Error('Unauthorized access to report')
-  }
+  // if (execution.report?.organization_id !== orgId) {
+  //   throw new Error('Unauthorized access to report')
+  // }
 
-  // Check if execution is completed
-  if (execution.status !== 'completed') {
-    throw new Error('Report execution not completed')
-  }
+  // if (execution.status !== 'completed') {
+  //   throw new Error('Report execution not completed')
+  // }
 
-  return {
-    fileUrl: execution.file_url,
-    fileName: `${execution.report?.name || 'report'}-${executionId}.${format === 'excel' ? 'xlsx' : format}`,
-    format,
-  }
+  // return {
+  //   fileUrl: execution.file_url,
+  //   fileName: `${execution.report?.name || 'report'}-${executionId}.${format === 'excel' ? 'xlsx' : format}`,
+  //   format,
+  // }
 }
 
 /**
@@ -475,47 +487,48 @@ export async function duplicateCustomReport(id: string): Promise<CustomReport> {
     throw new Error('Organization not found')
   }
 
-  const supabase = await createClient()
+  // TODO: Tables not yet created - throw error for now
+  throw new Error('Custom reports feature not yet available - database tables pending migration')
 
-  // Fetch original report
-  const { data: original, error: fetchError } = await supabase
-    .from('custom_reports')
-    .select('*')
-    .eq('id', id)
-    .eq('organization_id', orgId)
-    .single()
+  // Commented out until migrations are run:
+  // const supabase = await createClient()
+  // const { data: original, error: fetchError } = await supabase
+  //   .from('custom_reports')
+  //   .select('*')
+  //   .eq('id', id)
+  //   .eq('organization_id', orgId)
+  //   .single()
 
-  if (fetchError || !original) {
-    throw new Error('Report not found')
-  }
+  // if (fetchError || !original) {
+  //   throw new Error('Report not found')
+  // }
 
-  // Create duplicate with modified name
-  const { data: duplicate, error: createError } = await supabase
-    .from('custom_reports')
-    .insert({
-      organization_id: orgId,
-      name: `${original.name} (Copy)`,
-      description: original.description,
-      status: 'draft',
-      format: original.format,
-      date_range: original.date_range,
-      metrics: original.metrics,
-      schedule: null, // Don't copy schedule
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-      last_generated: null,
-      next_scheduled: null,
-    })
-    .select()
-    .single()
+  // const { data: duplicate, error: createError } = await supabase
+  //   .from('custom_reports')
+  //   .insert({
+  //     organization_id: orgId,
+  //     name: `${original.name} (Copy)`,
+  //     description: original.description,
+  //     status: 'draft',
+  //     format: original.format,
+  //     date_range: original.date_range,
+  //     metrics: original.metrics,
+  //     schedule: null,
+  //     created_at: new Date().toISOString(),
+  //     updated_at: new Date().toISOString(),
+  //     last_generated: null,
+  //     next_scheduled: null,
+  //   })
+  //   .select()
+  //   .single()
 
-  if (createError) {
-    console.error('Error duplicating report:', createError)
-    throw createError
-  }
+  // if (createError) {
+  //   console.error('Error duplicating report:', createError)
+  //   throw createError
+  // }
 
-  revalidatePath('/dashboard/analytics/reports')
-  return duplicate as CustomReport
+  // revalidatePath('/dashboard/analytics/reports')
+  // return duplicate as CustomReport
 }
 
 /**

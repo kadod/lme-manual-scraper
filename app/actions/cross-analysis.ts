@@ -88,9 +88,9 @@ async function analyzeDateVsFriends(
   const endDate = filters?.dateTo || new Date().toISOString()
 
   const { data: friends } = await supabase
-    .from('friends')
+    .from('line_friends')
     .select('created_at')
-    .eq('user_id', userId)
+    .eq('organization_id', userId)
     .gte('created_at', startDate)
     .lte('created_at', endDate)
 
@@ -102,9 +102,9 @@ async function analyzeDateVsFriends(
   }, {})
 
   return Object.entries(byDate)
-    .map(([date, count]) => ({
+    .map(([date, count]): { x_value: string; y_value: number } => ({
       x_value: date,
-      y_value: count,
+      y_value: count as number,
     }))
     .sort((a, b) => a.x_value.localeCompare(b.x_value))
 }
@@ -120,7 +120,7 @@ async function analyzeDateVsMessages(
   let query = supabase
     .from('messages')
     .select('created_at, type')
-    .eq('user_id', userId)
+    .eq('organization_id', userId)
     .gte('created_at', startDate)
     .lte('created_at', endDate)
 
@@ -138,9 +138,9 @@ async function analyzeDateVsMessages(
   }, {})
 
   return Object.entries(byDate)
-    .map(([date, count]) => ({
+    .map(([date, count]): { x_value: string; y_value: number } => ({
       x_value: date,
-      y_value: count,
+      y_value: count as number,
     }))
     .sort((a, b) => a.x_value.localeCompare(b.x_value))
 }
@@ -156,7 +156,7 @@ async function analyzeDateVsDeliveryRate(
   const { data: messages } = await supabase
     .from('messages')
     .select('id, created_at')
-    .eq('user_id', userId)
+    .eq('organization_id', userId)
     .gte('created_at', startDate)
     .lte('created_at', endDate)
 
@@ -185,12 +185,14 @@ async function analyzeDateVsDeliveryRate(
   }, {})
 
   return Object.entries(byDate)
-    .map(([date, stats]) => ({
+    .map(([date, stats]): { x_value: string; y_value: number; metadata: Record<string, unknown> } => ({
       x_value: date,
-      y_value: stats.sent > 0 ? Math.round((stats.delivered / stats.sent) * 100) : 0,
+      y_value: (stats as { sent: number; delivered: number }).sent > 0
+        ? Math.round(((stats as { sent: number; delivered: number }).delivered / (stats as { sent: number; delivered: number }).sent) * 100)
+        : 0,
       metadata: {
-        sent: stats.sent,
-        delivered: stats.delivered,
+        sent: (stats as { sent: number; delivered: number }).sent,
+        delivered: (stats as { sent: number; delivered: number }).delivered,
       },
     }))
     .sort((a, b) => a.x_value.localeCompare(b.x_value))
@@ -207,7 +209,7 @@ async function analyzeDateVsEngagement(
   const { data: messages } = await supabase
     .from('messages')
     .select('id, created_at')
-    .eq('user_id', userId)
+    .eq('organization_id', userId)
     .gte('created_at', startDate)
     .lte('created_at', endDate)
 
@@ -238,12 +240,14 @@ async function analyzeDateVsEngagement(
   }, {})
 
   return Object.entries(byDate)
-    .map(([date, stats]) => ({
+    .map(([date, stats]): { x_value: string; y_value: number; metadata: Record<string, unknown> } => ({
       x_value: date,
-      y_value: stats.delivered > 0 ? Math.round((stats.engaged / stats.delivered) * 100) : 0,
+      y_value: (stats as { delivered: number; engaged: number }).delivered > 0
+        ? Math.round(((stats as { delivered: number; engaged: number }).engaged / (stats as { delivered: number; engaged: number }).delivered) * 100)
+        : 0,
       metadata: {
-        delivered: stats.delivered,
-        engaged: stats.engaged,
+        delivered: (stats as { delivered: number; engaged: number }).delivered,
+        engaged: (stats as { delivered: number; engaged: number }).engaged,
       },
     }))
     .sort((a, b) => a.x_value.localeCompare(b.x_value))
@@ -260,10 +264,10 @@ async function analyzeTagVsFriends(
       id,
       name,
       friend_tags (
-        friend_id
+        line_friend_id
       )
     `)
-    .eq('user_id', userId)
+    .eq('organization_id', userId)
 
   if (filters?.tags && filters.tags.length > 0) {
     query = query.in('id', filters.tags)
@@ -288,7 +292,7 @@ async function analyzeTagVsMessages(
   const { data: tags } = await supabase
     .from('tags')
     .select('id, name')
-    .eq('user_id', userId)
+    .eq('organization_id', userId)
 
   if (!tags || tags.length === 0) {
     return []
@@ -298,7 +302,7 @@ async function analyzeTagVsMessages(
   const { data: messages } = await supabase
     .from('messages')
     .select('id, target_type, target_ids')
-    .eq('user_id', userId)
+    .eq('organization_id', userId)
     .eq('target_type', 'tags')
 
   const tagMessageCount = (messages || []).reduce((acc: Record<string, number>, message: any) => {
@@ -329,7 +333,7 @@ async function analyzeMessageTypeVsDeliveryRate(
   const { data: messages } = await supabase
     .from('messages')
     .select('id, type')
-    .eq('user_id', userId)
+    .eq('organization_id', userId)
     .gte('created_at', startDate)
     .lte('created_at', endDate)
 
@@ -357,12 +361,14 @@ async function analyzeMessageTypeVsDeliveryRate(
     return acc
   }, {})
 
-  return Object.entries(byType).map(([type, stats]) => ({
+  return Object.entries(byType).map(([type, stats]): { x_value: string; y_value: number; metadata: Record<string, unknown> } => ({
     x_value: type,
-    y_value: stats.sent > 0 ? Math.round((stats.delivered / stats.sent) * 100) : 0,
+    y_value: (stats as { sent: number; delivered: number }).sent > 0
+      ? Math.round(((stats as { sent: number; delivered: number }).delivered / (stats as { sent: number; delivered: number }).sent) * 100)
+      : 0,
     metadata: {
-      sent: stats.sent,
-      delivered: stats.delivered,
+      sent: (stats as { sent: number; delivered: number }).sent,
+      delivered: (stats as { sent: number; delivered: number }).delivered,
     },
   }))
 }
@@ -378,7 +384,7 @@ async function analyzeMessageTypeVsEngagement(
   const { data: messages } = await supabase
     .from('messages')
     .select('id, type')
-    .eq('user_id', userId)
+    .eq('organization_id', userId)
     .gte('created_at', startDate)
     .lte('created_at', endDate)
 
@@ -406,12 +412,14 @@ async function analyzeMessageTypeVsEngagement(
     return acc
   }, {})
 
-  return Object.entries(byType).map(([type, stats]) => ({
+  return Object.entries(byType).map(([type, stats]): { x_value: string; y_value: number; metadata: Record<string, unknown> } => ({
     x_value: type,
-    y_value: stats.delivered > 0 ? Math.round((stats.engaged / stats.delivered) * 100) : 0,
+    y_value: (stats as { delivered: number; engaged: number }).delivered > 0
+      ? Math.round(((stats as { delivered: number; engaged: number }).engaged / (stats as { delivered: number; engaged: number }).delivered) * 100)
+      : 0,
     metadata: {
-      delivered: stats.delivered,
-      engaged: stats.engaged,
+      delivered: (stats as { delivered: number; engaged: number }).delivered,
+      engaged: (stats as { delivered: number; engaged: number }).engaged,
     },
   }))
 }
@@ -423,8 +431,8 @@ async function analyzeSegmentVsFriends(
 ): Promise<{ x_value: string; y_value: number; metadata?: Record<string, unknown> }[]> {
   let query = supabase
     .from('segments')
-    .select('id, name, conditions')
-    .eq('user_id', userId)
+    .select('id, name')
+    .eq('organization_id', userId)
 
   if (filters?.segments && filters.segments.length > 0) {
     query = query.in('id', filters.segments)
@@ -440,10 +448,9 @@ async function analyzeSegmentVsFriends(
   // This is a simplified implementation
   return segments.map((segment: any) => ({
     x_value: segment.name,
-    y_value: 0, // Would need segment evaluation logic
+    y_value: segment.estimated_count || 0,
     metadata: {
       segment_id: segment.id,
-      conditions: segment.conditions,
     },
   }))
 }
@@ -456,7 +463,7 @@ async function analyzeSegmentVsMessages(
   const { data: segments } = await supabase
     .from('segments')
     .select('id, name')
-    .eq('user_id', userId)
+    .eq('organization_id', userId)
 
   if (!segments || segments.length === 0) {
     return []
@@ -465,7 +472,7 @@ async function analyzeSegmentVsMessages(
   const { data: messages } = await supabase
     .from('messages')
     .select('id, target_type, target_ids')
-    .eq('user_id', userId)
+    .eq('organization_id', userId)
     .eq('target_type', 'segment')
 
   const segmentMessageCount = (messages || []).reduce((acc: Record<string, number>, message: any) => {

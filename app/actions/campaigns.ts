@@ -48,10 +48,14 @@ export async function createCampaign(
     const { data: campaign, error: campaignError } = await supabase
       .from('step_campaigns')
       .insert({
-        ...campaignData,
         organization_id: userData.organization_id,
         created_by: user.id,
         status: 'draft',
+        name: campaignData.name,
+        description: campaignData.description,
+        trigger_type: campaignData.trigger_type,
+        trigger_config: campaignData.trigger_config as any,
+        line_channel_id: campaignData.line_channel_id,
       })
       .select()
       .single()
@@ -61,14 +65,20 @@ export async function createCampaign(
       return { error: campaignError.message }
     }
 
-    // Create campaign steps
+    // Create campaign steps - cast Json fields
     const stepsWithCampaignId = steps.map(step => ({
-      ...step,
       step_campaign_id: campaign.id,
+      step_number: step.step_number,
+      name: step.name,
+      delay_value: step.delay_value,
+      delay_unit: step.delay_unit,
+      message_type: step.message_type,
+      message_content: step.message_content as any,
+      condition: step.condition as any,
     }))
 
     const { error: stepsError } = await supabase
-      .from('step_campaign_steps')
+      .from('campaign_steps')
       .insert(stepsWithCampaignId)
 
     if (stepsError) {
@@ -94,10 +104,15 @@ export async function updateCampaign(
   const supabase = await createClient()
 
   try {
-    // Update campaign
+    // Update campaign - cast trigger_config to Json
+    const updateData: any = {
+      ...campaignData,
+      trigger_config: campaignData.trigger_config as any,
+    }
+
     const { data: campaign, error: campaignError } = await supabase
       .from('step_campaigns')
-      .update(campaignData)
+      .update(updateData)
       .eq('id', campaignId)
       .select()
       .single()
@@ -110,18 +125,24 @@ export async function updateCampaign(
     if (steps) {
       // Delete existing steps
       await supabase
-        .from('step_campaign_steps')
+        .from('campaign_steps')
         .delete()
         .eq('step_campaign_id', campaignId)
 
-      // Insert new steps
+      // Insert new steps - cast Json fields
       const stepsWithCampaignId = steps.map(step => ({
-        ...step,
         step_campaign_id: campaignId,
+        step_number: step.step_number,
+        name: step.name,
+        delay_value: step.delay_value,
+        delay_unit: step.delay_unit,
+        message_type: step.message_type,
+        message_content: step.message_content as any,
+        condition: step.condition as any,
       }))
 
       const { error: stepsError } = await supabase
-        .from('step_campaign_steps')
+        .from('campaign_steps')
         .insert(stepsWithCampaignId)
 
       if (stepsError) {
@@ -230,7 +251,7 @@ export async function duplicateCampaign(campaignId: string) {
     // Get original campaign
     const { data: originalCampaign, error: campaignError } = await supabase
       .from('step_campaigns')
-      .select('*, step_campaign_steps(*)')
+      .select('*, campaign_steps(*)')
       .eq('id', campaignId)
       .single()
 
@@ -258,20 +279,20 @@ export async function duplicateCampaign(campaignId: string) {
       return { error: newCampaignError.message }
     }
 
-    // Copy steps
-    const newSteps = originalCampaign.step_campaign_steps.map((step: CampaignStepInput) => ({
+    // Copy steps - cast Json fields
+    const newSteps = originalCampaign.campaign_steps.map((step: any) => ({
       step_campaign_id: newCampaign.id,
       step_number: step.step_number,
       name: step.name,
       delay_value: step.delay_value,
       delay_unit: step.delay_unit,
       message_type: step.message_type,
-      message_content: step.message_content,
-      condition: step.condition,
+      message_content: step.message_content as any,
+      condition: step.condition as any,
     }))
 
     const { error: stepsError } = await supabase
-      .from('step_campaign_steps')
+      .from('campaign_steps')
       .insert(newSteps)
 
     if (stepsError) {
