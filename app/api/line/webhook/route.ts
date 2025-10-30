@@ -319,16 +319,22 @@ export async function POST(request: NextRequest) {
       eventTypes: body.events?.map(e => e.type) || []
     })
 
-    if (!body.destination || !body.events || body.events.length === 0) {
+    // LINE verification requests have empty events array - this is valid
+    if (!body.destination || !body.events) {
       console.error('Invalid webhook payload:', {
         hasDestination: !!body.destination,
-        hasEvents: !!body.events,
-        eventsLength: body.events?.length || 0
+        hasEvents: !!body.events
       })
       return NextResponse.json(
         { error: 'Invalid webhook payload' },
         { status: 400 }
       )
+    }
+
+    // If events array is empty, it's a verification request - just return success
+    if (body.events.length === 0) {
+      console.log('Webhook verification request received')
+      return NextResponse.json({ success: true })
     }
 
     // Get LINE channel configuration
