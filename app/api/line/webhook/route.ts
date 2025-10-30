@@ -57,16 +57,17 @@ function verifySignature(body: string, signature: string, channelSecret: string)
 }
 
 /**
- * Get LINE channel credentials for organization
+ * Get first active LINE channel (assuming one channel per organization)
  */
-async function getLineChannel(destinationId: string) {
+async function getFirstActiveChannel() {
   const supabase = await createClient()
 
   const { data: channel, error } = await supabase
     .from('line_channels')
     .select('*')
-    .eq('channel_id', destinationId)
     .eq('status', 'active')
+    .order('created_at', { ascending: false })
+    .limit(1)
     .single()
 
   if (error || !channel) {
@@ -337,14 +338,15 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: true })
     }
 
-    // Get LINE channel configuration
+    // Get LINE channel configuration (first active channel)
     let lineChannel
     try {
-      lineChannel = await getLineChannel(body.destination)
+      lineChannel = await getFirstActiveChannel()
       console.log('LINE channel found:', {
         id: lineChannel.id,
         name: lineChannel.name,
-        organizationId: lineChannel.organization_id
+        organizationId: lineChannel.organization_id,
+        destination: body.destination
       })
     } catch (error) {
       console.error('Failed to get LINE channel:', error)
