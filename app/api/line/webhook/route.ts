@@ -132,7 +132,7 @@ async function handleFollowEvent(
     await supabase
       .from('line_friends')
       .update({
-        follow_status: 'active',
+        follow_status: 'following',
         display_name: profile?.displayName || 'Unknown',
         picture_url: profile?.pictureUrl || null,
         status_message: profile?.statusMessage || null,
@@ -151,7 +151,7 @@ async function handleFollowEvent(
         display_name: profile?.displayName || 'Unknown',
         picture_url: profile?.pictureUrl || null,
         status_message: profile?.statusMessage || null,
-        follow_status: 'active',
+        follow_status: 'following',
         first_followed_at: timestamp,
         last_followed_at: timestamp,
         last_interaction_at: timestamp
@@ -224,7 +224,7 @@ async function handleMessageEvent(
         display_name: profile?.displayName || 'Unknown User',
         picture_url: profile?.pictureUrl || null,
         status_message: profile?.statusMessage || null,
-        follow_status: 'active',
+        follow_status: 'following',
         first_followed_at: timestamp,
         last_followed_at: timestamp,
         last_interaction_at: timestamp
