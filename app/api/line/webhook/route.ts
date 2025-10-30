@@ -62,6 +62,7 @@ function verifySignature(body: string, signature: string, channelSecret: string)
 async function getFirstActiveChannel() {
   const supabase = await createClient()
 
+  console.log('Querying for active LINE channels...')
   const { data: channel, error } = await supabase
     .from('line_channels')
     .select('*')
@@ -70,7 +71,10 @@ async function getFirstActiveChannel() {
     .limit(1)
     .single()
 
+  console.log('Query result:', { channel, error })
+
   if (error || !channel) {
+    console.error('Failed to find active channel:', error)
     throw new Error('LINE channel not found or inactive')
   }
 
