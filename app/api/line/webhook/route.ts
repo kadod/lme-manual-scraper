@@ -10,7 +10,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
+import { createServiceRoleClient } from '@/lib/supabase/server'
 import crypto from 'crypto'
 
 interface LineWebhookEvent {
@@ -60,7 +60,7 @@ function verifySignature(body: string, signature: string, channelSecret: string)
  * Get first active LINE channel (assuming one channel per organization)
  */
 async function getFirstActiveChannel() {
-  const supabase = await createClient()
+  const supabase = createServiceRoleClient()
 
   console.log('Querying for active LINE channels...')
   const { data: channel, error } = await supabase
@@ -113,7 +113,7 @@ async function handleFollowEvent(
 ) {
   if (!event.source.userId) return
 
-  const supabase = await createClient()
+  const supabase = createServiceRoleClient()
   const userId = event.source.userId
 
   // Get user profile from LINE
@@ -167,7 +167,7 @@ async function handleUnfollowEvent(
 ) {
   if (!event.source.userId) return
 
-  const supabase = await createClient()
+  const supabase = createServiceRoleClient()
   const userId = event.source.userId
 
   await supabase
@@ -192,7 +192,7 @@ async function handleMessageEvent(
 ) {
   if (!event.source.userId || !event.message) return
 
-  const supabase = await createClient()
+  const supabase = createServiceRoleClient()
   const userId = event.source.userId
   const message = event.message
 
@@ -282,7 +282,7 @@ async function logWebhookEvent(
   status: 'success' | 'error',
   errorMessage?: string
 ) {
-  const supabase = await createClient()
+  const supabase = createServiceRoleClient()
 
   await supabase
     .from('webhook_logs')
