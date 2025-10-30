@@ -196,8 +196,8 @@ async function handleMessageEvent(
   const userId = event.source.userId
   const message = event.message
 
-  // Get or create conversation
-  const { data: friend } = await supabase
+  // Get or create friend
+  let { data: friend } = await supabase
     .from('line_friends')
     .select('id')
     .eq('line_channel_id', lineChannel.id)
@@ -205,8 +205,34 @@ async function handleMessageEvent(
     .single()
 
   if (!friend) {
-    console.error('Friend not found for message event')
-    return
+    console.log('Friend not found, auto-creating friend record for:', userId)
+
+    // Get user profile from LINE
+    const profile = await getLineProfile(userId, lineChannel.channel_access_token)
+
+    // Auto-create friend record
+    const { data: newFriend, error: friendError } = await supabase
+      .from('line_friends')
+      .insert({
+        organization_id: lineChannel.organization_id,
+        line_channel_id: lineChannel.id,
+        line_user_id: userId,
+        display_name: profile?.displayName || 'Unknown User',
+        picture_url: profile?.pictureUrl || null,
+        status_message: profile?.statusMessage || null,
+        follow_status: 'active',
+        followed_at: new Date(event.timestamp).toISOString()
+      })
+      .select('id')
+      .single()
+
+    if (friendError || !newFriend) {
+      console.error('Failed to create friend record:', friendError)
+      return
+    }
+
+    friend = newFriend
+    console.log('Friend record created successfully:', friend.id)
   }
 
   // Find or create conversation
